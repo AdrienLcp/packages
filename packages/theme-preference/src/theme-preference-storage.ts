@@ -1,3 +1,9 @@
+import {
+  readRecognizedText,
+  removeStored,
+  writeStoredText
+} from '@adrienlcp/safe-storage'
+
 import { isColorScheme, type ThemePreference } from './theme-preference.ts'
 
 /**
@@ -8,13 +14,14 @@ import { isColorScheme, type ThemePreference } from './theme-preference.ts'
 export const readStoredThemePreference = (
   storageKey: string
 ): ThemePreference => {
-  try {
-    const stored = localStorage.getItem(storageKey)
+  const stored = readRecognizedText({
+    isRecognized: isColorScheme,
+    key: storageKey
+  })
 
-    return isColorScheme(stored) ? stored : 'system'
-  } catch {
-    return 'system'
-  }
+  return stored.status === 'success' && stored.data !== null
+    ? stored.data
+    : 'system'
 }
 
 /**
@@ -28,11 +35,9 @@ export const writeStoredThemePreference = ({
   preference: ThemePreference
   storageKey: string
 }): void => {
-  try {
-    if (preference === 'system') {
-      localStorage.removeItem(storageKey)
-    } else {
-      localStorage.setItem(storageKey, preference)
-    }
-  } catch {}
+  if (preference === 'system') {
+    removeStored(storageKey)
+  } else {
+    writeStoredText({ key: storageKey, text: preference })
+  }
 }

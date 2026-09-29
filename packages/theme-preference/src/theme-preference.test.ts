@@ -113,6 +113,23 @@ describe('storage', () => {
 
     expect(readStoredThemePreference(STORAGE_KEY)).toBe('system')
   })
+
+  it('[storage] a value this version does not know reads as system', () => {
+    localStorage.setItem(STORAGE_KEY, 'sepia')
+
+    expect(readStoredThemePreference(STORAGE_KEY)).toBe('system')
+  })
+
+  it('[storage] a storage that refuses writes keeps the choice for this page view', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('SecurityError')
+    })
+    const store = createThemePreferenceStore({ storageKey: STORAGE_KEY })
+
+    expect(() => store.setPreference('dark')).not.toThrow()
+    expect(store.getPreference()).toBe('dark')
+    expect(paintedState().dataTheme).toBe('dark')
+  })
 })
 
 describe('store', () => {

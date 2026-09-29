@@ -1,7 +1,8 @@
 # @adrienlcp/theme-preference
 
 Light, dark or system theme: no flash of the wrong palette on load, and a
-browser toolbar that follows the choice. Zero dependencies.
+browser toolbar that follows the choice. No third-party dependency: storage goes
+through [`@adrienlcp/safe-storage`](https://github.com/AdrienLcp/packages/tree/main/packages/safe-storage).
 
 The detail most theme switchers miss: a phone paints its address bar from
 `<meta name="theme-color">`. Those tags ship scoped to
