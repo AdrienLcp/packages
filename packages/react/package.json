@@ -1,0 +1,44 @@
+{
+  "author": "Adrien Lacourpaille",
+  "bugs": "https://github.com/AdrienLcp/packages/issues",
+  "description": "A React context that says which provider is missing, and a className merge for react-aria components",
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "homepage": "https://github.com/AdrienLcp/packages/tree/main/packages/react#readme",
+  "keywords": [
+    "context",
+    "react",
+    "react-aria",
+    "typescript"
+  ],
+  "license": "MIT",
+  "name": "@adrienlcp/react",
+  "peerDependencies": {
+    "react": ">=19"
+  },
+  "repository": {
+    "directory": "packages/react",
+    "type": "git",
+    "url": "git+https://github.com/AdrienLcp/packages.git"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "pnpm build",
+    "test": "vitest run",
+    "test:watch": "vitest --watch"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "version": "0.1.0"
+}

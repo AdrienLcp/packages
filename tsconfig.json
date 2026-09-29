@@ -24,6 +24,7 @@
   "exclude": [
     "**/dist",
     "packages/browser",
+    "packages/react",
     "packages/safe-storage",
     "packages/theme-preference"
   ],

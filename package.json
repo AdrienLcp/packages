@@ -24,7 +24,7 @@
     "preinstall": "git config core.hooksPath .githooks || true",
     "release": "pnpm build && changeset publish",
     "test": "pnpm -r test",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p packages/browser && tsc --noEmit -p packages/safe-storage && tsc --noEmit -p packages/theme-preference",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p packages/browser && tsc --noEmit -p packages/react && tsc --noEmit -p packages/safe-storage && tsc --noEmit -p packages/theme-preference",
     "validate": "pnpm build && pnpm typecheck && pnpm lint:ci && pnpm test"
   },
   "type": "module",

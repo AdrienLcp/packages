@@ -7,6 +7,7 @@ each one typed as far as the compiler lets it go.
 | --- | --- |
 | [`@adrienlcp/browser`](packages/browser) | Browser calls that hide a trap: a clipboard copy that works over plain HTTP, a wake lock that survives the tab going away, the reduced-motion preference |
 | [`@adrienlcp/i18n`](packages/i18n) | A typed translation library in five files, built on `Intl`: a message's arguments are read off the message at compile time |
+| [`@adrienlcp/react`](packages/react) | A React context that names its missing provider, and a className merge for react-aria |
 | [`@adrienlcp/result`](packages/result) | A success-or-failure value with no exceptions and no nulls |
 | [`@adrienlcp/safe-storage`](packages/safe-storage) | `localStorage` that never throws: every call returns a `Result`, and typed reads check what they find |
 | [`@adrienlcp/theme-preference`](packages/theme-preference) | Light, dark or system theme with no flash on load, and a browser toolbar that follows the choice |
