@@ -1,0 +1,34 @@
+{
+  "author": "Adrien Lacourpaille",
+  "bugs": "https://github.com/AdrienLcp/packages/issues",
+  "description": "A success-or-failure value with no exceptions and no nulls",
+  "exports": {
+    ".": "./dist/result.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "homepage": "https://github.com/AdrienLcp/packages/tree/main/packages/result#readme",
+  "keywords": [
+    "error-handling",
+    "result",
+    "typescript"
+  ],
+  "license": "MIT",
+  "name": "@adrienlcp/result",
+  "repository": {
+    "directory": "packages/result",
+    "type": "git",
+    "url": "git+https://github.com/AdrienLcp/packages.git"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "pnpm build",
+    "test": "vitest run",
+    "test:watch": "vitest --watch"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "version": "0.1.0"
+}

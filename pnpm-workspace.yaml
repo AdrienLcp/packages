@@ -1,0 +1,10 @@
+packages:
+  - packages/*
+
+# Fail the install when a dependency declares an engine this machine cannot
+# satisfy. It says nothing about the root project's own "engines": pnpm 12
+# dropped that check. What still guards pnpm is the "packageManager" pin.
+engineStrict: true
+
+publicHoistPattern:
+  - '@biomejs/*'

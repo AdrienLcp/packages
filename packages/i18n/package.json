@@ -1,0 +1,36 @@
+{
+  "author": "Adrien Lacourpaille",
+  "bugs": "https://github.com/AdrienLcp/packages/issues",
+  "description": "A typed i18n library in five files, with no dependencies, built on Intl",
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "documentation.md"
+  ],
+  "homepage": "https://github.com/AdrienLcp/packages/tree/main/packages/i18n#readme",
+  "keywords": [
+    "i18n",
+    "intl",
+    "translation",
+    "typescript"
+  ],
+  "license": "MIT",
+  "name": "@adrienlcp/i18n",
+  "repository": {
+    "directory": "packages/i18n",
+    "type": "git",
+    "url": "git+https://github.com/AdrienLcp/packages.git"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "pnpm build",
+    "test": "vitest run",
+    "test:watch": "vitest --watch"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "version": "0.1.0"
+}
