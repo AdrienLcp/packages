@@ -4,6 +4,7 @@
     "packages/browser",
     "packages/react",
     "packages/react-aria",
+    "packages/react-router",
     "packages/safe-storage",
     "packages/theme-preference"
   ],

@@ -1,0 +1,50 @@
+{
+  "author": "Adrien Lacourpaille",
+  "bugs": "https://github.com/AdrienLcp/packages/issues",
+  "description": "react-aria links that navigate through react-router: a RouterProvider wired to useNavigate, external URLs left alone, NavigateOptions typed on every link",
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "happy-dom": "20.14.5",
+    "react": "19.3.0",
+    "react-aria-components": "1.21.1",
+    "react-dom": "19.3.0",
+    "react-router": "8.4.0"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "homepage": "https://github.com/AdrienLcp/packages/tree/main/packages/react-router#readme",
+  "keywords": [
+    "navigation",
+    "react",
+    "react-aria",
+    "react-aria-components",
+    "react-router"
+  ],
+  "license": "MIT",
+  "name": "@adrienlcp/react-router",
+  "peerDependencies": {
+    "react": ">=19",
+    "react-aria-components": ">=1.21.0",
+    "react-router": ">=8"
+  },
+  "repository": {
+    "directory": "packages/react-router",
+    "type": "git",
+    "url": "git+https://github.com/AdrienLcp/packages.git"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "pnpm build",
+    "test": "vitest run",
+    "test:watch": "vitest --watch"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "version": "0.0.0"
+}

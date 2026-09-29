@@ -12,6 +12,7 @@ dependency.
 | [`@adrienlcp/i18n`](packages/i18n) | A typed translation library in five files, built on `Intl`: a message's arguments are read off the message at compile time |
 | [`@adrienlcp/react`](packages/react) | A React context that names its missing provider |
 | [`@adrienlcp/react-aria`](packages/react-aria) | For react-aria apps: a className merge that follows the render state, and a Sass focus ring on `data-focus-visible` |
+| [`@adrienlcp/react-router`](packages/react-router) | For react-aria apps on react-router: links that navigate on the client, external URLs left alone, `NavigateOptions` typed on every link |
 | [`@adrienlcp/result`](packages/result) | A success-or-failure value with no exceptions and no nulls |
 | [`@adrienlcp/safe-storage`](packages/safe-storage) | `localStorage` that never throws: every call returns a `Result`, and typed reads check what they find |
 | [`@adrienlcp/styles`](packages/styles) | A reset, a reduced-motion switch, and Sass mixins for self-hosted fonts and a breakpoint |
