@@ -13,7 +13,7 @@ as the compiler lets it go.
 
 ```bash
 pnpm install
-pnpm validate      # typecheck + biome ci + every package's tests + build
+pnpm validate      # build + typecheck + biome ci + every package's tests
 pnpm lint          # biome check --write
 pnpm changeset     # describe a change; it ships with the next release
 ```

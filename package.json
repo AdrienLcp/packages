@@ -25,7 +25,7 @@
     "release": "pnpm build && changeset publish",
     "test": "pnpm -r test",
     "typecheck": "tsc --noEmit && tsc --noEmit -p packages/theme-preference",
-    "validate": "pnpm typecheck && pnpm lint:ci && pnpm test && pnpm build"
+    "validate": "pnpm build && pnpm typecheck && pnpm lint:ci && pnpm test"
   },
   "type": "module",
   "version": "0.0.0"
