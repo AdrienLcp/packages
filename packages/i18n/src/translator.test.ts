@@ -279,3 +279,167 @@ describe('a plural form that names its own placeholder', () => {
     expect(translate('left', { count: 2 })).toBe('{count:plural} left')
   })
 })
+
+/**
+ * A dictionary fetched at runtime is only as faithful to the reference as the
+ * file that was deployed: these read the reference's keys out of one that
+ * drifted from it.
+ */
+const drifted = (json: string) =>
+  createTranslator<typeof REFERENCE>({
+    dictionary: JSON.parse(json),
+    locale: 'en'
+  })
+
+describe('a key the dictionary does not hold', () => {
+  it('[missing-key] prints the key where the dictionary has nothing', () => {
+    expect(drifted('{}')('round.none')).toBe('round.none')
+  })
+
+  it('[missing-key] prints the key where a message stands in place of a branch', () => {
+    expect(drifted('{"round": "Round"}')('round.none')).toBe('round.none')
+  })
+
+  it('[missing-key] prints the key where a branch stands in place of a message', () => {
+    expect(drifted('{"round": {"none": {}}}')('round.none')).toBe('round.none')
+  })
+
+  it('[missing-key] hands rich the key as its only piece', () => {
+    expect(drifted('{}').rich('terms', { link: () => 'link' })).toEqual([
+      'terms'
+    ])
+  })
+})
+
+describe('a placeholder given no value', () => {
+  it('[missing-placeholder] leaves the placeholder standing and fills the rest', () => {
+    const translate = drifted('{"echo": "{name} meets {friend}"}')
+
+    expect(translate('echo', { name: 'Ada' })).toBe('Ada meets {friend}')
+  })
+
+  it('[missing-placeholder] reads a defined translation called with no values', () => {
+    const translate = drifted('{"round": {"none": ["Nobody got it", {}]}}')
+
+    expect(translate('round.none')).toBe('Nobody got it')
+  })
+})
+
+describe('a value of the wrong type', () => {
+  it.each(['date', 'list', 'number', 'plural', 'relative'])(
+    '[wrong-type] leaves {name:%s} standing for a string',
+    (type) => {
+      const translate = drifted(`{"echo": "Hi {name:${type}}"}`)
+
+      expect(translate('echo', { name: 'Ada' })).toBe(`Hi {name:${type}}`)
+    }
+  )
+
+  it.each(['displayname', 'enum'])(
+    '[wrong-type] leaves {seconds:%s} standing for a number',
+    (type) => {
+      const translate = drifted(`{"round": {"clip": "{seconds:${type}}"}}`)
+
+      expect(translate('round.clip', { seconds: 3 })).toBe(`{seconds:${type}}`)
+    }
+  )
+
+  it('[wrong-type] leaves an enum standing when the value names no member', () => {
+    const translate = drifted('{"echo": "{name:enum}"}')
+
+    expect(translate('echo', { name: 'third' })).toBe('{name:enum}')
+  })
+
+  it('[wrong-type] leaves a relative time standing when it declares no unit', () => {
+    const translate = drifted('{"round": {"clip": "{seconds:relative}"}}')
+
+    expect(translate('round.clip', { seconds: 3 })).toBe('{seconds:relative}')
+  })
+
+  it('[wrong-type] leaves a display name standing when it declares no kind', () => {
+    const translate = drifted('{"echo": "{name:displayname}"}')
+
+    expect(translate('echo', { name: 'fr' })).toBe('{name:displayname}')
+  })
+})
+
+const AT = { seen: 'Seen {at:date}' as const }
+
+describe('a value of the right type that the locale cannot print', () => {
+  it('[unprintable] leaves an invalid date standing rather than throwing', () => {
+    const translate = createTranslator<typeof AT>({
+      dictionary: AT,
+      locale: 'en'
+    })
+
+    expect(translate('seen', { at: new Date(Number.NaN) })).toBe(
+      'Seen {at:date}'
+    )
+  })
+
+  it('[unprintable] leaves a relative time standing for a count that is not finite', () => {
+    expect(inEnglish('posted', { when: Number.POSITIVE_INFINITY })).toBe(
+      'Posted {when:relative}'
+    )
+  })
+
+  it('[unprintable] leaves a display name standing for a code that is no language', () => {
+    expect(inEnglish('spokenIn', { language: 'not a language' })).toBe(
+      'Spoken in {language:displayname}'
+    )
+  })
+})
+
+describe('rich text with malformed spans', () => {
+  const link = (children: string) => ({ link: children })
+
+  it('[rich-malformed] prints an unclosed tag as text', () => {
+    const translate = drifted(
+      '{"terms": "Read the <link>terms before playing"}'
+    )
+
+    expect(translate.rich('terms', { link })).toEqual([
+      'Read the <link>terms before playing'
+    ])
+  })
+
+  it('[rich-malformed] prints tags that do not pair as text', () => {
+    const translate = drifted('{"terms": "Read the <link>terms</strong>"}')
+
+    expect(translate.rich('terms', { link })).toEqual([
+      'Read the <link>terms</strong>'
+    ])
+  })
+
+  it('[rich-malformed] hands a span no function was given for back as its text', () => {
+    const translate = drifted('{"terms": "Read the <strong>terms</strong>"}')
+
+    expect(translate.rich('terms', { link })).toEqual(['Read the ', 'terms'])
+  })
+
+  it('[rich-malformed] hands an outer span the inner one as text, never nested', () => {
+    const translate = drifted('{"terms": "<link><link>terms</link></link>"}')
+
+    expect(translate.rich('terms', { link })).toEqual([
+      { link: '<link>terms' },
+      '</link>'
+    ])
+  })
+
+  it('[rich] adds no empty piece around a span that is the whole message', () => {
+    const translate = drifted('{"terms": "<link>terms</link>"}')
+
+    expect(translate.rich('terms', { link })).toEqual([{ link: 'terms' }])
+  })
+
+  it('[rich] reads a defined translation', () => {
+    const translate = drifted(
+      '{"terms": ["<link>{count:number}</link> terms", {}]}'
+    )
+
+    expect(translate.rich('terms', { link })).toEqual([
+      { link: '{count:number}' },
+      ' terms'
+    ])
+  })
+})

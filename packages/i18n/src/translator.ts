@@ -205,9 +205,10 @@ const FORMATTED_COUNT = '{?}'
  * That is dictionary text rather than a caller's value, so the rule above is
  * untouched.
  *
- * A value of the wrong type, or one the message never asked for, leaves its
- * placeholder standing rather than throwing: one bad value costs one word, not
- * the whole sentence.
+ * A value of the wrong type, one the message never asked for, or one the
+ * locale cannot print — an invalid `Date`, an infinite count, a code that names
+ * no language — leaves its placeholder standing rather than throwing: one bad
+ * value costs one word, not the whole sentence.
  */
 const substitute = ({
   expanding = [],
@@ -231,7 +232,7 @@ const substitute = ({
 
     switch (type) {
       case 'date':
-        return value instanceof Date
+        return isValidDate(value)
           ? formatters.date(options.date?.[name]).format(value)
           : placeholder
       case 'displayname':
@@ -283,7 +284,7 @@ const substitute = ({
             })
           : placeholder
       case 'relative':
-        return typeof value === 'number'
+        return typeof value === 'number' && Number.isFinite(value)
           ? (relativeTime({
               count: value,
               formatters,
@@ -369,7 +370,8 @@ const pluralize = ({
 /**
  * A message declaring `{x:displayname}` must declare the kind of name it wants,
  * so the options are never absent — but the runtime shape stays loose, and
- * `Intl.DisplayNames` throws without a `type`. Nothing rather than a crash.
+ * `Intl.DisplayNames` throws without a `type`, and on a string that is no code
+ * at all (`'not a language'`). Nothing rather than a crash.
  */
 const displayName = ({
   formatters,
@@ -379,8 +381,20 @@ const displayName = ({
   formatters: Formatters
   of: string
   options: Intl.DisplayNamesOptions | undefined
-}): string | undefined =>
-  options === undefined ? undefined : formatters.displayname(options).of(of)
+}): string | undefined => {
+  if (options === undefined) {
+    return undefined
+  }
+
+  try {
+    return formatters.displayname(options).of(of)
+  } catch {
+    return undefined
+  }
+}
+
+const isValidDate = (value: unknown): value is Date =>
+  value instanceof Date && !Number.isNaN(value.getTime())
 
 /** Same reasoning: the unit is declared with the message, or there is none. */
 const relativeTime = ({
