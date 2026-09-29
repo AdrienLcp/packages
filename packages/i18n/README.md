@@ -1,6 +1,6 @@
 # @adrienlcp/i18n
 
-A translation and formatting library for TypeScript, in a few small files, with **no
+A translation and formatting library for TypeScript, in five files, with **no
 dependencies** and no tie to any framework. Everything it does at runtime it
 does through the platform's `Intl`.
 
