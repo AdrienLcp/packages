@@ -1,3 +1,5 @@
+import { act, createElement } from 'react'
+import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { copyText } from './copy-text.ts'
@@ -8,6 +10,7 @@ import {
   subscribeToReducedMotion
 } from './prefers-reduced-motion.ts'
 import { selectContents } from './select-contents.ts'
+import { useScreenAwake } from './use-screen-awake.ts'
 
 const defineOn = (target: object, property: string, value: unknown): void => {
   Object.defineProperty(target, property, { configurable: true, value })
@@ -153,7 +156,7 @@ type FakeSentinel = { release: () => Promise<void>; released: boolean }
 
 const createFakeWakeLock = () => {
   const sentinels: FakeSentinel[] = []
-  const request = vi.fn(async (): Promise<FakeSentinel> => {
+  const grant = (): FakeSentinel => {
     const sentinel: FakeSentinel = {
       release: async () => {
         sentinel.released = true
@@ -162,9 +165,25 @@ const createFakeWakeLock = () => {
     }
     sentinels.push(sentinel)
     return sentinel
-  })
+  }
+  const request = vi.fn(async (): Promise<FakeSentinel> => grant())
 
-  return { request, sentinels }
+  return { grant, request, sentinels }
+}
+
+/** Every test stops what it started, or its listener asks the next test's fake. */
+const stopsStillRunning: (() => void)[] = []
+
+const startKeepingScreenAwake = (): (() => void) => {
+  const kept = keepScreenAwake()
+
+  if (kept.status === 'failure') {
+    throw new Error('expected the lock to be supported')
+  }
+
+  stopsStillRunning.push(kept.data)
+
+  return kept.data
 }
 
 const setDocumentHidden = (isHidden: boolean): void => {
@@ -178,6 +197,9 @@ describe('keepScreenAwake', () => {
   })
 
   afterEach(() => {
+    for (const stop of stopsStillRunning.splice(0)) {
+      stop()
+    }
     Reflect.deleteProperty(navigator, 'wakeLock')
   })
 
@@ -194,9 +216,8 @@ describe('keepScreenAwake', () => {
     const wakeLock = createFakeWakeLock()
     defineOn(navigator, 'wakeLock', wakeLock)
 
-    const kept = keepScreenAwake()
+    startKeepingScreenAwake()
     await flushPromises()
-    expect(kept.status).toBe('success')
     expect(wakeLock.request).toHaveBeenCalledOnce()
 
     for (const sentinel of wakeLock.sentinels) {
@@ -216,7 +237,7 @@ describe('keepScreenAwake', () => {
     )
     defineOn(navigator, 'wakeLock', wakeLock)
 
-    keepScreenAwake()
+    startKeepingScreenAwake()
     await flushPromises()
     expect(wakeLock.sentinels).toHaveLength(0)
 
@@ -230,19 +251,82 @@ describe('keepScreenAwake', () => {
     const wakeLock = createFakeWakeLock()
     defineOn(navigator, 'wakeLock', wakeLock)
 
-    const kept = keepScreenAwake()
+    const stop = startKeepingScreenAwake()
     await flushPromises()
 
-    if (kept.status === 'failure') {
-      throw new Error('expected the lock to be supported')
-    }
-
-    kept.data()
+    stop()
     await flushPromises()
     setDocumentHidden(false)
     await flushPromises()
 
     expect(wakeLock.sentinels[0]?.released).toBe(true)
+    expect(wakeLock.request).toHaveBeenCalledOnce()
+  })
+
+  it('[wake-lock] stopping while the request is pending releases the lock it gets', async () => {
+    const wakeLock = createFakeWakeLock()
+    const granted = Promise.withResolvers<void>()
+    wakeLock.request.mockImplementationOnce(async () => {
+      await granted.promise
+      return wakeLock.grant()
+    })
+    defineOn(navigator, 'wakeLock', wakeLock)
+
+    const stop = startKeepingScreenAwake()
+    stop()
+    granted.resolve()
+    await flushPromises()
+
+    expect(wakeLock.sentinels).toHaveLength(1)
+    expect(wakeLock.sentinels[0]?.released).toBe(true)
+  })
+
+  it('[wake-lock] a return while the request is pending asks only once', async () => {
+    const wakeLock = createFakeWakeLock()
+    const granted = Promise.withResolvers<void>()
+    wakeLock.request.mockImplementationOnce(async () => {
+      await granted.promise
+      return wakeLock.grant()
+    })
+    defineOn(navigator, 'wakeLock', wakeLock)
+
+    startKeepingScreenAwake()
+    setDocumentHidden(false)
+    granted.resolve()
+    await flushPromises()
+
+    expect(wakeLock.request).toHaveBeenCalledOnce()
+  })
+
+  it('[wake-lock] asks for nothing while the tab is hidden', async () => {
+    const wakeLock = createFakeWakeLock()
+    defineOn(navigator, 'wakeLock', wakeLock)
+    defineOn(document, 'hidden', true)
+
+    startKeepingScreenAwake()
+    await flushPromises()
+
+    expect(wakeLock.request).not.toHaveBeenCalled()
+  })
+
+  it('[wake-lock] stopping after the browser released the lock releases nothing twice', async () => {
+    const wakeLock = createFakeWakeLock()
+    defineOn(navigator, 'wakeLock', wakeLock)
+
+    const stop = startKeepingScreenAwake()
+    await flushPromises()
+    const [sentinel] = wakeLock.sentinels
+    if (sentinel === undefined) {
+      throw new Error('expected the lock to be taken')
+    }
+    sentinel.released = true
+    const release = vi.spyOn(sentinel, 'release')
+
+    stop()
+    setDocumentHidden(false)
+    await flushPromises()
+
+    expect(release).not.toHaveBeenCalled()
     expect(wakeLock.request).toHaveBeenCalledOnce()
   })
 })
@@ -283,5 +367,72 @@ describe('prefersReducedMotion', () => {
 
     expect(query.addEventListener).toHaveBeenCalledWith('change', listener)
     expect(query.removeEventListener).toHaveBeenCalledWith('change', listener)
+  })
+})
+
+const ScreenAwake = ({ isWanted }: { isWanted: boolean }) => {
+  useScreenAwake(isWanted)
+  return null
+}
+
+describe('useScreenAwake', () => {
+  let root: Root
+
+  const render = (isWanted: boolean): Promise<void> =>
+    act(async () => {
+      root.render(createElement(ScreenAwake, { isWanted }))
+    })
+
+  beforeEach(() => {
+    Reflect.set(globalThis, 'IS_REACT_ACT_ENVIRONMENT', true)
+    defineOn(document, 'hidden', false)
+    root = createRoot(document.createElement('div'))
+  })
+
+  afterEach(async () => {
+    await act(async () => {
+      root.unmount()
+    })
+    Reflect.deleteProperty(navigator, 'wakeLock')
+  })
+
+  it('[use-screen-awake] holds the lock while wanted and gives it back on unmount', async () => {
+    const wakeLock = createFakeWakeLock()
+    defineOn(navigator, 'wakeLock', wakeLock)
+
+    await render(true)
+    expect(wakeLock.sentinels[0]?.released).toBe(false)
+
+    await act(async () => {
+      root.unmount()
+    })
+    await flushPromises()
+
+    expect(wakeLock.sentinels[0]?.released).toBe(true)
+  })
+
+  it('[use-screen-awake] asks for nothing while not wanted', async () => {
+    const wakeLock = createFakeWakeLock()
+    defineOn(navigator, 'wakeLock', wakeLock)
+
+    await render(false)
+
+    expect(wakeLock.request).not.toHaveBeenCalled()
+  })
+
+  it('[use-screen-awake] releases the lock once it is no longer wanted', async () => {
+    const wakeLock = createFakeWakeLock()
+    defineOn(navigator, 'wakeLock', wakeLock)
+
+    await render(true)
+    await render(false)
+    await flushPromises()
+
+    expect(wakeLock.sentinels[0]?.released).toBe(true)
+    expect(wakeLock.request).toHaveBeenCalledOnce()
+  })
+
+  it('[use-screen-awake] does nothing where there is no Wake Lock API', async () => {
+    await expect(render(true)).resolves.toBeUndefined()
   })
 })

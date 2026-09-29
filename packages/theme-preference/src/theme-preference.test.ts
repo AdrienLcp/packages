@@ -94,6 +94,20 @@ describe('applyThemePreference', () => {
       media: ['(prefers-color-scheme: light)', '(prefers-color-scheme: dark)']
     })
   })
+
+  it('[apply] leaves a tag whose scheme it does not know as it was written', () => {
+    document.head.insertAdjacentHTML(
+      'beforeend',
+      '<meta name="theme-color" data-scheme="sepia" content="#f4ecd8" media="print">'
+    )
+
+    applyThemePreference('dark')
+
+    expect(paintedState()).toEqual({
+      dataTheme: 'dark',
+      media: ['not all', 'all', 'print']
+    })
+  })
 })
 
 describe('storage', () => {
