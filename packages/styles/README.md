@@ -30,7 +30,7 @@ stylesheet loads, so the reset stays under every component rule —
 ## Sass
 
 Resolved through the `sass` export condition, which Vite reads; with the Sass
-CLI, use `pkg:@adrienlcp/styles/focus` and `--pkg-importer=node`.
+CLI, use `pkg:@adrienlcp/styles/breakpoints` and `--pkg-importer=node`.
 
 ### `breakpoints`
 
@@ -45,30 +45,6 @@ CLI, use `pkg:@adrienlcp/styles/focus` and `--pkg-importer=node`.
 `$wide-screen` is `900px`; `wide` is `width >= $wide-screen` and `narrow` its
 exact complement. Another value: `@use '@adrienlcp/styles/breakpoints' with
 ($wide-screen: 1024px)`.
-
-### `focus`
-
-`ring` and `ring-inset` draw the outline on `[data-focus-visible]` (react-aria)
-and `:focus-visible` (a native element). `hovered` wraps a hover style in
-`(hover: hover) and (pointer: fine)`, since a touch screen replays hover after a
-tap and leaves it stuck; `$except` skips a state.
-
-```sass
-@use '@adrienlcp/styles/focus'
-
-.button
-  @include focus.ring
-
-  @include focus.hovered($except: '[data-disabled]')
-    background: var(--hover)
-```
-
-Configure the ring once, in the app's own `_focus.sass`, and have components
-`@use` that file:
-
-```sass
-@forward '@adrienlcp/styles/focus' with ($ring-color: var(--focus), $ring-offset: 3px, $ring-width: 3px)
-```
 
 ### `fonts`
 

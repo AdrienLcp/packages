@@ -1,7 +1,7 @@
 {
   "author": "Adrien Lacourpaille",
   "bugs": "https://github.com/AdrienLcp/packages/issues",
-  "description": "A React context that says which provider is missing, and a className merge for react-aria components",
+  "description": "A React context that says which provider is missing",
   "devDependencies": {
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
@@ -19,7 +19,6 @@
   "keywords": [
     "context",
     "react",
-    "react-aria",
     "typescript"
   ],
   "license": "MIT",

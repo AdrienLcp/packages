@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "lib": ["esnext", "dom", "dom.iterable"]
+  },
+  "exclude": ["dist"],
+  "extends": "../../tsconfig.json",
+  "include": ["src", "vitest.config.ts"]
+}

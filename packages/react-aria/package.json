@@ -1,0 +1,58 @@
+{
+  "author": "Adrien Lacourpaille",
+  "bugs": "https://github.com/AdrienLcp/packages/issues",
+  "description": "What every react-aria app of mine repeats: a className merge that follows the render state, and a Sass focus ring on data-focus-visible",
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "react": "19.3.0",
+    "react-aria-components": "1.21.1",
+    "react-dom": "19.3.0",
+    "sass": "^1.105.0"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./focus": {
+      "sass": "./src/_focus.sass"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src/*.sass"
+  ],
+  "homepage": "https://github.com/AdrienLcp/packages/tree/main/packages/react-aria#readme",
+  "keywords": [
+    "focus-visible",
+    "react",
+    "react-aria",
+    "react-aria-components",
+    "sass"
+  ],
+  "license": "MIT",
+  "name": "@adrienlcp/react-aria",
+  "peerDependencies": {
+    "react": ">=19",
+    "react-aria-components": ">=1.21.0",
+    "sass": ">=1.80.0"
+  },
+  "peerDependenciesMeta": {
+    "sass": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "directory": "packages/react-aria",
+    "type": "git",
+    "url": "git+https://github.com/AdrienLcp/packages.git"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "pnpm build",
+    "test": "vitest run",
+    "test:watch": "vitest --watch"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "version": "0.0.0"
+}

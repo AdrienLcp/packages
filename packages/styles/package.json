@@ -1,16 +1,13 @@
 {
   "author": "Adrien Lacourpaille",
   "bugs": "https://github.com/AdrienLcp/packages/issues",
-  "description": "A reset, a reduced-motion switch, and Sass mixins for self-hosted fonts, a breakpoint, focus rings and pointer-only hover",
+  "description": "A reset, a reduced-motion switch, and Sass mixins for self-hosted fonts and a breakpoint",
   "devDependencies": {
     "sass": "^1.105.0"
   },
   "exports": {
     "./breakpoints": {
       "sass": "./src/_breakpoints.sass"
-    },
-    "./focus": {
-      "sass": "./src/_focus.sass"
     },
     "./fonts": {
       "sass": "./src/_fonts.sass"
@@ -26,7 +23,6 @@
   "homepage": "https://github.com/AdrienLcp/packages/tree/main/packages/styles#readme",
   "keywords": [
     "css",
-    "focus-visible",
     "font-face",
     "reset",
     "sass"

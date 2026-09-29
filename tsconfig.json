@@ -3,6 +3,7 @@
     "**/dist",
     "packages/browser",
     "packages/react",
+    "packages/react-aria",
     "packages/safe-storage",
     "packages/theme-preference"
   ],

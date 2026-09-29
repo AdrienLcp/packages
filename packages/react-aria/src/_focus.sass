@@ -1,0 +1,21 @@
+/// Configure once, in the app's own `_focus.sass`:
+/// `@forward '@adrienlcp/react-aria/focus' with ($ring-color: var(--focus))`.
+$ring-width: 2px !default
+$ring-color: currentColor !default
+$ring-offset: 3px !default
+
+/// react-aria stamps `data-focus-visible` on keyboard focus only, and on the
+/// element it styles: a control built over a hidden input rings through it
+/// alone. The `:focus-visible` twin covers a native element.
+@mixin ring
+  &[data-focus-visible],
+  &:focus-visible
+    outline: $ring-width solid $ring-color
+    outline-offset: $ring-offset
+
+/// The ring drawn inside the box, for an element a clipping ancestor would cut.
+@mixin ring-inset
+  &[data-focus-visible],
+  &:focus-visible
+    outline: $ring-width solid $ring-color
+    outline-offset: calc(-1 * $ring-width)

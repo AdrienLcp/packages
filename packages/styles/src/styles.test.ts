@@ -50,40 +50,6 @@ describe('breakpoints', () => {
   })
 })
 
-describe('focus', () => {
-  it('rings both the react-aria and the native focus-visible', () => {
-    const css = compile(`
-@use 'focus' with ($ring-color: var(--focus), $ring-width: 3px)
-.a
-  @include focus.ring
-`)
-    expect(css).toBe(
-      '.a[data-focus-visible],.a:focus-visible{outline:3px solid var(--focus);outline-offset:3px}'
-    )
-  })
-
-  it('draws the inset ring inside the box by its own width', () => {
-    const css = compile(`
-@use 'focus' with ($ring-width: 3px)
-.a
-  @include focus.ring-inset
-`)
-    expect(css).toContain('outline-offset:-3px')
-  })
-
-  it('hovers under a fine pointer only, skipping the excepted state', () => {
-    const css = compile(`
-@use 'focus'
-.a
-  @include focus.hovered($except: '[data-disabled]')
-    color: red
-`)
-    expect(css).toBe(
-      '@media(hover: hover)and (pointer: fine){.a[data-hovered]:not([data-disabled]){color:red}}'
-    )
-  })
-})
-
 describe('fonts', () => {
   it('declares a face and leaves out an axis it was not given', () => {
     const css = compile(`
