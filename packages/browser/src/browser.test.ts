@@ -21,6 +21,17 @@ const stubExecCommand = (execCommand: (command: string) => boolean): void => {
   defineOn(document, 'execCommand', execCommand)
 }
 
+/** Chrome focuses a textarea it selects; happy-dom does not. */
+const focusOnSelect = (): void => {
+  const select = HTMLTextAreaElement.prototype.select
+  vi.spyOn(HTMLTextAreaElement.prototype, 'select').mockImplementation(
+    function (this: HTMLTextAreaElement) {
+      this.focus()
+      select.call(this)
+    }
+  )
+}
+
 const flushPromises = (): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, 0))
 
@@ -84,6 +95,33 @@ describe('copyText', () => {
       error: 'refused',
       status: 'failure'
     })
+    expect(document.querySelector('textarea')).toBeNull()
+  })
+
+  it('[copy] keeps a focus-trapping dialog open and gives focus back to its button', async () => {
+    document.body.innerHTML =
+      '<div role="dialog"><button type="button">Copy the code</button></div>'
+    const dialog = document.querySelector('[role="dialog"]')
+    const copyButton = document.querySelector('button')
+
+    if (dialog === null || copyButton === null) {
+      throw new Error('fixture missing')
+    }
+
+    let isDialogOpen = true
+    document.addEventListener('focusin', (event) => {
+      if (!(event.target instanceof Node && dialog.contains(event.target))) {
+        isDialogOpen = false
+      }
+    })
+    copyButton.focus()
+    focusOnSelect()
+    defineOn(navigator, 'clipboard', undefined)
+    stubExecCommand(() => true)
+
+    expect(await copyText('ABCD')).toEqual({ status: 'success' })
+    expect(isDialogOpen).toBe(true)
+    expect(document.activeElement).toBe(copyButton)
     expect(document.querySelector('textarea')).toBeNull()
   })
 })
