@@ -1,63 +1,7 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.14/schema.json",
-  "assist": {
-    "actions": {
-      "source": {
-        "organizeImports": {
-          "level": "on",
-          "options": {
-            "groups": [
-              ":URL:",
-              ":BLANK_LINE:",
-              [":BUN:", ":NODE:"],
-              ":BLANK_LINE:",
-              [":PACKAGE:", ":PACKAGE_WITH_PROTOCOL:"],
-              ":BLANK_LINE:",
-              ":PATH:"
-            ],
-            "identifierOrder": "natural"
-          }
-        },
-        "useSortedAttributes": "on",
-        "useSortedKeys": "on",
-        "useSortedProperties": "on"
-      }
-    }
-  },
+  "extends": ["./packages/biome-config/base.json"],
   "files": {
-    "includes": ["**", "!**/dist", "!**/CHANGELOG.md"]
-  },
-  "formatter": {
-    "indentStyle": "space"
-  },
-  "javascript": {
-    "formatter": {
-      "jsxQuoteStyle": "single",
-      "quoteStyle": "single",
-      "semicolons": "asNeeded",
-      "trailingCommas": "none"
-    }
-  },
-  "linter": {
-    "domains": {},
-    "rules": {
-      "nursery": {
-        "noFloatingPromises": "error"
-      },
-      "suspicious": {
-        "noConsole": {
-          "level": "error",
-          "options": {
-            "allow": ["debug", "error", "info", "warn"]
-          }
-        }
-      }
-    }
-  },
-  "vcs": {
-    "clientKind": "git",
-    "defaultBranch": "main",
-    "enabled": true,
-    "useIgnoreFile": true
+    "includes": ["!**/CHANGELOG.md"]
   }
 }

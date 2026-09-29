@@ -1,0 +1,32 @@
+{
+  "author": "Adrien Lacourpaille",
+  "bugs": "https://github.com/AdrienLcp/packages/issues",
+  "description": "Biome lint and format settings: single quotes, no semicolons, sorted keys and imports, no floating promises",
+  "exports": {
+    ".": "./base.json",
+    "./package.json": "./package.json",
+    "./react": "./react.json"
+  },
+  "files": [
+    "base.json",
+    "react.json"
+  ],
+  "homepage": "https://github.com/AdrienLcp/packages/tree/main/packages/biome-config#readme",
+  "keywords": [
+    "biome",
+    "biome-config",
+    "formatter",
+    "linter"
+  ],
+  "license": "MIT",
+  "name": "@adrienlcp/biome-config",
+  "peerDependencies": {
+    "@biomejs/biome": ">=2.5.0"
+  },
+  "repository": {
+    "directory": "packages/biome-config",
+    "type": "git",
+    "url": "git+https://github.com/AdrienLcp/packages.git"
+  },
+  "version": "0.0.0"
+}

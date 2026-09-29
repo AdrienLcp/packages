@@ -1,0 +1,28 @@
+{
+  "author": "Adrien Lacourpaille",
+  "bugs": "https://github.com/AdrienLcp/packages/issues",
+  "description": "The strictest TypeScript settings, for a type-check-only project bundled by something else",
+  "exports": {
+    "./base.json": "./base.json",
+    "./package.json": "./package.json",
+    "./web-app.json": "./web-app.json"
+  },
+  "files": [
+    "base.json",
+    "web-app.json"
+  ],
+  "homepage": "https://github.com/AdrienLcp/packages/tree/main/packages/tsconfig#readme",
+  "keywords": [
+    "strict",
+    "tsconfig",
+    "typescript"
+  ],
+  "license": "MIT",
+  "name": "@adrienlcp/tsconfig",
+  "repository": {
+    "directory": "packages/tsconfig",
+    "type": "git",
+    "url": "git+https://github.com/AdrienLcp/packages.git"
+  },
+  "version": "0.0.0"
+}
