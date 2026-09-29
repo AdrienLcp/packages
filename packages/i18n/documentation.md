@@ -1,6 +1,6 @@
 # Typed i18n
 
-A translation and formatting library in five files, with no dependency on any
+A translation and formatting library in a few small files, with no dependency on any
 project and none on a framework.
 
 | File | What it holds |
@@ -107,6 +107,45 @@ Order across tags wins over presence: a device listing `de-DE, fr-FR, en` gets
 French, so one tag is exhausted in both directions before the next is looked at.
 `negotiateLocale` is the same rule as a free function, for a caller with no
 registry — a server reading `Accept-Language`, for instance.
+
+### The locale in the URL
+
+A search index keeps one document per URL and never varies
+`Accept-Language`, so a page meant to be found in two languages needs two
+URLs. Three router-agnostic functions keep the locale as the first path
+segment:
+
+```ts
+localeInPath('/fr/about', i18n.locales) // 'fr', or null
+pathInLocale({ locale: 'en', locales: i18n.locales, pathname: '/fr/about' }) // '/en/about', or null
+localizedPathFor({ locale: 'fr', pathname: '/about' }) // '/fr/about'; '/' gives '/fr'
+```
+
+`pathInLocale` is `null` on a path that names no locale — a page whose language
+is state alone has no other-language twin to move to.
+
+`applyInitialLocale` decides the locale an app opens on and stamps it on
+`<html lang>` in the same call, before the first render: a browser that finds
+`lang="en"` over French text offers to translate the page.
+
+```ts
+const locale = applyInitialLocale({
+  i18n,
+  pathname: location.pathname,
+  preferred: navigator.languages,
+  readStoredLocale: () => storedLocaleOrNone(),
+  rememberLocale: (locale) => writeStoredLocale(locale),
+  root: document.documentElement
+})
+```
+
+The URL first, because it is the only source somebody else can have chosen: a
+link shared in French opens in French. Then the device's last choice, then the
+browser. A locale read from the URL is remembered through `rememberLocale`; a
+negotiated one never is, because "never chosen" is what keeps following the
+browser. Storage stays with the app: `readStoredLocale` answers `null` when
+nothing usable is stored, and whatever it returns is checked against
+`i18n.locales`, so a locale an older version stored counts as none.
 
 ## Message syntax
 
