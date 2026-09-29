@@ -21,6 +21,11 @@
     "target": "esnext",
     "verbatimModuleSyntax": true
   },
-  "exclude": ["**/dist", "packages/safe-storage", "packages/theme-preference"],
+  "exclude": [
+    "**/dist",
+    "packages/browser",
+    "packages/safe-storage",
+    "packages/theme-preference"
+  ],
   "include": ["packages/**/*"]
 }

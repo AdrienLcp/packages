@@ -1,0 +1,53 @@
+{
+  "author": "Adrien Lacourpaille",
+  "bugs": "https://github.com/AdrienLcp/packages/issues",
+  "dependencies": {
+    "@adrienlcp/result": "workspace:^"
+  },
+  "description": "Browser calls that hide a trap: a clipboard copy that works over plain HTTP, a wake lock that survives the tab going away, the reduced-motion preference",
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "happy-dom": "20.14.5",
+    "react": "19.3.0"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json",
+    "./react": "./dist/react.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "homepage": "https://github.com/AdrienLcp/packages/tree/main/packages/browser#readme",
+  "keywords": [
+    "clipboard",
+    "prefers-reduced-motion",
+    "result",
+    "typescript",
+    "wake-lock"
+  ],
+  "license": "MIT",
+  "name": "@adrienlcp/browser",
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "directory": "packages/browser",
+    "type": "git",
+    "url": "git+https://github.com/AdrienLcp/packages.git"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "pnpm build",
+    "test": "vitest run",
+    "test:watch": "vitest --watch"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "version": "0.1.0"
+}

@@ -182,6 +182,22 @@ importers:
         specifier: ^5.0.1
         version: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.1)(happy-dom@20.14.5)(vite@8.3.1(@types/node@26.6.3))
 
+  packages/browser:
+    dependencies:
+      '@adrienlcp/result':
+        specifier: workspace:^
+        version: link:../result
+    devDependencies:
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      happy-dom:
+        specifier: 20.14.5
+        version: 20.14.5
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
+
   packages/i18n: {}
 
   packages/result: {}
