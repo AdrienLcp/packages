@@ -23,13 +23,19 @@ One `theme-color` tag per scheme, each saying which scheme it colours:
 <meta name="theme-color" data-scheme="dark" content="#101010" media="(prefers-color-scheme: dark)" />
 ```
 
-The stylesheet follows the system by default and yields to `data-theme`:
+The stylesheet follows the system by default and yields to `data-theme`. The
+package ships it: import `@adrienlcp/theme-preference/color-scheme.css` once
+(or `@use` it from Sass), and write every colour token as
+`light-dark(<light>, <dark>)`:
 
 ```css
-:root { color-scheme: light; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) { color-scheme: dark; } }
-:root[data-theme='dark'] { color-scheme: dark; }
+:root { color-scheme: light dark; }
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
 ```
+
+The file is unlayered, so it wins over any `color-scheme` a layered stylesheet
+sets.
 
 ## The store
 

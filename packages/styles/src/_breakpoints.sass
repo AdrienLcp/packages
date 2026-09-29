@@ -1,0 +1,13 @@
+/// Where a screen stops being a phone's. A media query cannot read a custom
+/// property, so the breakpoint is a Sass value; override it with
+/// `@use '@adrienlcp/styles/breakpoints' with ($wide-screen: 1024px)`.
+$wide-screen: 900px !default
+
+/// `wide` and `narrow` are exact complements: every width is one or the other.
+@mixin wide
+  @media (width >= $wide-screen)
+    @content
+
+@mixin narrow
+  @media (width < $wide-screen)
+    @content

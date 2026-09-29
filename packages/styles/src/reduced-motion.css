@@ -1,0 +1,8 @@
+/* Unlayered, so it beats the token definitions whatever layer or file they sit in. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0ms;
+    --transition-base: 0ms;
+    --transition-slow: 0ms;
+  }
+}
