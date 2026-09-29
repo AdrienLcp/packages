@@ -1,0 +1,51 @@
+{
+  "author": "Adrien Lacourpaille",
+  "bugs": "https://github.com/AdrienLcp/packages/issues",
+  "description": "Light, dark or system theme with no flash on load, and a browser toolbar that follows the choice",
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "happy-dom": "20.14.5",
+    "react": "19.3.0"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json",
+    "./react": "./dist/use-theme-preference.js",
+    "./vite": "./dist/theme-preference-vite-plugin.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "homepage": "https://github.com/AdrienLcp/packages/tree/main/packages/theme-preference#readme",
+  "keywords": [
+    "color-scheme",
+    "dark-mode",
+    "theme",
+    "theme-color",
+    "typescript"
+  ],
+  "license": "MIT",
+  "name": "@adrienlcp/theme-preference",
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "directory": "packages/theme-preference",
+    "type": "git",
+    "url": "git+https://github.com/AdrienLcp/packages.git"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "pnpm build",
+    "test": "vitest run",
+    "test:watch": "vitest --watch"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "version": "0.1.0"
+}

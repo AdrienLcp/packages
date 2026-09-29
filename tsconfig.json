@@ -21,6 +21,6 @@
     "target": "esnext",
     "verbatimModuleSyntax": true
   },
-  "exclude": ["**/dist"],
+  "exclude": ["**/dist", "packages/theme-preference"],
   "include": ["packages/**/*"]
 }
