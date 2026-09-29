@@ -1,5 +1,11 @@
 # @adrienlcp/i18n
 
+## 0.2.0
+
+### Minor Changes
+
+- df69ff7: Add the locale in the URL: `localeInPath`, `pathInLocale` and `localizedPathFor` read and move the locale kept as a path's first segment, and `applyInitialLocale` picks the locale an app opens on — the URL, then the stored choice, then the browser — and stamps it on `<html lang>`. Storage stays with the caller, through a reader and a writer.
+
 ## 0.1.1
 
 ### Patch Changes
