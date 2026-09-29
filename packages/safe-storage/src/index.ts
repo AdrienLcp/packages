@@ -1,0 +1,7 @@
+export * from './read-recognized-text.ts'
+export * from './read-stored-json.ts'
+export * from './read-stored-text.ts'
+export * from './remove-stored.ts'
+export * from './storage-errors.ts'
+export * from './write-stored-json.ts'
+export * from './write-stored-text.ts'

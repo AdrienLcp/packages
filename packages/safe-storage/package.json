@@ -1,0 +1,42 @@
+{
+  "author": "Adrien Lacourpaille",
+  "bugs": "https://github.com/AdrienLcp/packages/issues",
+  "dependencies": {
+    "@adrienlcp/result": "workspace:^"
+  },
+  "description": "localStorage that never throws: every read, write and removal returns a Result, and typed reads check what they find",
+  "devDependencies": {
+    "happy-dom": "20.14.5"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "homepage": "https://github.com/AdrienLcp/packages/tree/main/packages/safe-storage#readme",
+  "keywords": [
+    "localstorage",
+    "private-mode",
+    "result",
+    "storage",
+    "typescript"
+  ],
+  "license": "MIT",
+  "name": "@adrienlcp/safe-storage",
+  "repository": {
+    "directory": "packages/safe-storage",
+    "type": "git",
+    "url": "git+https://github.com/AdrienLcp/packages.git"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "pnpm build",
+    "test": "vitest run",
+    "test:watch": "vitest --watch"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "version": "0.1.0"
+}

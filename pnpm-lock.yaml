@@ -186,6 +186,16 @@ importers:
 
   packages/result: {}
 
+  packages/safe-storage:
+    dependencies:
+      '@adrienlcp/result':
+        specifier: workspace:^
+        version: link:../result
+    devDependencies:
+      happy-dom:
+        specifier: 20.14.5
+        version: 20.14.5
+
   packages/theme-preference:
     devDependencies:
       '@types/react':
@@ -1545,7 +1555,7 @@ snapshots:
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 12.20.55
+      '@types/node': 26.6.3
 
   '@typescript/typescript-aix-ppc64@7.0.2':
     optional: true
@@ -1666,7 +1676,7 @@ snapshots:
 
   buffer-image-size@0.6.4:
     dependencies:
-      '@types/node': 12.20.55
+      '@types/node': 26.6.3
 
   chai@6.2.2: {}
 
