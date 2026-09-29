@@ -1,9 +1,12 @@
 name: CI
 
+# No `pull_request` trigger: the only pull request here is the Version PR the
+# Release workflow opens, and a run on a bot's branch waits for an approval that
+# never comes, mailing a failure each time. Its content is checked on `main`
+# once merged.
 on:
   push:
     branches: [main]
-  pull_request:
 
 concurrency:
   group: ci-${{ github.ref }}
