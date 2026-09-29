@@ -346,6 +346,18 @@ describe('the registry', () => {
     expectTypeOf(i18n.defaultLocale).toEqualTypeOf<'en'>()
   })
 
+  it('[types] refuses a default locale typed as every locale at once', () => {
+    const widenedLocale = (): 'en' | 'fr' => 'en'
+    createI18n({
+      // @ts-expect-error the reference would be both dictionaries at once
+      defaultLocale: widenedLocale(),
+      dictionaries: {
+        en: { greeting: 'Hello {name}' },
+        fr: { greeting: 'Bonjour {name}' }
+      }
+    })
+  })
+
   it('[types] types the keys from the default locale’s dictionary', () => {
     expectTypeOf(i18n.translator('fr')('title')).toEqualTypeOf<string>()
     expectTypeOf(

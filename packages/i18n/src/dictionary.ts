@@ -56,6 +56,11 @@ export const defineDictionary = <
  * TypeScript's excess property check does the other half of the work: a key the
  * reference does not have is rejected at the literal, at every depth.
  *
+ * Only for a dictionary handed to `createTranslator` directly. One registered
+ * with `createI18n` is written through `defineDictionary`, like the reference:
+ * the annotation widens each message to `string`, and the registry, which
+ * compares placeholders, then refuses every message that has one.
+ *
  * ```ts
  * export const FR_DICTIONARY: DictionaryFor<typeof EN_DICTIONARY> = { … }
  * ```

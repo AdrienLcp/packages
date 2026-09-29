@@ -35,6 +35,27 @@ type Registered<Reference> = Localized<Reference> | DictionaryLoader<Reference>
 
 type AnyLoader = () => Promise<{ default: Dictionary }>
 
+/**
+ * Refuses a `defaultLocale` typed as more than one locale. `const
+ * DEFAULT_LOCALE: Locale = 'en'` holds `'en'` but is typed `'en' | 'fr'`, which
+ * would make the reference every locale's dictionary at once: a second locale's
+ * leaves are plain `string`s, so every key with a placeholder would come out as
+ * `never` at the call site, far from the cause. The property name is the error
+ * TypeScript prints here instead.
+ */
+type SingleLocale<DefaultLocale extends string> =
+  IsUnion<DefaultLocale> extends false
+    ? unknown
+    : {
+        'defaultLocale must be typed as one locale, not a union: write `const DEFAULT_LOCALE = "en" satisfies Locale`': never
+      }
+
+type IsUnion<Member, Whole = Member> = Member extends unknown
+  ? [Whole] extends [Member]
+    ? false
+    : true
+  : never
+
 const isLoader = <Reference>(
   registered: Registered<Reference> | undefined
 ): registered is DictionaryLoader<Reference> => typeof registered === 'function'
@@ -139,7 +160,7 @@ export const createI18n = <
   defaultLocale,
   dictionaries
 }: {
-  defaultLocale: DefaultLocale
+  defaultLocale: DefaultLocale & SingleLocale<DefaultLocale>
   dictionaries: Entries & {
     [Locale in keyof Entries]: Matching<Entries[DefaultLocale], Entries[Locale]>
   } & Record<DefaultLocale, Localized<Entries[DefaultLocale]>>
