@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+# The same checks as CI, so a red run on main is caught before it is pushed.
+
+set -e
+
+pnpm validate

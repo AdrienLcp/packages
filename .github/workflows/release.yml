@@ -19,6 +19,7 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
 
@@ -31,6 +32,10 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - run: pnpm install --frozen-lockfile
+
+      # A package's first version is published by hand: npm only lets a package
+      # that already exists trust this workflow.
+      - run: node scripts/hold-back-unpublished-packages.mjs
 
       # Opens a "Version packages" pull request while changesets are pending,
       # and publishes once that pull request is merged.
