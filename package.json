@@ -21,7 +21,6 @@
     "changeset": "changeset",
     "lint": "biome check --write",
     "lint:ci": "biome ci",
-    "preinstall": "git config core.hooksPath .githooks || true",
     "release": "pnpm build && changeset publish",
     "test": "pnpm -r test",
     "test:coverage": "vitest run --coverage",
