@@ -9,5 +9,5 @@
     "packages/theme-preference"
   ],
   "extends": "./packages/tsconfig/base.json",
-  "include": ["packages/**/*"]
+  "include": ["packages/**/*", "vitest.config.ts"]
 }

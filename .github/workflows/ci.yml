@@ -41,5 +41,10 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Test
-        run: pnpm test
+      # Fails under the thresholds in vitest.config.ts: a published package
+      # must not lose its tests silently.
+      - name: Test with coverage
+        run: pnpm test:coverage
+
+      - name: Coverage summary
+        run: node -p "'Line coverage: ' + require('./coverage/coverage-summary.json').total.lines.pct + '%'" >> "$GITHUB_STEP_SUMMARY"
