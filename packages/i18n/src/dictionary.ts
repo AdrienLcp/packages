@@ -217,12 +217,40 @@ type EnumsOf<Options> = Options extends { enum: infer Enums }
   ? Enums
   : Record<string, Record<string, string>>
 
+/**
+ * What a `{x:date}` placeholder takes: a `Date`, or a `Temporal.Instant`,
+ * `Temporal.PlainDate`, `Temporal.PlainDateTime` or `Temporal.PlainTime` —
+ * the Temporal values `Intl.DateTimeFormat` formats. A `ZonedDateTime` is not
+ * one of them: `format` refuses it, so convert it with `toInstant()` or
+ * `toPlainDateTime()` first.
+ *
+ * A `Plain*` value is a wall-clock reading with no zone, so the `timeZone`
+ * option does not move it; an `Instant` is shown in `timeZone`.
+ */
+export type FormattableDate = Date | TemporalDate
+
+/**
+ * Read off `globalThis` rather than named, so a project whose `lib` has no
+ * Temporal still compiles against this declaration: the condition fails and
+ * `{x:date}` takes a `Date` alone.
+ */
+type TemporalDate = typeof globalThis extends {
+  Temporal: {
+    Instant: { prototype: infer Instant }
+    PlainDate: { prototype: infer PlainDate }
+    PlainDateTime: { prototype: infer PlainDateTime }
+    PlainTime: { prototype: infer PlainTime }
+  }
+}
+  ? Instant | PlainDate | PlainDateTime | PlainTime
+  : never
+
 type ValueForParam<
   Type extends string,
   Name extends string,
   Enums
 > = Type extends 'date'
-  ? Date
+  ? FormattableDate
   : Type extends 'displayname'
     ? string
     : Type extends 'enum'

@@ -8,6 +8,7 @@ import type {
   Dictionary,
   DictionaryFor,
   DotPath,
+  FormattableDate,
   LeafAt,
   ParameterizedKey,
   PlainKey,
@@ -232,8 +233,12 @@ const substitute = ({
 
     switch (type) {
       case 'date':
-        return isValidDate(value)
-          ? formatters.date(options.date?.[name]).format(value)
+        return isFormattableDate(value)
+          ? (formattedDate({
+              date: value,
+              formatters,
+              options: options.date?.[name]
+            }) ?? placeholder)
           : placeholder
       case 'displayname':
         return typeof value === 'string'
@@ -393,8 +398,42 @@ const displayName = ({
   }
 }
 
-const isValidDate = (value: unknown): value is Date =>
-  value instanceof Date && !Number.isNaN(value.getTime())
+const isFormattableDate = (value: unknown): value is FormattableDate =>
+  value instanceof Date
+    ? !Number.isNaN(value.getTime())
+    : isFormattableTemporal(value)
+
+/**
+ * `Temporal` is read only once it is known to exist, so a runtime without it
+ * takes a `Date` alone instead of throwing a `ReferenceError` on every date.
+ */
+const isFormattableTemporal = (value: unknown): boolean =>
+  typeof Temporal !== 'undefined' &&
+  (value instanceof Temporal.Instant ||
+    value instanceof Temporal.PlainDate ||
+    value instanceof Temporal.PlainDateTime ||
+    value instanceof Temporal.PlainTime)
+
+/**
+ * `Intl.DateTimeFormat` throws on options it cannot combine (`dateStyle` beside
+ * `hour`), and on a Temporal value asked for fields it does not hold — a
+ * `PlainDate` under `timeStyle`, a `PlainTime` under `dateStyle`.
+ */
+const formattedDate = ({
+  date,
+  formatters,
+  options
+}: {
+  date: FormattableDate
+  formatters: Formatters
+  options: Intl.DateTimeFormatOptions | undefined
+}): string | undefined => {
+  try {
+    return formatters.date(options).format(date)
+  } catch {
+    return undefined
+  }
+}
 
 /** Same reasoning: the unit is declared with the message, or there is none. */
 const relativeTime = ({

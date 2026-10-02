@@ -6,6 +6,7 @@ import {
   type DictionaryFor,
   type DotPath,
   defineDictionary,
+  type FormattableDate,
   type MatchingDictionary,
   type ParameterizedKey,
   type PlainKey,
@@ -84,13 +85,37 @@ describe('values', () => {
     expectTypeOf<ValuesFor<Reference['seconds']>>().toEqualTypeOf<{
       seconds: number
     }>()
-    expectTypeOf<ValuesFor<Reference['played']>>().toEqualTypeOf<{ at: Date }>()
+    expectTypeOf<ValuesFor<Reference['played']>>().toEqualTypeOf<{
+      at: FormattableDate
+    }>()
     expectTypeOf<ValuesFor<Reference['tags']>>().toEqualTypeOf<{
       tags: readonly string[]
     }>()
     expectTypeOf<ValuesFor<Reference['score']>>().toEqualTypeOf<{
       count: number
     }>()
+  })
+
+  it('[types] takes a date as a Date or a Temporal value Intl can format', () => {
+    expectTypeOf<FormattableDate>().toEqualTypeOf<
+      | Date
+      | Temporal.Instant
+      | Temporal.PlainDate
+      | Temporal.PlainDateTime
+      | Temporal.PlainTime
+    >()
+  })
+
+  it('[types] refuses a Temporal value Intl cannot format as a date', () => {
+    expectTypeOf<
+      Accepts<FormattableDate, Temporal.ZonedDateTime>
+    >().toEqualTypeOf<false>()
+    expectTypeOf<
+      Accepts<FormattableDate, Temporal.PlainYearMonth>
+    >().toEqualTypeOf<false>()
+    expectTypeOf<
+      Accepts<FormattableDate, Temporal.PlainMonthDay>
+    >().toEqualTypeOf<false>()
   })
 
   it('[types] narrows an enum value to the members the dictionary declares', () => {

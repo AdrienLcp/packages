@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { defineTranslation } from './define-translation.ts'
 import { type DictionaryFor, defineDictionary } from './dictionary.ts'
@@ -441,5 +441,88 @@ describe('rich text with malformed spans', () => {
       { link: '{count:number}' },
       ' terms'
     ])
+  })
+})
+
+const MOMENTS = defineDictionary({
+  clock: defineTranslation('Opens at {at:date}', {
+    date: { at: { timeStyle: 'short' } }
+  }),
+  day: defineTranslation('Played on {at:date}', {
+    date: { at: { dateStyle: 'long', timeZone: 'Asia/Tokyo' } }
+  }),
+  seen: 'Seen {at:date}',
+  stamped: defineTranslation('Stamped {at:date}', {
+    date: { at: { dateStyle: 'long', hour: 'numeric' } }
+  })
+})
+
+const moments = createTranslator<typeof MOMENTS>({
+  dictionary: MOMENTS,
+  locale: 'en'
+})
+
+const translateUnchecked = (key: string, values: Record<string, unknown>) =>
+  Reflect.apply(moments, undefined, [key, values])
+
+describe('a Temporal value', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('[date] shows an instant in the time zone the dictionary names', () => {
+    expect(
+      moments('day', { at: Temporal.Instant.from('2026-03-01T23:30:00Z') })
+    ).toBe('Played on March 2, 2026')
+  })
+
+  it('[date] keeps a plain date on its own day whatever the time zone', () => {
+    expect(moments('day', { at: Temporal.PlainDate.from('2026-03-01') })).toBe(
+      'Played on March 1, 2026'
+    )
+  })
+
+  it('[date] keeps a plain date-time on its wall clock whatever the time zone', () => {
+    expect(
+      moments('day', { at: Temporal.PlainDateTime.from('2026-03-01T23:30') })
+    ).toBe('Played on March 1, 2026')
+  })
+
+  it('[date] formats a plain time under a time style', () => {
+    expect(moments('clock', { at: Temporal.PlainTime.from('09:05') })).toBe(
+      'Opens at 9:05 AM'
+    )
+  })
+
+  it('[date] leaves a plain date standing under a time style rather than throwing', () => {
+    expect(
+      moments('clock', { at: Temporal.PlainDate.from('2026-03-01') })
+    ).toBe('Opens at {at:date}')
+  })
+
+  it.each([
+    ['zoned date-time', Temporal.ZonedDateTime.from('2026-03-01T23:30[UTC]')],
+    ['year and month', Temporal.PlainYearMonth.from('2026-03')],
+    ['month and day', Temporal.PlainMonthDay.from('03-01')],
+    ['duration', Temporal.Duration.from({ hours: 1 })]
+  ])(
+    '[date] leaves a %s standing, which the formatter cannot print',
+    (_, at) => {
+      expect(translateUnchecked('seen', { at })).toBe('Seen {at:date}')
+    }
+  )
+
+  it('[date] leaves options the formatter cannot combine standing rather than throwing', () => {
+    expect(moments('stamped', { at: new Date(0) })).toBe('Stamped {at:date}')
+  })
+
+  it('[date] still formats a Date on a runtime without Temporal', () => {
+    const at = Temporal.Instant.from('2026-03-01T12:00:00Z')
+    vi.stubGlobal('Temporal', undefined)
+
+    expect(moments('day', { at: new Date('2026-03-01T12:00:00Z') })).toBe(
+      'Played on March 1, 2026'
+    )
+    expect(moments('day', { at })).toBe('Played on {at:date}')
   })
 })

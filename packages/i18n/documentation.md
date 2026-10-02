@@ -120,7 +120,7 @@ instead of a bare string.
 | `{x}` | `string` | none | `String(value)` |
 | `{x:number}` | `number` | `number.x`, optional | `Intl.NumberFormat` |
 | `{x:plural}` | `number` | `plural.x`, **required** | `Intl.PluralRules`, then `Intl.NumberFormat` |
-| `{x:date}` | `Date` | `date.x`, optional | `Intl.DateTimeFormat` |
+| `{x:date}` | `FormattableDate`: a `Date`, or a Temporal `Instant`, `PlainDate`, `PlainDateTime` or `PlainTime` | `date.x`, optional | `Intl.DateTimeFormat` |
 | `{x:list}` | `readonly string[]` | `list.x`, optional | `Intl.ListFormat` |
 | `{x:relative}` | `number` | `relative.x`, **required** | `Intl.RelativeTimeFormat` |
 | `{x:displayname}` | `string` | `displayname.x`, **required** | `Intl.DisplayNames` |
@@ -176,6 +176,24 @@ translate('status', { value: 'draft' }) // 'Status: Draft'
 translate('updated', { when: -1 }) // 'Updated yesterday'
 translate('spokenIn', { language: 'fr' }) // 'Spoken in French'
 ```
+
+What `:date` takes from Temporal is what `Intl.DateTimeFormat` prints:
+
+- **An `Instant` is shown in `timeZone`**, like a `Date`. A `PlainDate`,
+  `PlainDateTime` or `PlainTime` is a wall-clock reading with no zone, so
+  `timeZone` does not move it: `PlainDate.from('2026-03-01')` stays March 1st
+  in Tokyo.
+- **A `ZonedDateTime` does not compile**, because the formatter refuses it.
+  Hand it over as `toInstant()` to show it in `timeZone`, or `toPlainDateTime()`
+  to keep its own wall clock. `PlainYearMonth` and `PlainMonthDay` are refused
+  too: they print only in the locale's own calendar, and one built from an ISO
+  string is in `iso8601`, which no locale formats in.
+- **Options asking for fields the value lacks leave the placeholder standing**:
+  a `PlainDate` under `timeStyle`, a `PlainTime` under `dateStyle`.
+- **The Temporal types come from your own `lib`.** A project compiling without
+  Temporal (`lib` below `esnext` on TypeScript 6, or TypeScript 5) sees
+  `{x:date}` take a `Date` alone, and a runtime without `Temporal` formats
+  `Date` values as before.
 
 Three things about `:plural` that nothing in the syntax hints at:
 
