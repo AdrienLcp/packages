@@ -47,4 +47,5 @@ jobs:
         run: pnpm test:coverage
 
       - name: Coverage summary
-        run: node -p "'Line coverage: ' + require('./coverage/coverage-summary.json').total.lines.pct + '%'" >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          node -p "'Line coverage: ' + require('./coverage/coverage-summary.json').total.lines.pct + '%'" >> "$GITHUB_STEP_SUMMARY"
