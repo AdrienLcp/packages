@@ -11,6 +11,7 @@
   }
 
   html {
+    interpolate-size: allow-keywords;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }

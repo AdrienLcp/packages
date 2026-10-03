@@ -15,7 +15,7 @@ dependency.
 | [`@adrienlcp/react-router`](packages/react-router) | For react-aria apps on react-router: links that navigate on the client, external URLs left alone, `NavigateOptions` typed on every link |
 | [`@adrienlcp/result`](packages/result) | A success-or-failure value with no exceptions and no nulls |
 | [`@adrienlcp/safe-storage`](packages/safe-storage) | `localStorage` that never throws: every call returns a `Result`, and typed reads check what they find |
-| [`@adrienlcp/styles`](packages/styles) | A reset, a reduced-motion switch, and Sass mixins for self-hosted fonts and a breakpoint |
+| [`@adrienlcp/styles`](packages/styles) | A reset, a reduced-motion switch, and Sass mixins for self-hosted fonts, container queries and a breakpoint |
 | [`@adrienlcp/theme-preference`](packages/theme-preference) | Light, dark or system theme with no flash on load, and a browser toolbar that follows the choice |
 | [`@adrienlcp/tsconfig`](packages/tsconfig) | The strictest TypeScript settings, for a type-check-only project bundled by something else |
 

@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
 import { compileString } from 'sass'
@@ -25,6 +25,13 @@ describe('the package manifest', () => {
   })
 })
 
+describe('reset', () => {
+  it('lets every size transition reach an intrinsic keyword', () => {
+    const reset = readFileSync(new URL('reset.css', import.meta.url), 'utf8')
+    expect(reset).toMatch(/html \{[^}]*interpolate-size: allow-keywords;/)
+  })
+})
+
 describe('breakpoints', () => {
   it('splits every width into wide or narrow at 900px', () => {
     const css = compile(`
@@ -47,6 +54,45 @@ describe('breakpoints', () => {
     color: red
 `)
     expect(css).toContain('width >= 1024px')
+  })
+})
+
+describe('containers', () => {
+  it('declares an inline-size container, named only when given a name', () => {
+    const css = compile(`
+@use 'containers'
+.anonymous
+  @include containers.container
+.named
+  @include containers.container(card)
+`)
+    expect(css).toContain('.anonymous{container-type:inline-size}')
+    expect(css).toContain(
+      '.named{container-type:inline-size;container-name:card}'
+    )
+  })
+
+  it('splits every container width into wide or narrow at the given width', () => {
+    const css = compile(`
+@use 'containers'
+.a
+  @include containers.container-wide(30rem)
+    color: red
+  @include containers.container-narrow(30rem)
+    color: blue
+`)
+    expect(css).toContain('@container (width >= 30rem){.a{color:red}}')
+    expect(css).toContain('@container (width < 30rem){.a{color:blue}}')
+  })
+
+  it('queries a named container', () => {
+    const css = compile(`
+@use 'containers'
+.a
+  @include containers.container-wide(30rem, card)
+    color: red
+`)
+    expect(css).toContain('@container card (width >= 30rem){.a{color:red}}')
   })
 })
 

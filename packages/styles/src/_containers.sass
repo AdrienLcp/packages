@@ -1,0 +1,24 @@
+/// Makes the element a container its descendants query by inline size. It can
+/// no longer take its width from its content, so its parent gives it one —
+/// a block, a stretched flex or grid item, a sized track.
+@mixin container($name: null)
+  container-type: inline-size
+  @if $name
+    container-name: $name
+
+/// Matches when the nearest container — or the one named — is at least
+/// `$width` wide. With no container above, neither this nor
+/// `container-narrow` matches.
+@mixin container-wide($width, $name: null)
+  @container #{_condition($name, 'width >= #{$width}')}
+    @content
+
+/// The exact complement of `container-wide` for the same `$width` and `$name`.
+@mixin container-narrow($width, $name: null)
+  @container #{_condition($name, 'width < #{$width}')}
+    @content
+
+@function _condition($name, $feature)
+  @if $name
+    @return '#{$name} (#{$feature})'
+  @return '(#{$feature})'

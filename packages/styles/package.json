@@ -1,13 +1,16 @@
 {
   "author": "Adrien Lacourpaille",
   "bugs": "https://github.com/AdrienLcp/packages/issues",
-  "description": "A reset, a reduced-motion switch, and Sass mixins for self-hosted fonts and a breakpoint",
+  "description": "A reset, a reduced-motion switch, and Sass mixins for self-hosted fonts, container queries and a breakpoint",
   "devDependencies": {
     "sass": "^1.105.0"
   },
   "exports": {
     "./breakpoints": {
       "sass": "./src/_breakpoints.sass"
+    },
+    "./containers": {
+      "sass": "./src/_containers.sass"
     },
     "./fonts": {
       "sass": "./src/_fonts.sass"

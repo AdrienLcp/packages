@@ -1,6 +1,8 @@
 /// Where a screen stops being a phone's. A media query cannot read a custom
 /// property, so the breakpoint is a Sass value; override it with
 /// `@use '@adrienlcp/styles/breakpoints' with ($wide-screen: 1024px)`.
+/// Only for what depends on the device — the page shell, a fixed overlay; a
+/// component answers its container through `containers`.
 $wide-screen: 900px !default
 
 /// `wide` and `narrow` are exact complements: every width is one or the other.
