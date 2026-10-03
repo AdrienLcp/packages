@@ -5,10 +5,7 @@
     "pnpm-lock.yaml",
     "dist",
     "coverage",
-    "*.tsbuildinfo",
-    "PRODUCT.md",
-    "DESIGN.md",
-    ".impeccable"
+    "*.tsbuildinfo"
   ],
   "import": ["@cspell/dict-fr-fr/cspell-ext.json"],
   "language": "en,en-GB",
@@ -69,12 +66,14 @@
     "oklch",
     "Onest",
     "pressable",
+    "rhysd",
     "Roboto",
     "Segoe",
     "shiki",
     "subtag",
     "topbar",
     "unlayered",
-    "unstub"
+    "unstub",
+    "vitest"
   ]
 }

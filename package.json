@@ -24,7 +24,7 @@
     "lint": "biome check --write",
     "lint:ci": "biome ci",
     "release": "pnpm build && changeset publish",
-    "spell": "cspell --no-progress --gitignore \"**\"",
+    "spell": "git ls-files --cached --others --exclude-standard | cspell --no-progress --file-list stdin",
     "test": "pnpm -r test",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit && tsc --noEmit -p packages/browser && tsc --noEmit -p packages/react && tsc --noEmit -p packages/react-aria && tsc --noEmit -p packages/react-router && tsc --noEmit -p packages/safe-storage && tsc --noEmit -p packages/theme-preference",
