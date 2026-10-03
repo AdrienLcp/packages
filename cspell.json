@@ -8,7 +8,41 @@
     "*.tsbuildinfo"
   ],
   "import": ["@cspell/dict-fr-fr/cspell-ext.json"],
-  "language": "en,en-GB,fr",
+  "language": "en,en-GB",
+  "overrides": [
+    {
+      "filename": [
+        "packages/i18n/documentation.md",
+        "packages/i18n/src/create-i18n.test.ts",
+        "packages/i18n/src/translator.test.ts",
+        "packages/i18n/src/translator.types.test.ts"
+      ],
+      "language": "en,en-GB,fr"
+    },
+    {
+      "filename": [
+        "cspell.json",
+        "packages/i18n/documentation.md",
+        "packages/i18n/src/create-i18n.test.ts",
+        "packages/i18n/src/dictionary-de.fixture.ts",
+        "packages/i18n/src/dictionary.ts",
+        "packages/i18n/src/translator.types.test.ts"
+      ],
+      "words": [
+        "gefunden",
+        "indovinato",
+        "Nessuno",
+        "niemand",
+        "Noch",
+        "Punkt",
+        "Punkte",
+        "punti",
+        "punto",
+        "Übersicht",
+        "Willkommen"
+      ]
+    }
+  ],
   "version": "0.2",
   "words": [
     "adrienlcp",
@@ -17,24 +51,11 @@
     "CLDR",
     "displayname",
     "esnext",
-    "gefunden",
-    "indovinato",
     "Lacourpaille",
-    "localstorage",
     "memoises",
     "memoising",
-    "Nessuno",
-    "niemand",
-    "Noch",
-    "Punkt",
-    "Punkte",
-    "punti",
-    "punto",
     "subtag",
-    "Übersicht",
-    "unicode",
     "unlayered",
-    "unstub",
-    "Willkommen"
+    "unstub"
   ]
 }
