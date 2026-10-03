@@ -1,0 +1,125 @@
+@mixin dark-marks
+  --mark-lightness: 0.56
+  --kind-lightness: 0.34
+  --kind-chroma: 0.03
+  --kind-glyph-lightness: 0.85
+
+@layer tokens
+  \:root
+    // One stepped cool-neutral ramp is the only tonal set: every surface is a
+    // step of it, and a surface sits one step lighter than the one it rests on.
+    --sunk: light-dark(oklch(0.935 0.006 255), oklch(0.185 0.006 255))
+    --ground: light-dark(oklch(0.958 0.005 255), oklch(0.215 0.006 255))
+    --plane: light-dark(oklch(0.994 0.002 255), oklch(0.258 0.007 255))
+    --ply: light-dark(oklch(1 0 0), oklch(0.315 0.008 255))
+    --hover: light-dark(oklch(0.965 0.004 255), oklch(0.29 0.008 255))
+    --separator: light-dark(oklch(0.945 0.004 255), oklch(0.305 0.007 255))
+    --track: light-dark(oklch(0.915 0.006 255), oklch(0.19 0.006 255))
+    --ring: light-dark(oklch(0.84 0.006 255), oklch(0.4 0.008 255))
+    --mute: light-dark(oklch(0.62 0.008 255), oklch(0.6 0.008 255))
+    --ink-soft: light-dark(oklch(0.48 0.012 255), oklch(0.74 0.01 255))
+    --ink: light-dark(oklch(0.24 0.012 255), oklch(0.95 0.004 255))
+    --on-mark: oklch(0.995 0 0)
+
+    // The one accent: what can be pressed, and where you are.
+    --accent: light-dark(oklch(0.5 0.075 196), oklch(0.8 0.065 196))
+    --accent-wash: light-dark(oklch(0.5 0.075 196 / 0.12), oklch(0.8 0.065 196 / 0.16))
+    --focus: var(--accent)
+
+    // A package's mark: one lightness and chroma for all, each its own hue.
+    // `light-dark()` takes colours only, so the dark steps are set below.
+    --mark-lightness: 0.62
+    --mark-chroma: 0.062
+    --kind-lightness: 0.945
+    --kind-chroma: 0.022
+    --kind-glyph-lightness: 0.44
+
+    --shadow-ply: light-dark(0 1px 2px oklch(0.3 0.02 255 / 0.08), 0 1px 2px oklch(0 0 0 / 0.35)), light-dark(0 4px 14px -6px oklch(0.3 0.02 255 / 0.14), 0 6px 16px -8px oklch(0 0 0 / 0.5))
+
+    // Read by the code blocks shiki renders at build time.
+    --code-foreground: var(--ink)
+    --code-background: var(--sunk)
+    --code-token-comment: var(--ink-soft)
+    --code-token-string: var(--accent)
+    --code-token-string-expression: var(--accent)
+    --code-token-constant: var(--ink)
+    --code-token-keyword: var(--ink)
+    --code-token-parameter: var(--ink)
+    --code-token-function: var(--ink)
+    --code-token-punctuation: var(--ink-soft)
+    --code-token-link: var(--accent)
+
+    --font-ui: 'Onest', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif
+    --font-code: 'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace
+
+    --text-2xs: 0.6875rem
+    --text-xs: 0.75rem
+    --text-s: 0.8125rem
+    --text-m: 0.875rem
+    --text-base: 0.9375rem
+    --text-body: 1rem
+    --text-l: 1.0625rem
+    --text-xl: 1.1875rem
+    --text-2xl: 1.3125rem
+    --text-title: clamp(1.75rem, 3.4vw, 2.25rem)
+    --text-package-title: clamp(1.75rem, 3.6vw, 2.375rem)
+
+    --space-4xs: 0.125rem
+    --space-3xs: 0.25rem
+    --space-2xs: 0.5rem
+    --space-xs: 0.75rem
+    --space-row: 0.875rem
+    --space-s: 1rem
+    --space-m: 1.25rem
+    --space-l: 1.5rem
+    --space-xl: 2rem
+    --space-2xl: 2.5rem
+    --space-3xl: 3rem
+    --gutter: 16px
+    --topbar-height: 4rem
+    --sidebar-width: 17.5rem
+    --side-column-width: 20.5rem
+    --measure: 68ch
+    --measure-lead: 44rem
+    --measure-note: 62ch
+
+    --control-s: 2rem
+    --control-m: 2.25rem
+    --control-touch: 2.75rem
+
+    --square-s: 28px
+    --square-m: 30px
+    --square-l: 40px
+    --square-xl: 68px
+
+    --radius-inline: 5px
+    --radius-square: 7px
+    --radius-square-l: 10px
+    --radius-square-xl: 16px
+    --radius-control: 10px
+    --radius-field: 12px
+    --radius-plane: 14px
+    --radius-full: 999px
+    --outline-thin: 2px
+    --stroke-hair: 1px
+    --separator-line: var(--stroke-hair) solid var(--separator)
+
+    --transition-fast: 140ms
+    --transition-base: 200ms
+    --transition-slow: 320ms
+    --timing: cubic-bezier(0.16, 1, 0.3, 1)
+
+  @media (prefers-color-scheme: dark)
+    \:root:not([data-theme='light'])
+      @include dark-marks
+
+  \:root[data-theme='dark']
+    @include dark-marks
+
+  @media (width >= 720px)
+    \:root
+      --gutter: 28px
+
+  @media (width >= 1200px)
+    \:root
+      --gutter: 40px

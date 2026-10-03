@@ -1,0 +1,38 @@
+@use '../../presentation/styles/layout'
+
+@layer components
+  .package-works-with
+    @include layout.plane
+
+    display: flex
+    flex-wrap: wrap
+    gap: var(--space-3xs)
+    max-width: 100%
+    padding: 10px
+    width: fit-content
+
+    .works-with-tool
+      align-content: start
+      display: grid
+      gap: 9px
+      justify-items: center
+      min-width: 6.5rem
+      padding: var(--space-xs) var(--space-xs) var(--space-2xs)
+      text-align: center
+
+    .works-with-logo
+      color: var(--ink)
+      height: 2.25rem
+      width: 2.25rem
+
+    .works-with-name
+      display: block
+      font-size: var(--text-m)
+      font-weight: 600
+      line-height: 1.2
+
+    .works-with-note
+      color: var(--ink-soft)
+      display: block
+      font-size: var(--text-xs)
+      margin-block-start: 2px

@@ -5,13 +5,17 @@
     "pnpm-lock.yaml",
     "dist",
     "coverage",
-    "*.tsbuildinfo"
+    "*.tsbuildinfo",
+    "PRODUCT.md",
+    "DESIGN.md",
+    ".impeccable"
   ],
   "import": ["@cspell/dict-fr-fr/cspell-ext.json"],
   "language": "en,en-GB",
   "overrides": [
     {
       "filename": [
+        "apps/docs/src/presentation/i18n/dictionary-fr.ts",
         "packages/i18n/documentation.md",
         "packages/i18n/src/create-i18n.test.ts",
         "packages/i18n/src/translator.test.ts",
@@ -48,13 +52,28 @@
     "adrienlcp",
     "archivo",
     "biomejs",
+    "Cascadia",
     "CLDR",
+    "Consolas",
     "displayname",
     "esnext",
+    "Français",
     "Lacourpaille",
+    "linecap",
+    "linejoin",
     "memoises",
     "memoising",
+    "minmax",
+    "nowrap",
+    "nums",
+    "oklch",
+    "Onest",
+    "pressable",
+    "Roboto",
+    "Segoe",
+    "shiki",
     "subtag",
+    "topbar",
     "unlayered",
     "unstub"
   ]

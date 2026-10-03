@@ -1,0 +1,30 @@
+@use './styles/focus'
+
+@layer components
+  .site-footer
+    align-items: center
+    color: var(--ink-soft)
+    display: flex
+    flex-wrap: wrap
+    font-size: var(--text-s)
+    gap: var(--space-2xs) var(--space-s)
+    justify-content: space-between
+    padding: var(--space-xl) var(--space-row) 0
+
+  .site-footer-link
+    @include focus.ring
+
+    align-items: center
+    border-radius: var(--radius-inline)
+    color: var(--accent)
+    display: inline-flex
+    gap: var(--space-2xs)
+    min-height: var(--control-m)
+
+    > svg
+      height: 0.875rem
+      width: 0.875rem
+
+    &[data-hovered]
+      text-decoration: underline
+      text-underline-offset: 0.2em

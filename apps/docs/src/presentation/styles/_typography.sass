@@ -1,0 +1,56 @@
+/// Trims a one-line label to its capitals and baseline, so equal padding
+/// centres it optically.
+@mixin cap-box
+  text-box: trim-both cap alphabetic
+
+@mixin body
+  font-family: var(--font-ui)
+  font-size: var(--text-base)
+  font-weight: 400
+  line-height: 1.5
+
+/// A screen's title: the inventory's, a package's.
+@mixin title
+  font-size: var(--text-title)
+  font-weight: 700
+  letter-spacing: -0.025em
+  line-height: 1.1
+  text-wrap: balance
+
+/// A block's heading in the page: exports, documentation.
+@mixin heading
+  font-size: var(--text-2xl)
+  font-weight: 700
+  letter-spacing: -0.015em
+  line-height: 1.2
+
+/// A heading in the side column, or a documentation section's.
+@mixin subheading
+  font-size: var(--text-l)
+  font-weight: 700
+  letter-spacing: -0.01em
+  line-height: 1.3
+
+/// The quiet label above a grouped list, as a settings screen sets it.
+@mixin group-label
+  color: var(--ink-soft)
+  font-size: var(--text-s)
+  font-weight: 600
+  line-height: 1.3
+
+/// Secondary text beside or under a row's name.
+@mixin caption
+  color: var(--ink-soft)
+  font-size: var(--text-s)
+  line-height: 1.45
+
+/// A symbol, a specifier, a version in code.
+@mixin symbol
+  font-family: var(--font-code)
+  font-size: var(--text-m)
+  font-weight: 600
+  letter-spacing: -0.01em
+
+/// Numerals that line up in a column.
+@mixin figures
+  font-variant-numeric: tabular-nums lining-nums

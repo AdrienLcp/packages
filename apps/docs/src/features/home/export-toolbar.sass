@@ -1,0 +1,29 @@
+@use '../../presentation/styles/typography'
+
+@layer components
+  .export-toolbar
+    background: var(--ground)
+    display: grid
+    gap: 10px
+    padding: 10px 0 var(--space-s)
+    z-index: 5
+
+    @media (width >= 720px)
+      inset-block-start: var(--topbar-height)
+      position: sticky
+
+    .export-toolbar-filters
+      align-items: center
+      display: flex
+      flex-wrap: wrap
+      gap: var(--space-2xs) var(--space-s)
+
+    .export-toolbar-count
+      @include typography.caption
+      @include typography.figures
+
+      margin-inline-start: auto
+      white-space: nowrap
+
+      @media (width < 720px)
+        margin-inline-start: 0

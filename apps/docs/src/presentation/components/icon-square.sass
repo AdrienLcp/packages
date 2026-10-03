@@ -1,0 +1,56 @@
+@layer components
+  .icon-square
+    --square-size: var(--square-s)
+    --hue: 250
+
+    background: oklch(var(--mark-lightness) var(--mark-chroma) var(--hue))
+    border-radius: var(--radius-square)
+    color: var(--on-mark)
+    display: inline-grid
+    flex: none
+    height: var(--square-size)
+    place-items: center
+    transition: background-color var(--transition-base, 0) var(--timing), box-shadow var(--transition-base, 0) var(--timing), color var(--transition-base, 0) var(--timing)
+    width: var(--square-size)
+
+    > svg
+      height: 58%
+      width: 58%
+
+    &.m
+      --square-size: var(--square-m)
+
+    &.l
+      --square-size: var(--square-l)
+
+      border-radius: var(--radius-square-l)
+
+    &.xl
+      --square-size: var(--square-xl)
+
+      border-radius: var(--radius-square-xl)
+
+    &.neutral
+      background: var(--ink)
+      color: var(--plane)
+
+    &.kind
+      background: oklch(var(--kind-lightness) var(--kind-chroma) var(--hue))
+      color: oklch(var(--kind-glyph-lightness) 0.07 var(--hue))
+
+      > svg
+        height: 64%
+        width: 64%
+
+    &.hollow
+      background: transparent
+      box-shadow: inset 0 0 0 1.5px var(--ring)
+      color: var(--mute)
+
+    &.slot
+      background: transparent
+      color: var(--mute)
+
+      > svg
+        height: 100%
+        width: 100%

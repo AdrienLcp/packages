@@ -1,0 +1,27 @@
+@layer components
+  .skip-link
+    align-items: center
+    background: var(--ink)
+    border-radius: var(--radius-control)
+    color: var(--plane)
+    display: inline-flex
+    font-size: var(--text-m)
+    font-weight: 600
+    left: var(--gutter)
+    min-height: var(--control-touch)
+    padding: 0 var(--space-s)
+    position: fixed
+    top: var(--space-2xs)
+    transition: translate var(--transition-base, 0) var(--timing)
+    translate: 0 calc(-100% - var(--space-m))
+    z-index: 30
+
+    // Parked above the viewport, yet a view transition's picture of the page
+    // still shows it.
+    :root:active-view-transition &
+      visibility: hidden
+
+    &:focus-visible
+      outline: var(--outline-thin) solid var(--accent)
+      outline-offset: 3px
+      translate: 0

@@ -1,0 +1,30 @@
+@use '../../presentation/styles/layout'
+
+@layer components
+  .pending-notes
+    @include layout.plane
+
+    .pending-note
+      @include layout.row-separator(var(--space-row))
+
+      display: grid
+      gap: var(--space-2xs)
+      padding: var(--space-xs) var(--space-row) var(--space-s)
+
+    .pending-note-line
+      align-items: center
+      display: flex
+      flex-wrap: wrap
+      gap: var(--space-2xs)
+
+    .pending-note-package
+      font-weight: 600
+      margin-inline-end: auto
+
+    .pending-note-text
+      font-size: var(--text-m)
+      line-height: 1.5
+      text-wrap: pretty
+
+      p + p
+        margin-block-start: var(--space-2xs)

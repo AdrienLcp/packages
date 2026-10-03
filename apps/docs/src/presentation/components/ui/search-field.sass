@@ -1,0 +1,59 @@
+@layer components
+  .search-field
+    max-width: 34rem
+    position: relative
+
+    .search-field-icon
+      color: var(--ink-soft)
+      height: 1.125rem
+      left: 13px
+      pointer-events: none
+      position: absolute
+      top: 50%
+      translate: 0 -50%
+      width: 1.125rem
+
+    .search-field-input
+      background: var(--ply)
+      border: 0
+      border-radius: var(--radius-field)
+      box-shadow: var(--shadow-ply)
+      color: var(--ink)
+      font: inherit
+      font-size: var(--text-body)
+      min-height: var(--control-touch)
+      padding: 0 var(--control-touch) 0 41px
+      transition: box-shadow var(--transition-fast, 0) var(--timing)
+      width: 100%
+
+      &::placeholder
+        color: var(--ink-soft)
+        opacity: 1
+
+      &::-webkit-search-cancel-button
+        display: none
+
+      &[data-focused]
+        box-shadow: var(--shadow-ply), 0 0 0 var(--outline-thin) var(--accent)
+        outline: none
+
+    .search-field-shortcut
+      background: var(--track)
+      border-radius: 6px
+      color: var(--ink-soft)
+      font-size: var(--text-xs)
+      padding: 1px 7px
+      position: absolute
+      right: 10px
+      top: 50%
+      translate: 0 -50%
+
+    &[data-empty] .search-field-shortcut
+      opacity: 1
+
+    &:not([data-empty]) .search-field-shortcut
+      opacity: 0
+
+  @media (width < 720px)
+    .search-field .search-field-shortcut
+      display: none

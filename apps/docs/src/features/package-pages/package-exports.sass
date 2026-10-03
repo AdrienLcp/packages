@@ -1,0 +1,46 @@
+@use '../../presentation/styles/focus'
+@use '../../presentation/styles/layout'
+@use '../../presentation/styles/typography'
+
+@layer components
+  .package-exports
+    display: grid
+    gap: 1.375rem
+
+    .package-exports-label
+      @include typography.group-label
+
+      align-items: baseline
+      display: flex
+      flex-wrap: wrap
+      gap: 2px var(--space-xs)
+      justify-content: space-between
+      padding: 0 var(--space-row) 7px
+
+    .package-exports-section
+      @include focus.ring
+
+      align-items: center
+      border-radius: 6px
+      color: var(--ink)
+      display: inline-flex
+      gap: var(--space-3xs)
+      min-height: 1.75rem
+
+      > svg
+        color: var(--mute)
+        height: 14px
+        width: 14px
+
+      code
+        font-size: 0.92em
+
+      &[data-hovered],
+      &[data-hovered] > svg
+        color: var(--accent)
+
+    .package-exports-list
+      @include layout.plane
+
+    .package-exports-item
+      @include layout.row-separator

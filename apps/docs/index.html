@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta content="#eff1f4" data-scheme="light" data-token="--ground" media="(prefers-color-scheme: light)" name="theme-color" />
+    <meta content="#181a1c" data-scheme="dark" data-token="--ground" media="(prefers-color-scheme: dark)" name="theme-color" />
+    <style>
+      :root[data-fonts-pending] #root {
+        visibility: hidden;
+      }
+    </style>
+    <script>
+      if ('FontFace' in window) {
+        const root = document.documentElement
+        const reveal = () => delete root.dataset.fontsPending
+        const longestFontWaitMs = 800
+
+        root.dataset.fontsPending = ''
+        setTimeout(reveal, longestFontWaitMs)
+        Promise.all([
+          new FontFace('Onest', "url('/fonts/onest-latin.woff2') format('woff2')", {
+            weight: '100 900'
+          }).load(),
+          new FontFace('JetBrains Mono', "url('/fonts/jetbrains-mono-latin.woff2') format('woff2')", {
+            weight: '100 800'
+          }).load()
+        ]).then(reveal, reveal)
+      }
+    </script>
+    <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
+    <title>@adrienlcp packages</title>
+    <meta content="Documentation and release history of the @adrienlcp packages: small, typed, dependency-free TypeScript packages." name="description" />
+    <!--
+      A layer's position is fixed where its name first appears, and Vite injects
+      stylesheets in module-graph order: declared here, the order cannot depend
+      on which component happened to be imported first.
+    -->
+    <style>
+      @layer reset, tokens, base, components;
+    </style>
+  </head>
+  <body>
+    <!--
+      THESIS: Lookup in the grammar developers already scan daily, the OS settings app: every package a grouped inset list, every export a row led by its kind icon. Refuses the docs default (grey sidebar, ruled table, blue accent).
+      OWN-WORLD: Pale cool ground, lighter rounded planes, no borders; a stepped neutral ramp is the only tonal set, plies rank by layer, search on the topmost. Muted icon squares, one hue each at fixed lightness and chroma, bearing Simple Icons logos in white. Onest; JetBrains Mono for symbols; one quiet teal for pressable things and the single active dot.
+      STORY: Type or filter, land on a row, follow its chevron to the README section; versions and pending sit beside.
+      FIRST VIEWPORT: Sidebar of eleven tinted squares, "Every export" dotted; right: title, raised search, kind chips, the newest package's group tagged Newest release.
+      FORM: re-roll 1, candidate 1 of 7; seed 9304cfe8.
+      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+    -->
+    <div id="root"></div>
+    <script src="/src/main.tsx" type="module"></script>
+  </body>
+</html>

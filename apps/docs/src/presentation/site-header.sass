@@ -1,0 +1,53 @@
+@use './styles/focus'
+
+@layer components
+  .site-header
+    -webkit-backdrop-filter: saturate(1.4) blur(14px)
+    align-items: center
+    backdrop-filter: saturate(1.4) blur(14px)
+    background: color-mix(in oklch, var(--ground) 82%, transparent)
+    display: flex
+    gap: var(--space-xs)
+    height: var(--topbar-height)
+    inset-block-start: 0
+    padding-inline: var(--gutter)
+    position: sticky
+    view-transition-name: site-header
+    z-index: 20
+
+  .site-brand
+    @include focus.ring
+
+    align-items: center
+    border-radius: var(--radius-control)
+    display: inline-flex
+    font-size: var(--text-body)
+    font-weight: 600
+    gap: var(--space-xs)
+    letter-spacing: -0.01em
+    margin-inline-end: auto
+    min-height: var(--control-touch)
+    min-width: 0
+
+  .site-brand-scope
+    color: var(--ink-soft)
+    font-weight: 500
+
+  .site-settings
+    align-items: center
+    display: flex
+    gap: var(--space-2xs)
+
+  @media (width < 560px)
+    .site-brand-scope
+      display: none
+
+  // The square alone, beside both switches; the name stays for screen readers.
+  @media (width < 480px)
+    .site-brand-name
+      clip-path: inset(50%)
+      height: 1px
+      overflow: hidden
+      position: absolute
+      white-space: nowrap
+      width: 1px

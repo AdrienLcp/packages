@@ -1,0 +1,22 @@
+@use '../styles/typography'
+
+@layer components
+  .state-row
+    align-items: start
+    display: grid
+    gap: var(--space-xs)
+    grid-template-columns: var(--square-s) minmax(0, 1fr)
+    padding: var(--space-xs) var(--space-row) 0.8125rem
+
+    .state-row-title
+      display: block
+      font-weight: 600
+      line-height: 1.3
+      padding-block-start: var(--space-3xs)
+
+    .state-row-body
+      @include typography.caption
+
+      margin-block-start: 3px
+      max-width: var(--measure-note)
+      text-wrap: pretty

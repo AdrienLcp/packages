@@ -9,6 +9,6 @@ export default defineConfig({
       reporter: ['text', 'html', 'json-summary'],
       thresholds: { branches: 95, functions: 90, lines: 95, statements: 95 }
     },
-    projects: ['packages/*/vitest.config.ts']
+    projects: ['apps/*/vitest.config.ts', 'packages/*/vitest.config.ts']
   }
 })

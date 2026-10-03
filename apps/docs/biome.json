@@ -1,0 +1,18 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.14/schema.json",
+  "extends": "//",
+  "linter": {
+    "domains": {
+      "react": "recommended"
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["src/presentation/components/rendered-html.tsx"],
+      "linter": {
+        "rules": { "security": { "noDangerouslySetInnerHtml": "off" } }
+      }
+    }
+  ],
+  "root": false
+}

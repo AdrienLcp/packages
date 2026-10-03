@@ -1,0 +1,142 @@
+@use '../../presentation/styles/typography'
+
+// The README's own Markdown, rendered: prose, lists, tables, highlighted code.
+@layer components
+  .package-documentation
+    display: grid
+    gap: var(--space-s)
+
+    .doc-section
+      background: var(--plane)
+      border-radius: var(--radius-plane)
+      display: grid
+      gap: var(--space-s)
+      min-width: 0
+      padding: var(--space-m) 22px 22px
+      scroll-margin-block-start: calc(var(--topbar-height) + var(--space-s))
+      transition: box-shadow var(--transition-slow, 0) var(--timing)
+
+      &:focus
+        outline: none
+
+      &.is-target
+        box-shadow: 0 0 0 var(--outline-thin) var(--accent)
+
+    .doc-section-title
+      @include typography.subheading
+
+      align-items: baseline
+      display: flex
+      flex-wrap: wrap
+      font-weight: 600
+      gap: var(--space-3xs) var(--space-xs)
+      justify-content: space-between
+
+      code
+        font-size: 0.9em
+
+    .doc-section-file
+      color: var(--ink-soft)
+      font-family: var(--font-code)
+      font-size: var(--text-xs)
+      font-weight: 400
+      letter-spacing: 0
+
+    .doc-section-body
+      display: grid
+      gap: var(--space-s)
+      min-width: 0
+
+      > *
+        margin: 0
+
+      p,
+      ul,
+      ol,
+      blockquote
+        font-size: var(--text-base)
+        line-height: 1.6
+        max-width: var(--measure)
+        text-wrap: pretty
+
+      ul,
+      ol
+        display: grid
+        gap: var(--space-2xs)
+        padding-inline-start: 1.15em
+
+      ul
+        list-style: disc
+
+      ol
+        list-style: decimal
+
+      li::marker
+        color: var(--mute)
+
+      h4,
+      h5
+        font-size: var(--text-base)
+        font-weight: 600
+        margin-block-start: var(--space-2xs)
+
+      strong
+        font-weight: 600
+
+      a
+        color: var(--accent)
+        text-decoration: underline
+        text-decoration-thickness: var(--stroke-hair)
+        text-underline-offset: 0.2em
+
+      blockquote
+        border-inline-start: var(--outline-thin) solid var(--ring)
+        color: var(--ink-soft)
+        padding-inline-start: var(--space-s)
+
+      :not(pre) > code
+        background: var(--sunk)
+        border-radius: var(--radius-inline)
+        color: var(--ink)
+        padding: 0.06em 0.34em
+
+      pre
+        background: var(--sunk)
+        border-radius: var(--radius-control)
+        font-size: var(--text-s)
+        line-height: 1.65
+        max-width: 100%
+        overflow-x: auto
+        padding: var(--space-row) var(--space-s)
+        scrollbar-color: var(--ring) transparent
+        scrollbar-width: thin
+        tab-size: 2
+
+        code
+          font-size: inherit
+
+      .table-scroll
+        background: var(--sunk)
+        border-radius: var(--radius-control)
+        max-width: 100%
+        overflow-x: auto
+        padding: 6px var(--space-3xs)
+
+      table
+        border-collapse: collapse
+        font-size: var(--text-s)
+        width: 100%
+
+      th
+        color: var(--ink-soft)
+        font-weight: 600
+        padding: 6px 10px
+        text-align: start
+        white-space: nowrap
+
+      td
+        padding: 7px 10px
+        vertical-align: baseline
+
+      td code
+        background: var(--plane)

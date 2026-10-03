@@ -1,0 +1,50 @@
+name: Deploy docs
+
+# The site is rebuilt only when what it shows changes: its own code, a
+# package's documentation or sources, a changelog the Version PR wrote, or a
+# changeset waiting for the next release. Publishing to npm is release.yml's.
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/docs/**
+      - packages/*/*.md
+      - packages/*/package.json
+      - packages/*/src/**
+      - .changeset/*.md
+      - .github/workflows/deploy-docs.yml
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-docs
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      # The release dates are read from the history of each changelog.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          cache: pnpm
+          node-version: 26
+
+      - run: pnpm install --frozen-lockfile
+
+      # The site imports the packages through their built output.
+      - name: Build
+        run: pnpm build
+
+      - name: Deploy
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: pnpm dlx wrangler@4 pages deploy apps/docs/dist --project-name adrienlcp-packages --branch main

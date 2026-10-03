@@ -1,0 +1,28 @@
+@use './styles/layout'
+
+@layer components
+  .app-shell
+    display: flex
+    flex: 1
+    flex-direction: column
+    min-width: 0
+
+  .app-panes
+    column-gap: 2.25rem
+    display: grid
+    flex: 1
+    grid-template-columns: minmax(0, 1fr)
+    padding-inline: var(--gutter)
+
+    @include layout.wide
+      align-items: start
+      grid-template-columns: var(--sidebar-width) minmax(0, 1fr)
+
+  .app-pane
+    display: flex
+    flex-direction: column
+    min-width: 0
+    padding-block-end: var(--space-3xl)
+
+    > main
+      flex: 1

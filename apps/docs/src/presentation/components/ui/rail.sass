@@ -1,0 +1,62 @@
+@use '../../styles/focus'
+@use '../../styles/typography'
+
+// A segmented control, as a settings screen draws one: a sunken track, and
+// the choice in play raised on a ply that slides to the next one picked.
+@layer components
+  .rail
+    align-self: center
+    background: var(--track)
+    border-radius: var(--radius-control)
+    display: inline-flex
+    gap: var(--space-4xs)
+    padding: var(--space-4xs)
+
+    .rail-slot
+      @include focus.ring
+
+      align-items: center
+      background: none
+      border: 0
+      border-radius: calc(var(--radius-control) - var(--space-4xs))
+      color: var(--ink-soft)
+      cursor: pointer
+      display: inline-flex
+      font-size: var(--text-s)
+      font-weight: 600
+      isolation: isolate
+      justify-content: center
+      min-height: var(--control-s)
+      min-width: 2.5rem
+      padding: 0 var(--space-2xs)
+      position: relative
+      text-decoration: none
+      transition: color var(--transition-fast, 0) var(--timing)
+
+      &[data-hovered]:not([data-selected], [aria-current])
+        color: var(--ink)
+
+      &[data-selected],
+      &[aria-current]
+        color: var(--ink)
+        cursor: default
+
+    .rail-pawn
+      background: var(--ply)
+      border-radius: inherit
+      box-shadow: var(--shadow-ply)
+      inset: 0
+      position: absolute
+      transition: translate var(--transition-slow, 0) var(--timing)
+      z-index: -1
+
+    .rail-slot-label
+      @include typography.cap-box
+
+    .rail-slot-icon
+      display: grid
+      place-items: center
+
+      > svg
+        height: 1.125rem
+        width: 1.125rem

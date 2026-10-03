@@ -1,0 +1,92 @@
+@use '../../presentation/styles/focus'
+@use '../../presentation/styles/layout'
+@use '../../presentation/styles/typography'
+
+@layer components
+  .export-row
+    @include focus.ring-inset
+    @include layout.row-hover
+
+    align-items: center
+    display: grid
+    gap: 3px var(--space-xs)
+    grid-template-areas: 'square main aside chevron'
+    grid-template-columns: var(--square-s) minmax(0, 1fr) auto 14px
+    min-height: 3.25rem
+    padding: 9px var(--space-row)
+    scroll-margin-block-start: calc(var(--topbar-height) + var(--space-s))
+
+    > .icon-square
+      align-self: start
+      grid-area: square
+      margin-block-start: 1px
+
+    &.is-target
+      background: var(--accent-wash)
+
+      .export-row-name
+        color: var(--accent)
+
+    .export-row-main
+      grid-area: main
+      min-width: 0
+
+    .export-row-name
+      @include typography.symbol
+
+      display: block
+      overflow-wrap: anywhere
+
+      mark
+        background: var(--accent-wash)
+        border-radius: 3px
+        box-shadow: 0 1.5px 0 var(--accent)
+        color: inherit
+
+    .export-row-summary
+      @include typography.caption
+
+      display: block
+      font-size: var(--text-m)
+      margin-block-start: 1px
+      text-wrap: pretty
+
+      code
+        background: var(--sunk)
+        border-radius: var(--radius-inline)
+        color: var(--ink)
+        padding: 0.06em 0.34em
+
+    .export-row-aside
+      display: grid
+      gap: 1px
+      grid-area: aside
+      justify-items: end
+      text-align: end
+
+    .export-row-specifier
+      color: var(--ink-soft)
+      font-size: var(--text-xs)
+      white-space: nowrap
+
+    .export-row-kind
+      color: var(--ink-soft)
+      font-size: var(--text-xs)
+
+    .export-row-chevron
+      color: var(--mute)
+      grid-area: chevron
+      height: 14px
+      width: 14px
+
+  @media (width < 860px)
+    .export-row
+      grid-template-areas: 'square main chevron' 'square aside chevron'
+      grid-template-columns: var(--square-s) minmax(0, 1fr) 14px
+
+      .export-row-aside
+        display: flex
+        flex-wrap: wrap
+        gap: 0 var(--space-xs)
+        justify-items: start
+        text-align: start

@@ -1,0 +1,34 @@
+@use '../../presentation/styles/focus'
+@use '../../presentation/styles/layout'
+
+@layer components
+  .package-facts
+    @include layout.plane
+
+    .package-fact
+      @include layout.row-separator(var(--space-row))
+
+      align-items: baseline
+      display: flex
+      gap: var(--space-s)
+      justify-content: space-between
+      min-height: var(--control-touch)
+      padding: 11px var(--space-row)
+
+      dt
+        color: var(--ink-soft)
+
+      dd
+        font-weight: 500
+        overflow-wrap: anywhere
+        text-align: end
+
+    .package-fact-link
+      @include focus.ring
+
+      border-radius: var(--radius-inline)
+      color: var(--accent)
+
+      &[data-hovered]
+        text-decoration: underline
+        text-underline-offset: 0.2em

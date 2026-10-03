@@ -1,0 +1,77 @@
+@use '../../presentation/styles/focus'
+@use '../../presentation/styles/layout'
+@use '../../presentation/styles/typography'
+
+@layer components
+  .package-versions
+    @include layout.plane
+
+    .package-version
+      @include layout.row-separator(var(--space-row))
+
+      display: grid
+      gap: var(--space-2xs)
+      padding: var(--space-row) var(--space-row) var(--space-s)
+
+      .state-row
+        padding: 2px 0 0
+
+    .package-version-line
+      align-items: center
+      display: flex
+      flex-wrap: wrap
+      gap: 6px var(--space-2xs)
+
+    .package-version-number
+      @include typography.figures
+
+      font-size: var(--text-xl)
+      font-weight: 700
+      letter-spacing: -0.01em
+      margin-inline-end: var(--space-3xs)
+
+    .package-version-date
+      @include typography.caption
+      @include typography.figures
+
+      margin-inline-start: auto
+
+    .package-version-notes
+      display: grid
+      gap: var(--space-2xs)
+
+    .package-version-note
+      font-size: var(--text-m)
+      line-height: 1.5
+
+    .package-version-commit
+      @include focus.ring
+
+      border-radius: var(--radius-inline)
+      color: var(--ink-soft)
+      float: inline-start
+      font-family: var(--font-code)
+      font-size: var(--text-2xs)
+      line-height: 2
+      margin-inline-end: 6px
+
+      &[data-hovered]
+        color: var(--accent)
+
+    .package-version-text
+      text-wrap: pretty
+
+      > p + p
+        margin-block-start: var(--space-2xs)
+
+      code
+        background: var(--sunk)
+        border-radius: var(--radius-inline)
+        padding: 0.06em 0.34em
+
+  .package-versions-footnote
+    @include typography.caption
+
+    max-width: var(--measure-note)
+    padding: var(--space-2xs) var(--space-row) 0
+    text-wrap: pretty

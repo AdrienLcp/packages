@@ -1,0 +1,30 @@
+@forward '@adrienlcp/styles/breakpoints' with ($wide-screen: 1024px)
+
+/// A rounded surface one step lighter than what it rests on: a grouped list,
+/// a documentation section. No border; the step is the edge.
+@mixin plane
+  background: var(--plane)
+  border-radius: var(--radius-plane)
+  overflow: clip
+
+/// The hairline between two rows of a plane, starting after their leading
+/// square so the squares read as one column, the way a settings list does.
+@mixin row-separator($inset: calc(var(--space-row) + var(--square-s) + var(--space-xs)))
+  position: relative
+
+  & + &::before
+    background: var(--separator)
+    content: ''
+    height: var(--stroke-hair)
+    left: $inset
+    position: absolute
+    right: 0
+    top: 0
+    z-index: 1
+
+/// Hover on a pressable row.
+@mixin row-hover
+  transition: background-color var(--transition-fast, 0) var(--timing)
+
+  &[data-hovered]
+    background: var(--hover)

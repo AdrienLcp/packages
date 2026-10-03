@@ -1,0 +1,160 @@
+@use '../../presentation/styles/focus'
+@use '../../presentation/styles/layout'
+@use '../../presentation/styles/typography'
+
+@layer components
+  .package-page
+    section
+      scroll-margin-block-start: calc(var(--topbar-height) + var(--space-s))
+
+    // The sidebar is the way back on a wide screen.
+    .package-back
+      @include focus.ring
+
+      align-items: center
+      border-radius: var(--radius-control)
+      color: var(--accent)
+      display: inline-flex
+      font-weight: 500
+      gap: 2px
+      margin-inline-start: -4px
+      min-height: var(--control-touch)
+      padding-inline-end: var(--space-2xs)
+
+      > svg
+        height: 1.375rem
+        width: 1.375rem
+
+      &[data-hovered] span
+        text-decoration: underline
+        text-underline-offset: 0.2em
+
+      @include layout.wide
+        display: none
+
+    .package-head
+      align-items: center
+      display: grid
+      gap: var(--space-2xs) var(--space-m)
+      grid-template-columns: auto minmax(0, 1fr)
+      padding: var(--space-2xs) 0 var(--space-l)
+
+      > .icon-square
+        align-self: start
+        grid-row: span 2
+
+      @include layout.wide
+        padding-block-start: var(--space-m)
+
+    .package-title
+      @include typography.title
+
+      font-size: var(--text-package-title)
+      line-height: 1.08
+      overflow-wrap: anywhere
+
+    .package-scope
+      color: var(--ink-soft)
+      display: block
+      font-size: var(--text-base)
+      font-weight: 500
+      letter-spacing: 0
+      margin-block-end: var(--space-3xs)
+
+    .package-description
+      color: var(--ink-soft)
+      font-size: var(--text-l)
+      line-height: 1.45
+      max-width: var(--measure-lead)
+      text-wrap: pretty
+
+    .package-top
+      display: grid
+      gap: 22px
+      grid-template-columns: minmax(0, 1fr)
+      margin-block-end: 2.25rem
+
+      @media (width >= 1180px)
+        align-items: start
+        column-gap: 28px
+        grid-template-columns: auto minmax(0, 1fr)
+
+    .package-label
+      @include typography.group-label
+
+      padding: 0 var(--space-row) 7px
+
+    .package-jumps
+      display: flex
+      flex-wrap: wrap
+      gap: var(--space-3xs)
+      margin-block-start: var(--space-row)
+      padding-inline-start: var(--space-3xs)
+
+    .package-jump
+      @include focus.ring
+
+      align-items: center
+      border-radius: var(--radius-full)
+      display: inline-flex
+      font-size: var(--text-m)
+      font-weight: 500
+      gap: 6px
+      min-height: var(--control-m)
+      padding: 0 var(--space-xs)
+      transition: background-color var(--transition-fast, 0) var(--timing)
+
+      &:hover
+        background: var(--track)
+
+    .package-jump-count
+      @include typography.figures
+
+      color: var(--ink-soft)
+
+    .package-body
+      display: grid
+      gap: var(--space-2xl)
+
+      @media (width >= 1280px)
+        align-items: start
+        column-gap: var(--space-xl)
+        grid-template-columns: minmax(0, 1fr) var(--side-column-width)
+
+    .package-main
+      align-content: start
+      display: grid
+      gap: 2.75rem
+      min-width: 0
+
+    .package-side
+      align-content: start
+      display: grid
+      gap: 1.875rem
+      min-width: 0
+
+    .package-block-head
+      display: grid
+      gap: var(--space-3xs)
+      padding: 0 var(--space-row) var(--space-row)
+
+      h2
+        @include typography.heading
+
+      p
+        @include typography.caption
+
+        font-size: var(--text-m)
+        text-wrap: pretty
+
+    .package-side-title
+      @include typography.subheading
+
+      padding: 0 var(--space-row) 10px
+
+  @media (width < 560px)
+    .package-page .package-head
+      grid-template-columns: minmax(0, 1fr)
+
+      > .icon-square
+        grid-row: auto

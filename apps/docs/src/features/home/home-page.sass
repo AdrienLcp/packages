@@ -1,0 +1,54 @@
+@use '../../presentation/styles/layout'
+@use '../../presentation/styles/typography'
+
+@layer components
+  .home-page
+    .home-head
+      align-items: end
+      display: flex
+      flex-wrap: wrap
+      gap: 10px var(--space-xl)
+      justify-content: space-between
+      padding: var(--space-xs) 0 18px
+
+    .home-title
+      @include typography.title
+
+    .home-intro
+      color: var(--ink-soft)
+      margin-block-start: 6px
+      max-width: 36rem
+      text-wrap: pretty
+
+    .home-facts
+      @include typography.caption
+
+      display: flex
+      flex-wrap: wrap
+      gap: 2px 18px
+
+      b
+        color: var(--ink)
+        font-size: var(--text-base)
+        font-weight: 600
+
+    // On a wide screen the sidebar holds it.
+    .home-pending
+      margin-block-end: var(--space-l)
+
+      @include layout.wide
+        display: none
+
+    .home-no-match
+      @include layout.plane
+
+      display: grid
+      gap: var(--space-xs)
+      justify-items: start
+      padding: 18px 0
+
+      .state-row
+        padding-block: 0
+
+    .home-clear
+      margin-inline-start: calc(var(--space-row) + var(--square-s) + var(--space-xs))

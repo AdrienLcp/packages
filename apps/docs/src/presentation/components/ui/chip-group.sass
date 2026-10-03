@@ -1,0 +1,50 @@
+@use '../../styles/focus'
+@use '../../styles/typography'
+
+@layer components
+  .chip-group
+    display: flex
+    flex-wrap: wrap
+    gap: var(--space-3xs)
+
+    .chip
+      @include focus.ring
+
+      align-items: center
+      background: transparent
+      border: 0
+      border-radius: var(--radius-full)
+      color: var(--ink-soft)
+      cursor: pointer
+      display: inline-flex
+      font: inherit
+      font-size: var(--text-s)
+      font-weight: 500
+      gap: 6px
+      min-height: 2.125rem
+      padding: 0 11px 0 9px
+      transition: background-color var(--transition-fast, 0) var(--timing), color var(--transition-fast, 0) var(--timing), box-shadow var(--transition-fast, 0) var(--timing)
+
+      &[data-hovered]:not([data-selected])
+        background: var(--track)
+        color: var(--ink)
+
+      &[data-selected]
+        background: var(--ply)
+        box-shadow: var(--shadow-ply)
+        color: var(--ink)
+
+        .chip-count
+          color: var(--ink-soft)
+
+    .chip-icon
+      display: grid
+
+      > svg
+        height: 1rem
+        width: 1rem
+
+    .chip-count
+      @include typography.figures
+
+      color: var(--mute)
