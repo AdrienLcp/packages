@@ -1,5 +1,11 @@
 # @adrienlcp/styles
 
+## 0.4.1
+
+### Patch Changes
+
+- a028ef4: `reduced-motion.css` stills `::view-transition-image-pair` too, where an app animates a morph it names.
+
 ## 0.4.0
 
 ### Minor Changes
