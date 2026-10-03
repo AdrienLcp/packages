@@ -40,8 +40,13 @@
       display: grid
       gap: var(--space-2xs)
 
+    // The hash in its own column, so every line of the note starts at one edge.
     .package-version-note
+      align-items: baseline
+      column-gap: 6px
+      display: grid
       font-size: var(--text-m)
+      grid-template-columns: auto minmax(0, 1fr)
       line-height: 1.5
 
     .package-version-commit
@@ -49,16 +54,15 @@
 
       border-radius: var(--radius-inline)
       color: var(--ink-soft)
-      float: inline-start
       font-family: var(--font-code)
       font-size: var(--text-2xs)
-      line-height: 2
-      margin-inline-end: 6px
 
       &[data-hovered]
         color: var(--accent)
 
     .package-version-text
+      grid-column: 2
+      min-width: 0
       text-wrap: pretty
 
       > p + p
@@ -68,6 +72,7 @@
         background: var(--sunk)
         border-radius: var(--radius-inline)
         padding: 0.06em 0.34em
+        white-space: nowrap
 
   .package-versions-footnote
     @include typography.caption

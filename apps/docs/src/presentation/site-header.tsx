@@ -11,8 +11,13 @@ import { ThemeSwitch } from '@/presentation/theme/theme-switch'
 
 import './site-header.sass'
 
+type SiteHeaderProps = {
+  /** Beside the site's name: where the visitor is, when the page says so. */
+  context?: React.ReactNode
+}
+
 /** The bar every screen keeps on top: the site's name back home, and the settings. */
-export const SiteHeader: React.FC = () => {
+export const SiteHeader: React.FC<SiteHeaderProps> = ({ context }) => {
   const { locale } = useI18n()
 
   return (
@@ -26,6 +31,7 @@ export const SiteHeader: React.FC = () => {
           @adrienlcp<span className='site-brand-scope'>/packages</span>
         </span>
       </Link>
+      {context}
       <div className='site-settings'>
         <LocaleSwitch />
         <ThemeSwitch />

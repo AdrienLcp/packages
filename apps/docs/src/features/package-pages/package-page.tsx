@@ -15,6 +15,7 @@ import { PackageExports } from './package-exports'
 import { PackageFacts } from './package-facts'
 import { PackageInstall } from './package-install'
 import { usePackageData } from './package-loader'
+import { PACKAGE_TITLE_ID } from './package-title-id'
 import { PackageVersions } from './package-versions'
 import { PackageWorksWith } from './package-works-with'
 
@@ -37,10 +38,9 @@ export const PackagePage: React.FC = () => {
   }
 
   const housePackage = documentedPackage
-  const titleId = 'package-title'
 
   return (
-    <Main aria-labelledby={titleId} className='package-page'>
+    <Main aria-labelledby={PACKAGE_TITLE_ID} className='package-page'>
       <DocumentTitle>{`${housePackage.scopedName} — ${translate('app.name')}`}</DocumentTitle>
       <Link className='package-back' href={homePathFor(locale)}>
         <BackIcon />
@@ -48,9 +48,9 @@ export const PackagePage: React.FC = () => {
       </Link>
       <div className='package-head'>
         <PackageMark housePackage={housePackage} size='xl' />
-        <h1 className='package-title' id={titleId}>
+        <h1 className='package-title' id={PACKAGE_TITLE_ID}>
           <span className='package-scope'>@adrienlcp/</span>
-          {housePackage.name}
+          <span className='package-name'>{housePackage.name}</span>
         </h1>
         <p className='package-description'>{housePackage.description}</p>
       </div>

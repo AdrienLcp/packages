@@ -1,0 +1,49 @@
+@use '../../presentation/styles/layout'
+
+@layer components
+  .package-header-context
+    align-items: center
+    border-inline-start: var(--separator-line)
+    display: inline-flex
+    font-size: var(--text-body)
+    font-weight: 600
+    gap: var(--space-2xs)
+    letter-spacing: -0.01em
+    min-width: 0
+    opacity: 0
+    padding-inline-start: var(--space-xs)
+    transform: translateY(4px)
+    transition: opacity var(--transition-fast, 0) var(--timing), transform var(--transition-fast, 0) var(--timing), visibility 0s linear var(--transition-fast, 0)
+    visibility: hidden
+
+    &[data-shown]
+      opacity: 1
+      transform: none
+      transition-delay: 0s
+      visibility: visible
+
+    @include layout.wide
+      display: none
+
+  .package-header-context-name
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+
+  // On a phone the name takes the brand's place, whole: `react-router` and
+  // `react-aria` must not both read `react-…`. The brand comes back at the top.
+  @media (width < 480px)
+    .package-header-context
+      border-inline-start: none
+      padding-inline-start: 0
+
+      > .icon-square
+        display: none
+
+    .package-header-context-name
+      font-size: var(--text-m)
+      line-height: 1.15
+      white-space: normal
+
+    .site-header:has(.package-header-context[data-shown]) .site-brand
+      display: none

@@ -16,3 +16,9 @@
       padding-block: 6px
       scrollbar-width: none
       white-space: nowrap
+
+  // On a phone the whole command stays readable: it wraps at its spaces.
+  @media (width < 560px)
+    .package-install .package-install-command
+      overflow-wrap: anywhere
+      white-space: normal

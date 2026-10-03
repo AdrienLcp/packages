@@ -3,6 +3,7 @@ import type React from 'react'
 import { useEffect, useRef } from 'react'
 import { Outlet, ScrollRestoration, useLocation } from 'react-router'
 
+import { PackageHeaderContext } from '@/features/package-navigation/package-header-context'
 import { PackageSidebar } from '@/features/package-navigation/package-sidebar'
 import { AppShell } from '@/presentation/app-shell'
 import { focusMain } from '@/presentation/components/main'
@@ -37,7 +38,7 @@ export const RootRoute: React.FC = () => {
     <AriaRouterProvider>
       <AppShell
         footer={<SiteFooter />}
-        header={<SiteHeader />}
+        header={<SiteHeader context={<PackageHeaderContext />} />}
         sidebar={<PackageSidebar />}
       >
         <PageTransition>
