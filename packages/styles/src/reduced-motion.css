@@ -5,4 +5,11 @@
     --transition-base: 0ms;
     --transition-slow: 0ms;
   }
+
+  /* React's <ViewTransition> starts one whatever the preference: it still swaps, without moving. */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none;
+  }
 }

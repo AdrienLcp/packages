@@ -14,16 +14,28 @@ pnpm add @adrienlcp/react-router
 
 ```tsx
 import { AriaRouterProvider } from '@adrienlcp/react-router'
-import { Outlet } from 'react-router'
+import { ViewTransition } from 'react'
+import { Outlet, useLocation } from 'react-router'
 
-export const RootRoute: React.FC = () => (
-  <AriaRouterProvider
-    navigateDefaults={() => ({ viewTransition: !prefersReducedMotion() })}
-  >
-    <Outlet />
-  </AriaRouterProvider>
-)
+export const RootRoute: React.FC = () => {
+  const { pathname } = useLocation()
+
+  return (
+    <AriaRouterProvider>
+      <ViewTransition default="none" enter="auto" exit="auto" key={pathname}>
+        <Outlet />
+      </ViewTransition>
+    </AriaRouterProvider>
+  )
+}
 ```
+
+react-router wraps its updates in `startTransition`, so React's
+`<ViewTransition>` animates each navigation; keyed on the path with
+`default="none"`, it animates only a change of page, not the loads and
+reloads of data in between. Leave react-router's own `viewTransition` option
+off: it starts the transition outside React. `@adrienlcp/styles/reduced-motion.css`
+stills it for a reader who asked for less motion.
 
 Mounted in the root route's element, inside the router, it hands
 react-aria's `RouterProvider` react-router's `navigate`: an `href` on any
@@ -36,10 +48,10 @@ navigation instead of a page load.
   `<Link href={paths.settings} routerOptions={{ replace: true }}>`. Drop the
   app's own `declare module 'react-aria-components'` block.
 - **`navigateDefaults`** is read when each navigation happens, not when the
-  provider renders, so a preference changed mid-session is followed. A link's
-  own `routerOptions` override it.
+  provider renders, so a default computed from live state follows a change
+  made mid-session. A link's own `routerOptions` override it.
 - **A superseded navigation is not an error.** One navigation cut short by the
-  next rejects with `AbortError`, more often with view transitions on; that
+  next rejects with `AbortError`, more often while a view transition runs; that
   rejection is swallowed, any other one is not.
 - **Give links absolute paths.** A relative `href` is displayed resolved
   against the link's route, but `navigate` runs from the root route.

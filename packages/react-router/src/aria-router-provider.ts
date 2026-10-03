@@ -16,9 +16,9 @@ export type AriaRouterProviderProps = {
   children?: ReactNode
   /**
    * Options every navigation starts from, read when it happens rather than
-   * when the provider renders, so `() => ({ viewTransition:
-   * !prefersReducedMotion() })` follows a preference changed mid-session. A
-   * link's own `routerOptions` override them.
+   * when the provider renders, so a default computed from live state follows
+   * a change made mid-session. A link's own `routerOptions` override them. Animate navigations with React's `<ViewTransition>`
+   * around the outlet rather than react-router's `viewTransition` option.
    */
   navigateDefaults?: () => NavigateOptions
 }

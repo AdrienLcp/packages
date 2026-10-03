@@ -32,6 +32,18 @@ describe('reset', () => {
   })
 })
 
+describe('reduced motion', () => {
+  it('stills every view transition, which no duration token reaches', () => {
+    const css = readFileSync(
+      new URL('reduced-motion.css', import.meta.url),
+      'utf8'
+    )
+    expect(css).toMatch(
+      /::view-transition-group\(\*\),\s*::view-transition-old\(\*\),\s*::view-transition-new\(\*\) \{\s*animation: none;/
+    )
+  })
+})
+
 describe('breakpoints', () => {
   it('splits every width into wide or narrow at 900px', () => {
     const css = compile(`
