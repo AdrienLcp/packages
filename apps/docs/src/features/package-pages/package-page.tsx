@@ -72,8 +72,11 @@ export const PackagePage: React.FC = () => {
                 {housePackage.exports.length}
               </span>
             </a>
-            <a className='package-jump' href={`#${SECTION_IDS.documentation}`}>
-              {translate('docs.title')}
+            <a className='package-jump' href={`#${SECTION_IDS.pending}`}>
+              {translate('pending.title')}
+              <span className='package-jump-count'>
+                {housePackage.pending.length}
+              </span>
             </a>
             <a className='package-jump' href={`#${SECTION_IDS.versions}`}>
               {translate('versions.title')}
@@ -81,11 +84,8 @@ export const PackagePage: React.FC = () => {
                 {housePackage.versions.length}
               </span>
             </a>
-            <a className='package-jump' href={`#${SECTION_IDS.pending}`}>
-              {translate('pending.title')}
-              <span className='package-jump-count'>
-                {housePackage.pending.length}
-              </span>
+            <a className='package-jump' href={`#${SECTION_IDS.documentation}`}>
+              {translate('docs.title')}
             </a>
           </nav>
         </div>

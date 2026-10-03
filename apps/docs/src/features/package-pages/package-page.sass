@@ -106,14 +106,6 @@
       &:hover
         background: var(--track)
 
-      // Below 1280px the jumps follow the page: the side column comes before the documentation.
-      @media (width < 1280px)
-        &[href='#package-versions']
-          order: 1
-
-        &[href='#package-documentation']
-          order: 2
-
     .package-jump-count
       @include typography.figures
 
