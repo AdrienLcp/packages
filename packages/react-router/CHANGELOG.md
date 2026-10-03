@@ -1,5 +1,11 @@
 # @adrienlcp/react-router
 
+## 0.1.1
+
+### Patch Changes
+
+- fddc293: Document animating navigations with React's `<ViewTransition>` instead of react-router's `viewTransition` option.
+
 ## 0.1.0
 
 ### Minor Changes

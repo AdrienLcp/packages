@@ -1,5 +1,11 @@
 # @adrienlcp/styles
 
+## 0.4.0
+
+### Minor Changes
+
+- fddc293: `reduced-motion.css` stills view transitions too, which React's `<ViewTransition>` starts whatever the preference.
+
 ## 0.3.0
 
 ### Minor Changes
