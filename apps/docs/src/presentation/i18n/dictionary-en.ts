@@ -2,6 +2,8 @@ import { defineDictionary, defineTranslation } from '@adrienlcp/i18n'
 
 export const EN_DICTIONARY = defineDictionary({
   app: {
+    description:
+      'Documentation and release history of the @adrienlcp packages: small, typed, dependency-free TypeScript packages.',
     name: '@adrienlcp packages'
   },
   docs: {

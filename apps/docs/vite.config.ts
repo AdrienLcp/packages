@@ -11,6 +11,7 @@ import { themeStore } from './src/presentation/theme/theme-store.ts'
 
 export default defineConfig({
   build: {
+    manifest: true,
     sourcemap: true
   },
   plugins: [

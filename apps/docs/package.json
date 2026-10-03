@@ -33,8 +33,11 @@
   "name": "@adrienlcp/docs",
   "private": true,
   "scripts": {
-    "build": "pnpm typecheck && vite build",
+    "build": "pnpm typecheck && pnpm build:client && pnpm build:ssr && pnpm prerender",
+    "build:client": "vite build",
+    "build:ssr": "vite build --ssr src/entry-server.tsx --outDir dist-ssr",
     "dev": "vite",
+    "prerender": "node scripts/prerender.ts",
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"

@@ -10,16 +10,41 @@ import { RouteFallback } from '@/presentation/route-fallback'
 
 type LocalizedPath = (typeof localizedPaths)[keyof typeof localizedPaths]
 
+type LazyPage = {
+  lazy: RouteObject['lazy']
+  /**
+   * How Vite's build manifest keys the chunk, which the prerender reads to link
+   * its stylesheet.
+   */
+  module: string
+  /** The loader's own module, imported on demand beside the page's chunk. */
+  loaderModule: string
+}
+
 /** Keyed by path, so a path with no page fails to compile. */
 const pageFor = {
-  [localizedPaths.home]: async () => ({
-    Component: (await import('@/features/home/home-page')).HomePage
-  }),
-  [localizedPaths.package]: async () => ({
-    Component: (await import('@/features/package-pages/package-page'))
-      .PackagePage
-  })
-} satisfies Record<LocalizedPath, RouteObject['lazy']>
+  [localizedPaths.home]: {
+    lazy: async () => ({
+      Component: (await import('@/features/home/home-page')).HomePage
+    }),
+    loaderModule: 'src/features/home/home-loader.ts',
+    module: 'src/features/home/home-page.tsx'
+  },
+  [localizedPaths.package]: {
+    lazy: async () => ({
+      Component: (await import('@/features/package-pages/package-page'))
+        .PackagePage
+    }),
+    loaderModule: 'src/features/package-pages/package-loader.ts',
+    module: 'src/features/package-pages/package-page.tsx'
+  }
+} satisfies Record<LocalizedPath, LazyPage>
+
+export const pageModuleFor = (path: LocalizedPath): string =>
+  pageFor[path].module
+
+export const loaderModuleFor = (path: LocalizedPath): string =>
+  pageFor[path].loaderModule
 
 /**
  * Outside `lazy`, so the data starts loading beside the page's chunk. Imported
@@ -36,7 +61,7 @@ const loaderFor = {
 } satisfies Record<LocalizedPath, LoaderFunction>
 
 const routeFor = (path: LocalizedPath): RouteObject => ({
-  lazy: pageFor[path],
+  lazy: pageFor[path].lazy,
   loader: loaderFor[path],
   path
 })
