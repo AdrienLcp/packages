@@ -1,0 +1,40 @@
+{
+  "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+  "ignorePaths": [
+    "node_modules",
+    "pnpm-lock.yaml",
+    "dist",
+    "coverage",
+    "*.tsbuildinfo"
+  ],
+  "import": ["@cspell/dict-fr-fr/cspell-ext.json"],
+  "language": "en,en-GB,fr",
+  "version": "0.2",
+  "words": [
+    "adrienlcp",
+    "archivo",
+    "biomejs",
+    "CLDR",
+    "displayname",
+    "esnext",
+    "gefunden",
+    "indovinato",
+    "Lacourpaille",
+    "localstorage",
+    "memoises",
+    "memoising",
+    "Nessuno",
+    "niemand",
+    "Noch",
+    "Punkt",
+    "Punkte",
+    "punti",
+    "punto",
+    "subtag",
+    "Übersicht",
+    "unicode",
+    "unlayered",
+    "unstub",
+    "Willkommen"
+  ]
+}

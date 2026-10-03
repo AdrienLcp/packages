@@ -8,6 +8,8 @@ What makes it worth having a package of its own is one property: **the arguments
 message takes are read off the message itself, at compile time**, with no code
 generation, no extraction step and no build plugin.
 
+<!-- cspell:ignore greting -->
+
 ```ts
 const EN = defineDictionary({ greeting: 'Hello {name}' })
 

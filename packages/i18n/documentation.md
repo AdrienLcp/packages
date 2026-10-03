@@ -235,6 +235,8 @@ This is what the library is for; the runtime is the small half.
 
 **A key that does not exist does not compile.**
 
+<!-- cspell:ignore titel -->
+
 ```ts
 // Does not compile: Argument of type '"titel"' is not assignable to
 // parameter of type '"greeting" | "room.empty" | "title"'.
@@ -267,7 +269,7 @@ in the language it was rendered in.
 
 **A `:plural` or `:enum` written without its map does not compile.** Without the
 map there is no branch to select, and the message would degrade to the bare
-count — so `defineDictionary` makes it unwriteable instead.
+count — so `defineDictionary` makes it unwritable instead.
 
 ```ts
 // Does not compile: Type 'string' is not assignable to type 'never'.
