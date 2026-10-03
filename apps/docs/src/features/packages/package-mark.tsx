@@ -5,6 +5,7 @@ import { PackageIcon } from '@/presentation/components/icons'
 
 import { CATALOGUE } from './catalogue-content.ts'
 import { EcosystemLogo } from './ecosystem-logo.tsx'
+import { HouseMark, hasHouseMark } from './house-mark.tsx'
 import type { HousePackage } from './house-package.ts'
 import { hueAmong } from './package-hue.ts'
 
@@ -22,7 +23,10 @@ type PackageMarkProps = {
   tone?: 'hollow' | 'mark'
 }
 
-/** A package's square: its hue, and the logo of the first tool it works with. */
+/**
+ * A package's square: its hue, and its own mark or else the logo of the first
+ * tool it works with.
+ */
 export const PackageMark: React.FC<PackageMarkProps> = ({
   housePackage,
   size = 's',
@@ -32,7 +36,9 @@ export const PackageMark: React.FC<PackageMarkProps> = ({
 
   return (
     <IconSquare hue={packageHueOf(housePackage.name)} size={size} tone={tone}>
-      {primaryTie === undefined ? (
+      {hasHouseMark(housePackage.name) ? (
+        <HouseMark name={housePackage.name} />
+      ) : primaryTie === undefined ? (
         <PackageIcon />
       ) : (
         <EcosystemLogo tool={primaryTie.tool} />
