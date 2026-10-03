@@ -31,4 +31,12 @@ describe('composeClassName', () => {
       )(renderState)
     ).toBe('button')
   })
+
+  it('[types] refuses a className function among its own class names', () => {
+    const incoming = ({ isPressed }: { isPressed: boolean }) =>
+      isPressed ? 'pressed' : 'idle'
+
+    // @ts-expect-error only the first argument may follow the render state
+    composeClassName(undefined, 'button', incoming)
+  })
 })
