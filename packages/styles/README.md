@@ -94,3 +94,40 @@ into; `font-face` declares one self-hosted `woff2` file.
 
 `$weight`, `$style` (`normal`), `$stretch` (left out) and `$display` (`swap`)
 are optional.
+
+## TypeScript
+
+### `contrast`
+
+A palette is checked where it is written, not by eye: a test lists the token
+pairs that meet on screen, and fails when one falls under its WCAG minimum in
+the light or the dark scheme.
+
+```ts
+import { readFileSync } from 'node:fs'
+
+import { findContrastFailures, WCAG_AA } from '@adrienlcp/styles/contrast'
+import { expect, it } from 'vitest'
+
+const TOKENS = readFileSync(new URL('_tokens.sass', import.meta.url), 'utf8')
+
+it('every ink reads on every surface, in both themes', () => {
+  expect(
+    findContrastFailures(TOKENS, [
+      { foreground: '--ink-soft', background: '--ground', minimum: WCAG_AA.text },
+      { foreground: '--focus', background: '--ground', minimum: WCAG_AA.nonText }
+    ])
+  ).toEqual([])
+})
+```
+
+- `WCAG_AA` is `text` (4.5), `largeText` and `nonText` (3) — controls, icons,
+  focus rings.
+- The stylesheet is `.css` or indented `.sass`. A token is `oklch()` or hex,
+  `light-dark()` of those, or `var()` of another token.
+- A failure is `too-low`, with the ratio and the schemes it fails in, or
+  `unreadable`: a token undeclared, declared twice with different values, a
+  reference loop, a colour it cannot read (computed, or another notation), or a
+  translucent background — what shows through decides that contrast.
+- A translucent foreground is measured over its background. An `oklch()`
+  outside sRGB is clipped, as an sRGB screen draws it.

@@ -1,7 +1,10 @@
 {
   "author": "Adrien Lacourpaille",
   "bugs": "https://github.com/AdrienLcp/packages/issues",
-  "description": "A reset, a reduced-motion switch, and Sass mixins for self-hosted fonts, container queries and a breakpoint",
+  "dependencies": {
+    "@adrienlcp/result": "workspace:^"
+  },
+  "description": "A reset, a reduced-motion switch, Sass mixins for self-hosted fonts, container queries and a breakpoint, and a WCAG contrast check for colour tokens",
   "devDependencies": {
     "sass": "^1.105.0"
   },
@@ -12,6 +15,7 @@
     "./containers": {
       "sass": "./src/_containers.sass"
     },
+    "./contrast": "./dist/contrast.js",
     "./fonts": {
       "sass": "./src/_fonts.sass"
     },
@@ -20,15 +24,18 @@
     "./reset.css": "./src/reset.css"
   },
   "files": [
+    "dist",
     "src/*.css",
     "src/*.sass"
   ],
   "homepage": "https://github.com/AdrienLcp/packages/tree/main/packages/styles#readme",
   "keywords": [
+    "contrast",
     "css",
     "font-face",
     "reset",
-    "sass"
+    "sass",
+    "wcag"
   ],
   "license": "MIT",
   "name": "@adrienlcp/styles",
@@ -46,6 +53,8 @@
     "url": "git+https://github.com/AdrienLcp/packages.git"
   },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "pnpm build",
     "test": "vitest run",
     "test:watch": "vitest --watch"
   },

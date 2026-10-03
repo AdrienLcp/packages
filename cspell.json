@@ -76,6 +76,7 @@
     "topbar",
     "unlayered",
     "unstub",
-    "vitest"
+    "vitest",
+    "wcag"
   ]
 }
