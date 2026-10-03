@@ -1,5 +1,11 @@
 # @adrienlcp/styles
 
+## 0.3.0
+
+### Minor Changes
+
+- b304b44: Add `containers`: `container`, `container-wide` and `container-narrow`, so a component answers its container instead of the screen. `reset.css` sets `interpolate-size: allow-keywords` on `html`, so a transition reaches `height: auto`
+
 ## 0.2.0
 
 ### Minor Changes
