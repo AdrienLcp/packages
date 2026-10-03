@@ -39,7 +39,7 @@ describe('reduced motion', () => {
       'utf8'
     )
     expect(css).toMatch(
-      /::view-transition-group\(\*\),\s*::view-transition-old\(\*\),\s*::view-transition-new\(\*\) \{\s*animation: none;/
+      /::view-transition-group\(\*\),\s*::view-transition-image-pair\(\*\),\s*::view-transition-old\(\*\),\s*::view-transition-new\(\*\) \{\s*animation: none;/
     )
   })
 })
