@@ -130,4 +130,31 @@ describe('findContrastFailures', () => {
       findContrastFailures(tokens, [pair('--a', '--ground')])
     ).toMatchObject([{ error: 'circular-reference', kind: 'unreadable' }])
   })
+
+  it('[contrast] reads percentages, a none hue and an eight-digit hex', () => {
+    const tokens = ':root { --ink: oklch(0% 0% none); --ground: #ffffffff; }'
+    expect(
+      findContrastFailures(tokens, [pair('--ink', '--ground', 21)])
+    ).toEqual([])
+  })
+
+  it('[contrast] takes the fallback of a var() naming no token', () => {
+    const tokens = ':root { --ink: var(--absent, #000); --ground: #fff; }'
+    expect(findContrastFailures(tokens, [pair('--ink', '--ground')])).toEqual(
+      []
+    )
+  })
+
+  it('[contrast] reports a background it cannot read', () => {
+    const tokens = ':root { --ink: #000; --veil: #ffffff80; }'
+    expect(
+      findContrastFailures(tokens, [
+        pair('--ink', '--missing'),
+        pair('--ink', '--veil')
+      ])
+    ).toMatchObject([
+      { error: 'undeclared', kind: 'unreadable', token: '--missing' },
+      { error: 'translucent-background', kind: 'unreadable', token: '--veil' }
+    ])
+  })
 })
