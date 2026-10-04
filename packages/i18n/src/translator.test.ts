@@ -451,9 +451,20 @@ const MOMENTS = defineDictionary({
   day: defineTranslation('Played on {at:date}', {
     date: { at: { dateStyle: 'long', timeZone: 'Asia/Tokyo' } }
   }),
+  reign: defineTranslation('Crowned {at:date}', {
+    date: { at: { calendar: 'japanese', dateStyle: 'long' } }
+  }),
   seen: 'Seen {at:date}',
   stamped: defineTranslation('Stamped {at:date}', {
     date: { at: { dateStyle: 'long', hour: 'numeric' } }
+  }),
+  wallClock: defineTranslation('At {at:date}', {
+    date: { at: { dateStyle: 'medium', timeStyle: 'short' } }
+  }),
+  zoned: defineTranslation('Landed {at:date}', {
+    date: {
+      at: { dateStyle: 'medium', timeStyle: 'long', timeZone: 'Asia/Tokyo' }
+    }
   })
 })
 
@@ -467,6 +478,7 @@ const translateUnchecked = (key: string, values: Record<string, unknown>) =>
 
 describe('a Temporal value', () => {
   afterEach(() => {
+    vi.unstubAllEnvs()
     vi.unstubAllGlobals()
   })
 
@@ -500,8 +512,83 @@ describe('a Temporal value', () => {
     ).toBe('Opens at {at:date}')
   })
 
+  it('[date] shows a zoned date-time in its own zone, not the one the dictionary names', () => {
+    expect(
+      moments('day', {
+        at: Temporal.ZonedDateTime.from('2026-03-01T23:30[Europe/Paris]')
+      })
+    ).toBe('Played on March 1, 2026')
+  })
+
+  it('[date] prints a zoned date-time as its own toLocaleString does', () => {
+    const at = Temporal.ZonedDateTime.from('2026-03-01T23:30[Europe/Paris]')
+
+    expect(moments('zoned', { at })).toBe(
+      `Landed ${at.toLocaleString('en', { dateStyle: 'medium', timeStyle: 'long' })}`
+    )
+  })
+
+  it('[date] prints a zoned date-time in the calendar it was built in when the formatter shares it', () => {
+    expect(
+      moments('reign', {
+        at: Temporal.ZonedDateTime.from(
+          '2026-03-01T23:30[Europe/Paris][u-ca=japanese]'
+        )
+      })
+    ).toBe('Crowned March 1, 8 Reiwa')
+  })
+
+  it('[date] leaves a zoned date-time standing in a calendar the formatter does not use', () => {
+    expect(
+      moments('day', {
+        at: Temporal.ZonedDateTime.from(
+          '2026-03-01T23:30[Europe/Paris][u-ca=japanese]'
+        )
+      })
+    ).toBe('Played on {at:date}')
+  })
+
   it.each([
-    ['zoned date-time', Temporal.ZonedDateTime.from('2026-03-01T23:30[UTC]')],
+    [
+      'plain date',
+      'seen',
+      Temporal.PlainDate.from('2026-03-01'),
+      'Seen 3/1/2026'
+    ],
+    [
+      'plain date-time',
+      'wallClock',
+      Temporal.PlainDateTime.from('2026-03-01T23:30'),
+      'At Mar 1, 2026, 11:30 PM'
+    ],
+    [
+      'plain time',
+      'clock',
+      Temporal.PlainTime.from('23:30'),
+      'Opens at 11:30 PM'
+    ],
+    [
+      'zoned date-time',
+      'wallClock',
+      Temporal.ZonedDateTime.from('2026-03-01T23:30[Europe/Paris]'),
+      'At Mar 1, 2026, 11:30 PM'
+    ],
+    [
+      'instant, which alone follows the host,',
+      'wallClock',
+      Temporal.Instant.from('2026-03-01T23:30:00Z'),
+      'At Mar 2, 2026, 1:30 PM'
+    ]
+  ])(
+    '[date] formats a %s on its own clock whatever zone the host runs in',
+    (_, key, at, expected) => {
+      vi.stubEnv('TZ', 'Pacific/Kiritimati')
+
+      expect(translateUnchecked(key, { at })).toBe(expected)
+    }
+  )
+
+  it.each([
     ['year and month', Temporal.PlainYearMonth.from('2026-03')],
     ['month and day', Temporal.PlainMonthDay.from('03-01')],
     ['duration', Temporal.Duration.from({ hours: 1 })]

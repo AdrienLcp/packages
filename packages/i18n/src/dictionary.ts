@@ -219,13 +219,12 @@ type EnumsOf<Options> = Options extends { enum: infer Enums }
 
 /**
  * What a `{x:date}` placeholder takes: a `Date`, or a `Temporal.Instant`,
- * `Temporal.PlainDate`, `Temporal.PlainDateTime` or `Temporal.PlainTime` —
- * the Temporal values `Intl.DateTimeFormat` formats. A `ZonedDateTime` is not
- * one of them: `format` refuses it, so convert it with `toInstant()` or
- * `toPlainDateTime()` first.
+ * `Temporal.PlainDate`, `Temporal.PlainDateTime`, `Temporal.PlainTime` or
+ * `Temporal.ZonedDateTime`, handed to `Intl.DateTimeFormat` as they are.
  *
- * A `Plain*` value is a wall-clock reading with no zone, so the `timeZone`
- * option does not move it; an `Instant` is shown in `timeZone`.
+ * An `Instant` is shown in the `timeZone` option. A `Plain*` value is a
+ * wall-clock reading with no zone, and a `ZonedDateTime` carries its own, so
+ * `timeZone` moves neither.
  */
 export type FormattableDate = Date | TemporalDate
 
@@ -240,9 +239,10 @@ type TemporalDate = typeof globalThis extends {
     PlainDate: { prototype: infer PlainDate }
     PlainDateTime: { prototype: infer PlainDateTime }
     PlainTime: { prototype: infer PlainTime }
+    ZonedDateTime: { prototype: infer ZonedDateTime }
   }
 }
-  ? Instant | PlainDate | PlainDateTime | PlainTime
+  ? Instant | PlainDate | PlainDateTime | PlainTime | ZonedDateTime
   : never
 
 type ValueForParam<

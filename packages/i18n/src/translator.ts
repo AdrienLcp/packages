@@ -412,7 +412,13 @@ const isFormattableTemporal = (value: unknown): boolean =>
   (value instanceof Temporal.Instant ||
     value instanceof Temporal.PlainDate ||
     value instanceof Temporal.PlainDateTime ||
-    value instanceof Temporal.PlainTime)
+    value instanceof Temporal.PlainTime ||
+    value instanceof Temporal.ZonedDateTime)
+
+const isZonedDateTime = (
+  value: FormattableDate
+): value is Temporal.ZonedDateTime =>
+  typeof Temporal !== 'undefined' && value instanceof Temporal.ZonedDateTime
 
 /**
  * `Intl.DateTimeFormat` throws on options it cannot combine (`dateStyle` beside
@@ -429,10 +435,35 @@ const formattedDate = ({
   options: Intl.DateTimeFormatOptions | undefined
 }): string | undefined => {
   try {
-    return formatters.date(options).format(date)
+    return isZonedDateTime(date)
+      ? formattedZonedDateTime({ formatters, options, zoned: date })
+      : formatters.date(options).format(date)
   } catch {
     return undefined
   }
+}
+
+/**
+ * `format` refuses a `ZonedDateTime`, so it is formatted as its own
+ * `toLocaleString` would: its instant, in its own zone, which overrides the
+ * `timeZone` option instead of throwing as `toLocaleString` does. A calendar
+ * other than `iso8601` must be the formatter's, or the value is not printed.
+ */
+const formattedZonedDateTime = ({
+  formatters,
+  options,
+  zoned
+}: {
+  formatters: Formatters
+  options: Intl.DateTimeFormatOptions | undefined
+  zoned: Temporal.ZonedDateTime
+}): string | undefined => {
+  const formatter = formatters.date({ ...options, timeZone: zoned.timeZoneId })
+  const isInFormatterCalendar =
+    zoned.calendarId === 'iso8601' ||
+    zoned.calendarId === formatter.resolvedOptions().calendar
+
+  return isInFormatterCalendar ? formatter.format(zoned.toInstant()) : undefined
 }
 
 /** Same reasoning: the unit is declared with the message, or there is none. */

@@ -103,13 +103,11 @@ describe('values', () => {
       | Temporal.PlainDate
       | Temporal.PlainDateTime
       | Temporal.PlainTime
+      | Temporal.ZonedDateTime
     >()
   })
 
   it('[types] refuses a Temporal value Intl cannot format as a date', () => {
-    expectTypeOf<
-      Accepts<FormattableDate, Temporal.ZonedDateTime>
-    >().toEqualTypeOf<false>()
     expectTypeOf<
       Accepts<FormattableDate, Temporal.PlainYearMonth>
     >().toEqualTypeOf<false>()
