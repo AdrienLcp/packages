@@ -69,10 +69,7 @@
         margin-block-start: var(--space-2xs)
 
       code
-        background: var(--sunk)
-        border-radius: var(--radius-inline)
-        padding: 0.06em 0.34em
-        white-space: nowrap
+        @include typography.code-chip
 
   .package-versions-footnote
     @include typography.caption

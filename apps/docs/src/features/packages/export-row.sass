@@ -52,17 +52,16 @@
       text-wrap: pretty
 
       code
-        background: var(--sunk)
-        border-radius: var(--radius-inline)
+        @include typography.code-chip
+
         color: var(--ink)
-        padding: 0.06em 0.34em
-        white-space: nowrap
 
     .export-row-aside
       display: grid
       gap: 1px
       grid-area: aside
       justify-items: end
+      min-width: 0
       text-align: end
 
     .export-row-specifier
@@ -91,3 +90,8 @@
         gap: 0 var(--space-xs)
         justify-items: start
         text-align: start
+
+      .export-row-specifier
+        min-width: 0
+        overflow-wrap: anywhere
+        white-space: normal

@@ -3,6 +3,7 @@ import type React from 'react'
 import { IconSquare } from '@/presentation/components/icon-square'
 import { ChevronIcon } from '@/presentation/components/icons'
 import { RenderedHtml } from '@/presentation/components/rendered-html'
+import { SlashBreaks } from '@/presentation/components/slash-breaks'
 import { Link } from '@/presentation/components/ui/link'
 import { useTranslate } from '@/presentation/i18n/i18n-provider'
 
@@ -38,14 +39,16 @@ const MarkedName: React.FC<{ filter: ExportFilter; name: string }> = ({
   const match = queryMatchIn(name, filter)
 
   if (match === null) {
-    return name
+    return <SlashBreaks text={name} />
   }
 
   return (
     <>
-      {match.before}
-      <mark>{match.match}</mark>
-      {match.after}
+      <SlashBreaks text={match.before} />
+      <mark>
+        <SlashBreaks text={match.match} />
+      </mark>
+      <SlashBreaks text={match.after} />
     </>
   )
 }
@@ -86,7 +89,7 @@ export const ExportRow: React.FC<ExportRowProps> = ({
       <span className='export-row-aside'>
         {showSpecifier && (
           <code className='export-row-specifier'>
-            {packageExport.specifier}
+            <SlashBreaks text={packageExport.specifier} />
           </code>
         )}
         <span className='export-row-kind'>

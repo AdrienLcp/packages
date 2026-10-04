@@ -7,6 +7,7 @@ import {
 } from 'shiki'
 
 import type { MarkdownRendering } from './catalogue.ts'
+import { renderCodeSpan } from './code-span.ts'
 
 /**
  * Colours come from custom properties the site's tokens define, so the code
@@ -71,7 +72,7 @@ export const createMarkdownRendering = async (): Promise<MarkdownRendering> => {
     new Marked({
       gfm: true,
       hooks: { postprocess: tableInScrollingBox },
-      renderer: { code: highlight },
+      renderer: { code: highlight, codespan: renderCodeSpan },
       walkTokens: (token) => {
         if (
           (token.type === 'link' || token.type === 'image') &&
@@ -82,7 +83,10 @@ export const createMarkdownRendering = async (): Promise<MarkdownRendering> => {
       }
     })
 
-  const inlineMarked = new Marked({ gfm: true })
+  const inlineMarked = new Marked({
+    gfm: true,
+    renderer: { codespan: renderCodeSpan }
+  })
 
   return {
     block: (markdown, linkBase) =>

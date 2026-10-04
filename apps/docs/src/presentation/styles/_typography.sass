@@ -54,3 +54,17 @@
 /// Numerals that line up in a column.
 @mixin figures
   font-variant-numeric: tabular-nums lining-nums
+
+/// An inline code chip in running text, kept on one line so the sentence
+/// wraps around it. A chip marked `is-long` may not fit a line whole: it wraps
+/// at its own spaces, or anywhere as a last resort, each piece still a chip.
+@mixin code-chip
+  background: var(--sunk)
+  border-radius: var(--radius-inline)
+  box-decoration-break: clone
+  padding: 0.06em 0.34em
+  white-space: nowrap
+
+  &.is-long
+    overflow-wrap: anywhere
+    white-space: normal
