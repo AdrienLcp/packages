@@ -9,6 +9,7 @@ import {
   REDUCED_MOTION_QUERY,
   subscribeToReducedMotion
 } from './prefers-reduced-motion.ts'
+import { reloadPage } from './reload-page.ts'
 import { selectContents } from './select-contents.ts'
 import { useScreenAwake } from './use-screen-awake.ts'
 
@@ -374,6 +375,23 @@ const ScreenAwake = ({ isWanted }: { isWanted: boolean }) => {
   useScreenAwake(isWanted)
   return null
 }
+
+describe('reloadPage', () => {
+  it('[reload] reloads the page through location', () => {
+    const reload = vi.fn()
+    vi.stubGlobal('location', { reload })
+
+    reloadPage()
+
+    expect(reload).toHaveBeenCalledOnce()
+  })
+
+  it('[reload] does nothing where there is no location', () => {
+    vi.stubGlobal('location', undefined)
+
+    expect(() => reloadPage()).not.toThrow()
+  })
+})
 
 describe('useScreenAwake', () => {
   let root: Root

@@ -60,6 +60,16 @@ element.scrollIntoView({ behavior: prefersReducedMotion() ? 'instant' : 'smooth'
 `subscribeToReducedMotion(listener)` follows a change and returns the
 unsubscribe function.
 
+## Reloading the page
+
+```tsx
+import { reloadPage } from '@adrienlcp/browser'
+
+<Button onPress={reloadPage}>Reload</Button>
+```
+
+Does nothing where there is no `location`, as on a server.
+
 ## React
 
 ```tsx
