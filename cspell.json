@@ -7,7 +7,9 @@
     "coverage",
     "*.tsbuildinfo"
   ],
-  "import": ["@cspell/dict-fr-fr/cspell-ext.json"],
+  "import": [
+    "@cspell/dict-fr-fr/cspell-ext.json"
+  ],
   "language": "en,en-GB",
   "overrides": [
     {
@@ -49,6 +51,7 @@
   ],
   "version": "0.2",
   "words": [
+    "adrienlacourpaille",
     "adrienlcp",
     "archivo",
     "biomejs",

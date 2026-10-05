@@ -21,7 +21,7 @@
     "dist",
     "src/*.sass"
   ],
-  "homepage": "https://github.com/AdrienLcp/packages/tree/main/packages/react-aria#readme",
+  "homepage": "https://adrienlacourpaille.dev/en/projects/packages#package-react-aria",
   "keywords": [
     "focus-visible",
     "react",

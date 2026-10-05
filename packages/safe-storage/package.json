@@ -15,7 +15,7 @@
   "files": [
     "dist"
   ],
-  "homepage": "https://github.com/AdrienLcp/packages/tree/main/packages/safe-storage#readme",
+  "homepage": "https://adrienlacourpaille.dev/en/projects/packages#package-safe-storage",
   "keywords": [
     "localstorage",
     "private-mode",
