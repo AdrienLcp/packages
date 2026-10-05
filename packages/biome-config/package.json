@@ -9,6 +9,7 @@
   },
   "files": [
     "base.json",
+    "plugins",
     "react.json"
   ],
   "homepage": "https://github.com/AdrienLcp/packages/tree/main/packages/biome-config#readme",

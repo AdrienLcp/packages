@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 
 import { composeClassName } from './compose-class-name.ts'
 
@@ -36,7 +36,8 @@ describe('composeClassName', () => {
     const incoming = ({ isPressed }: { isPressed: boolean }) =>
       isPressed ? 'pressed' : 'idle'
 
-    // @ts-expect-error only the first argument may follow the render state
-    composeClassName(undefined, 'button', incoming)
+    expectTypeOf(incoming).not.toExtend<
+      Parameters<typeof composeClassName>[1]
+    >()
   })
 })

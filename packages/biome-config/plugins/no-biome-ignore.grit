@@ -1,0 +1,6 @@
+language js
+
+file($body) where {
+  $body <: r"(?s).*(?m:^)[ \t]*(?://|/\*+)[ \t]*biome-ignore.*",
+  register_diagnostic(span=$body, message="This file holds a biome-ignore comment. Fix what the rule reports instead of silencing it.")
+}

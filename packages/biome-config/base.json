@@ -43,7 +43,11 @@
   "linter": {
     "rules": {
       "nursery": {
-        "noFloatingPromises": "error"
+        "noFloatingPromises": "error",
+        "noUnsafeTypeAssertion": "error"
+      },
+      "style": {
+        "noNonNullAssertion": "error"
       },
       "suspicious": {
         "noConsole": {
@@ -51,10 +55,15 @@
           "options": {
             "allow": ["debug", "error", "info", "warn"]
           }
-        }
+        },
+        "noTsIgnore": "error"
       }
     }
   },
+  "plugins": [
+    "./node_modules/@adrienlcp/biome-config/plugins/no-biome-ignore.grit",
+    "./node_modules/@adrienlcp/biome-config/plugins/no-ts-expect-error.grit"
+  ],
   "vcs": {
     "clientKind": "git",
     "defaultBranch": "main",

@@ -340,8 +340,7 @@ describe('rich values', () => {
 
   it('[types] asks for nothing at all when the message marks nothing', () => {
     expectTypeOf<RichValuesFor<'Nobody got it', string>>().toEqualTypeOf<
-      // biome-ignore lint/complexity/noBannedTypes: the empty object type is the assertion
-      {}
+      Record<never, never>
     >()
   })
 })
@@ -370,15 +369,16 @@ describe('the registry', () => {
   })
 
   it('[types] refuses a default locale typed as every locale at once', () => {
-    const widenedLocale = (): 'en' | 'fr' => 'en'
-    createI18n({
-      // @ts-expect-error the reference would be both dictionaries at once
-      defaultLocale: widenedLocale(),
-      dictionaries: {
-        en: { greeting: 'Hello {name}' },
-        fr: { greeting: 'Bonjour {name}' }
-      }
-    })
+    type Entries = {
+      en: { greeting: 'Hello {name}' }
+      fr: { greeting: 'Bonjour {name}' }
+    }
+    type DefaultLocaleSlot<DefaultLocale extends 'en' | 'fr'> = Parameters<
+      typeof createI18n<Entries, DefaultLocale>
+    >[0]['defaultLocale']
+
+    expectTypeOf<'en'>().toExtend<DefaultLocaleSlot<'en'>>()
+    expectTypeOf<'en' | 'fr'>().not.toExtend<DefaultLocaleSlot<'en' | 'fr'>>()
   })
 
   it('[types] types the keys from the default locale’s dictionary', () => {

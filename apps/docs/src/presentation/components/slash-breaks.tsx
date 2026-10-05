@@ -11,10 +11,10 @@ export const SlashBreaks: React.FC<SlashBreaksProps> = ({ text }) => {
 
   return segments.map((segment, index) => {
     const isLast = index === segments.length - 1
+    const pathUpToSegment = segments.slice(0, index + 1).join('/')
 
     return (
-      // biome-ignore lint/suspicious/noArrayIndexKey: segments repeat and never reorder
-      <Fragment key={index}>
+      <Fragment key={pathUpToSegment}>
         {segment}
         {!isLast && (
           <>

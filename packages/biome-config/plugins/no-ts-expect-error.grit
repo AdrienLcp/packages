@@ -1,0 +1,6 @@
+language js
+
+file($body) where {
+  $body <: r"(?s).*(?m:^)[ \t]*(?://|/\*+)[ \t]*@ts-expect-error.*",
+  register_diagnostic(span=$body, message="This file holds a @ts-expect-error comment. Fix the type instead: narrow with a type guard, parse with a schema, or give the function a better signature.")
+}
