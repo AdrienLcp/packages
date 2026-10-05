@@ -32,15 +32,18 @@
       "words": [
         "gefunden",
         "indovinato",
+        "Nadie",
         "Nessuno",
         "niemand",
         "Noch",
         "Punkt",
         "Punkte",
+        "puntos",
         "punti",
         "punto",
         "Übersicht",
-        "Willkommen"
+        "Willkommen",
+        "encontró"
       ]
     }
   ],
@@ -66,6 +69,7 @@
     "networkidle",
     "nowrap",
     "nums",
+    "oklab",
     "oklch",
     "Onest",
     "prerender",

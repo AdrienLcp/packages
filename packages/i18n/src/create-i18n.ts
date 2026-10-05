@@ -11,14 +11,72 @@ import {
 } from './translator.ts'
 
 /**
+ * The members of `AbortSignal` the registry reads, for a runtime whose types
+ * leave the platform's own undeclared.
+ */
+type AbortSignalReadByTheRegistry = {
+  readonly aborted: boolean
+  readonly reason: unknown
+  addEventListener(
+    type: 'abort',
+    listener: () => void,
+    options?: { once?: boolean }
+  ): void
+  removeEventListener(type: 'abort', listener: () => void): void
+}
+
+/**
+ * The platform's `AbortSignal` wherever the consumer's types declare it — the
+ * DOM's, Node's — so the signal a loader receives goes straight into `fetch`.
+ * The library itself sees no platform types, and falls back to what it reads.
+ */
+type PlatformAbortSignal = typeof globalThis extends {
+  AbortSignal: { prototype: infer Signal }
+}
+  ? Signal
+  : AbortSignalReadByTheRegistry
+
+declare const AbortController: new () => {
+  abort: (reason?: unknown) => void
+  readonly signal: PlatformAbortSignal
+}
+
+/** What a loader is handed: a signal aborted once no caller wants the dictionary any more. */
+export type DictionaryLoaderContext = { signal: PlatformAbortSignal }
+
+/**
  * A dictionary the bundler is told to split out — `() => import('./fr')`. The
  * module `export default`s it, so TypeScript reads its type at compile time
  * even though its text arrives at run time: a locale that is fetched late is
  * held to the reference exactly like one that is imported.
+ *
+ * A loader that really fetches forwards `signal` to `fetch`, so the request
+ * stops once every caller waiting on it has aborted. `import()` cannot be
+ * aborted and ignores it.
  */
-export type DictionaryLoader<Reference> = () => Promise<{
+export type DictionaryLoader<Reference> = (
+  context: DictionaryLoaderContext
+) => Promise<{
   default: Localized<Reference>
 }>
+
+/** What `load` takes beside the locale. */
+export type LoadOptions = {
+  /** Where numbers and numeric dates take their shape from; see `translator`. */
+  formatLocale?: FormatLocale
+  /**
+   * Detaches this caller: once it aborts, its `load` rejects with
+   * `signal.reason` while other callers keep waiting on the same fetch.
+   */
+  signal?: AbortSignalReadByTheRegistry
+}
+
+/**
+ * Whether a rejection is an abort — a superseded `load` — rather than a
+ * failure: expected control flow, never something to show the reader.
+ */
+export const isAbortError = (error: unknown): boolean =>
+  error instanceof Error && error.name === 'AbortError'
 
 /**
  * A dictionary for a second locale, seen from both sides at once: as the tree of
@@ -37,7 +95,9 @@ type Localized<Reference> = Dictionary & DictionaryFor<Reference>
 /** What a locale registers: its dictionary, or the means of fetching it. */
 type Registered<Reference> = Localized<Reference> | DictionaryLoader<Reference>
 
-type AnyLoader = () => Promise<{ default: Dictionary }>
+type AnyLoader = (
+  context: DictionaryLoaderContext
+) => Promise<{ default: Dictionary }>
 
 /**
  * Refuses a `defaultLocale` typed as more than one locale. `const
@@ -70,10 +130,14 @@ const isLoader = <Reference>(
  * that is fetched late is checked exactly like one that is imported — and
  * checked before it is ever called.
  */
-type Matching<Reference, Entry> = Entry extends () => Promise<{
+type Matching<Reference, Entry> = Entry extends (
+  context: DictionaryLoaderContext
+) => Promise<{
   default: infer Loaded
 }>
-  ? () => Promise<{ default: MatchingDictionary<Reference, Loaded> }>
+  ? (
+      context: DictionaryLoaderContext
+    ) => Promise<{ default: MatchingDictionary<Reference, Loaded> }>
   : Localized<Reference> & MatchingDictionary<Reference, Entry>
 
 export type I18n<
@@ -105,10 +169,15 @@ export type I18n<
    * was already seeing.
    *
    * `formatLocale` is `translator`'s, and the fetch is shared whatever it is.
+   *
+   * `signal` detaches one caller without cancelling the fetch for the others:
+   * once it aborts, that caller's promise rejects with `signal.reason` — at once
+   * if it was aborted already — and `isAbortError` tells it from a failure. The
+   * loader's own signal aborts only when every caller waiting on it has.
    */
   load: (
     locale: Locale,
-    formatLocale?: FormatLocale
+    options?: LoadOptions
   ) => Promise<Translator<Reference>>
   /** Every locale the registry knows, whether its dictionary is loaded or not. */
   locales: readonly Locale[]
@@ -193,7 +262,7 @@ export const createI18n = <
 
   const collators = new Map<string, Intl.Collator>()
   const loaded = new Map<Locale, Localized<Reference>>()
-  const loading = new Map<Locale, Promise<Localized<Reference>>>()
+  const loading = new Map<Locale, SharedFetch<Localized<Reference>>>()
   const translators = new Map<string, Translator<Reference>>()
 
   for (const [locale, registered] of registryWithoutIntersection) {
@@ -267,43 +336,54 @@ export const createI18n = <
       : stableTranslatorFor({ dictionary, formatLocale, locale })
   }
 
-  const fetchOnce = (
+  const sharedFetchFor = (
     locale: Locale,
     loader: DictionaryLoader<Reference>
-  ): Promise<Localized<Reference>> => {
+  ): SharedFetch<Localized<Reference>> => {
     const inFlight = loading.get(locale)
 
-    if (inFlight !== undefined) {
+    if (inFlight !== undefined && !inFlight.controller.signal.aborted) {
       return inFlight
     }
 
-    const started = fetchDictionary<Reference>(loader)
-      .then((dictionary) => {
-        loaded.set(locale, dictionary)
+    const controller = new AbortController()
+    const shared: SharedFetch<Localized<Reference>> = {
+      controller,
+      dictionary: fetchDictionary<Reference>(loader, controller.signal)
+        .then((dictionary) => {
+          loaded.set(locale, dictionary)
 
-        return dictionary
-      })
-      .finally(() => {
-        loading.delete(locale)
-      })
+          return dictionary
+        })
+        .finally(() => {
+          if (loading.get(locale) === shared) {
+            loading.delete(locale)
+          }
+        }),
+      waiting: 0
+    }
 
-    loading.set(locale, started)
+    loading.set(locale, shared)
 
-    return started
+    return shared
   }
 
   const load = (
     locale: Locale,
-    formatLocale?: FormatLocale
+    { formatLocale, signal }: LoadOptions = {}
   ): Promise<Translator<Reference>> => {
+    if (signal?.aborted) {
+      return Promise.reject(signal.reason)
+    }
+
     const loader = registryWithoutIntersection.get(locale)
 
     if (loaded.has(locale) || !isLoader(loader)) {
       return Promise.resolve(translator(locale, formatLocale))
     }
 
-    return fetchOnce(locale, loader).then((dictionary) =>
-      stableTranslatorFor({ dictionary, formatLocale, locale })
+    return waitUnlessDetached(sharedFetchFor(locale, loader), signal).then(
+      (dictionary) => stableTranslatorFor({ dictionary, formatLocale, locale })
     )
   }
 
@@ -322,14 +402,61 @@ export const createI18n = <
 }
 
 /**
+ * One fetch, however many callers wait on it. Its controller aborts the loader
+ * once `waiting` falls to zero — every caller has detached — and a caller that
+ * never passed a signal keeps it above zero for good.
+ */
+type SharedFetch<Fetched> = {
+  controller: InstanceType<typeof AbortController>
+  dictionary: Promise<Fetched>
+  waiting: number
+}
+
+/**
  * Calling the loader through a parameter of its own type, rather than as the
  * intersection the narrowing leaves behind: an intersection of two call
  * signatures resolves to the first, and the first is the one the constraint
  * wrote, which knows only that a dictionary comes back.
  */
 const fetchDictionary = <Reference>(
-  loader: DictionaryLoader<Reference>
-): Promise<Localized<Reference>> => loader().then((module) => module.default)
+  loader: DictionaryLoader<Reference>,
+  signal: PlatformAbortSignal
+): Promise<Localized<Reference>> =>
+  loader({ signal }).then((module) => module.default)
+
+/**
+ * Races one caller's signal against the shared fetch: an abort rejects that
+ * caller alone with `signal.reason`, and aborts the fetch itself only when it
+ * was the last caller still waiting.
+ */
+const waitUnlessDetached = <Fetched>(
+  shared: SharedFetch<Fetched>,
+  signal: AbortSignalReadByTheRegistry | undefined
+): Promise<Fetched> => {
+  shared.waiting += 1
+
+  if (signal === undefined) {
+    return shared.dictionary
+  }
+
+  return new Promise<Fetched>((resolve, reject) => {
+    const detach = () => {
+      shared.waiting -= 1
+
+      if (shared.waiting === 0) {
+        shared.controller.abort()
+      }
+
+      reject(signal.reason)
+    }
+
+    signal.addEventListener('abort', detach, { once: true })
+
+    shared.dictionary.then(resolve, reject).finally(() => {
+      signal.removeEventListener('abort', detach)
+    })
+  })
+}
 
 /**
  * `Object.keys` widens to `string[]`, which would make the negotiated locale a

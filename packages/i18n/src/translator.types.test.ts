@@ -1,6 +1,6 @@
 import { describe, expectTypeOf, it } from 'vitest'
 
-import { createI18n } from './create-i18n.ts'
+import { createI18n, type DictionaryLoaderContext } from './create-i18n.ts'
 import { defineTranslation, type PluralForms } from './define-translation.ts'
 import {
   type DictionaryFor,
@@ -420,6 +420,29 @@ describe('a registry that loads a locale late', () => {
     expectTypeOf(i18n.load('de')).resolves.toEqualTypeOf<
       ReturnType<typeof i18n.translator>
     >()
+  })
+
+  it('[types] hands a loader the platform’s own AbortSignal, ready for fetch', () => {
+    expectTypeOf<
+      DictionaryLoaderContext['signal']
+    >().toEqualTypeOf<AbortSignal>()
+  })
+
+  it('[types] registers a loader that reads its signal', () => {
+    const fetching = createI18n({
+      defaultLocale: 'en',
+      dictionaries: {
+        de: ({ signal }: DictionaryLoaderContext) =>
+          Promise.resolve({
+            default: defineDictionary({
+              title: signal.aborted ? '' : 'Übersicht'
+            })
+          }),
+        en: { title: 'Dashboard' }
+      }
+    })
+
+    expectTypeOf(fetching.locales).toEqualTypeOf<readonly ('de' | 'en')[]>()
   })
 
   it('[types] would have no key at all if the reference arrived late', () => {

@@ -77,7 +77,7 @@ The registry exposes six things:
 | | |
 | --- | --- |
 | `i18n.translator(locale, formatLocale?)` | the translator for that locale, synchronously |
-| `i18n.load(locale, formatLocale?)` | fetches a dictionary registered as a loader, and resolves with the translator that reads it |
+| `i18n.load(locale, { formatLocale?, signal? }?)` | fetches a dictionary registered as a loader, and resolves with the translator that reads it |
 | `i18n.negotiate(preferred)` | which registered locale a list of BCP-47 tags asks for |
 | `i18n.compare(locale, options?)` | a comparator for `Array.sort`, so `Émile` lands between `Adrien` and `Zoé` rather than after both |
 | `i18n.locales` | every registered locale, loaded or not |
@@ -456,6 +456,50 @@ i18n.translator(locale)                   // German, and a new identity to re-re
 A failed `load` rejects and forgets the attempt, so asking again retries.
 Ignoring that rejection is safe: the reader stays on the default locale, which is
 what they were already reading.
+
+### Switching locale before the last one arrived
+
+A reader who clicks French, then German, then Spanish starts three loads, and
+nothing says they resolve in that order: German landing after Spanish would
+paint German over the language the reader chose last. So each switch gets its
+own `AbortController`, the next switch aborts the previous one, and an abort is
+dropped rather than shown:
+
+```ts
+let currentSwitch = new AbortController()
+
+const switchLocale = async (locale: Locale) => {
+  currentSwitch.abort()
+  currentSwitch = new AbortController()
+
+  try {
+    setTranslator(await i18n.load(locale, { signal: currentSwitch.signal }))
+  } catch (error) {
+    if (!isAbortError(error)) {
+      showLoadFailure()
+    }
+  }
+}
+```
+
+An aborted caller rejects with `signal.reason` — an `AbortError` unless the
+caller chose another reason — at once if the signal was aborted before the call.
+It is detached alone: two callers asking for the same locale share one fetch,
+and the other one still resolves.
+
+A loader is handed a signal of its own, which the registry aborts only once
+every caller waiting on that fetch has aborted. `() => import()` cannot be
+cancelled and ignores it; a loader that really fetches forwards it:
+
+```ts
+fr: ({ signal }) =>
+  fetch('/i18n/fr.json', { signal })
+    .then((response) => response.json())
+    .then((dictionary) => ({ default: parseDictionaryFr(dictionary) }))
+```
+
+A dictionary that arrives after its callers left — an `import()` runs to the
+end — is still kept, so the next switch to that locale is instant.
 
 ## A link or a bold word inside a sentence
 

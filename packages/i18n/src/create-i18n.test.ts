@@ -1,6 +1,10 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
-import { createI18n } from './create-i18n.ts'
+import {
+  createI18n,
+  type DictionaryLoaderContext,
+  isAbortError
+} from './create-i18n.ts'
 import { defineTranslation } from './define-translation.ts'
 import { defineDictionary } from './dictionary.ts'
 
@@ -181,7 +185,7 @@ describe('a dictionary that is not in the bundle yet', () => {
 
     const [inGerman, inEnglish] = await Promise.all([
       registry.load('de'),
-      registry.load('de', 'en')
+      registry.load('de', { formatLocale: 'en' })
     ])
 
     expect(fetched()).toBe(1)
@@ -254,6 +258,146 @@ describe('a dictionary that fails to load', () => {
     expect(registry.translator('it')('round.none')).toBe(
       'Nessuno ha indovinato'
     )
+  })
+})
+
+describe('a load its caller no longer wants', () => {
+  const ES = defineDictionary({
+    greeting: 'Hola {name}',
+    round: { none: 'Nadie lo encontró' },
+    score: defineTranslation('{count:plural}', {
+      plural: { count: { one: '{?} punto', other: '{?} puntos' } }
+    })
+  })
+
+  const buildRegistry = () => {
+    const pending = {
+      de: Promise.withResolvers<void>(),
+      es: Promise.withResolvers<void>()
+    }
+    const signals: DictionaryLoaderContext['signal'][] = []
+    let fetches = 0
+
+    const registry = createI18n({
+      defaultLocale: 'en',
+      dictionaries: {
+        de: async ({ signal }: DictionaryLoaderContext) => {
+          fetches += 1
+          signals.push(signal)
+          await pending.de.promise
+
+          return import('./dictionary-de.fixture')
+        },
+        en: EN,
+        es: async () => {
+          await pending.es.promise
+
+          return { default: ES }
+        }
+      }
+    })
+
+    return { fetched: () => fetches, pending, registry, signals }
+  }
+
+  it('[i18n] rejects the superseded caller with an AbortError and lets the newer one through', async () => {
+    const { pending, registry } = buildRegistry()
+    const toGerman = new AbortController()
+
+    const inGermanAborted = registry.load('de', { signal: toGerman.signal })
+    toGerman.abort()
+    const inSpanish = registry.load('es')
+
+    pending.es.resolve()
+    expect((await inSpanish)('round.none')).toBe('Nadie lo encontró')
+
+    pending.de.resolve()
+    await expect(inGermanAborted).rejects.toSatisfy(isAbortError)
+    await vi.waitFor(() => {
+      expect(registry.translator('de')('round.none')).toBe(
+        'Niemand hat es gefunden'
+      )
+    })
+  })
+
+  it('[i18n] rejects at once a caller whose signal is already aborted, without fetching', async () => {
+    const { fetched, registry } = buildRegistry()
+
+    await expect(
+      registry.load('de', { signal: AbortSignal.abort() })
+    ).rejects.toSatisfy(isAbortError)
+    expect(fetched()).toBe(0)
+  })
+
+  it('[i18n] detaches one caller without cancelling the fetch the others wait on', async () => {
+    const { fetched, pending, registry, signals } = buildRegistry()
+    const leaving = new AbortController()
+
+    const left = registry.load('de', { signal: leaving.signal })
+    const staying = registry.load('de', {
+      signal: new AbortController().signal
+    })
+    leaving.abort()
+    pending.de.resolve()
+
+    await expect(left).rejects.toSatisfy(isAbortError)
+    expect((await staying)('round.none')).toBe('Niemand hat es gefunden')
+    expect(fetched()).toBe(1)
+    expect(signals[0]?.aborted).toBe(false)
+  })
+
+  it('[i18n] aborts the loader once every caller has aborted', async () => {
+    const { registry, signals } = buildRegistry()
+    const first = new AbortController()
+    const second = new AbortController()
+
+    const loads = [
+      registry.load('de', { signal: first.signal }),
+      registry.load('de', { signal: second.signal })
+    ]
+    first.abort()
+
+    expect(signals[0]?.aborted).toBe(false)
+
+    second.abort()
+
+    expect(signals[0]?.aborted).toBe(true)
+    await Promise.allSettled(loads)
+  })
+
+  it('[i18n] keeps the loader running for a caller that passed no signal', async () => {
+    const { pending, registry, signals } = buildRegistry()
+    const leaving = new AbortController()
+
+    const left = registry.load('de', { signal: leaving.signal })
+    const staying = registry.load('de')
+    leaving.abort()
+    pending.de.resolve()
+
+    expect(signals[0]?.aborted).toBe(false)
+    await expect(left).rejects.toSatisfy(isAbortError)
+    expect((await staying)('round.none')).toBe('Niemand hat es gefunden')
+  })
+
+  it('[i18n] fetches anew for a caller arriving after every other has left', async () => {
+    const { fetched, pending, registry, signals } = buildRegistry()
+    const leaving = new AbortController()
+
+    const left = registry.load('de', { signal: leaving.signal })
+    leaving.abort()
+    const arriving = registry.load('de')
+    pending.de.resolve()
+
+    await expect(left).rejects.toSatisfy(isAbortError)
+    expect((await arriving)('round.none')).toBe('Niemand hat es gefunden')
+    expect(fetched()).toBe(2)
+    expect(signals[1]?.aborted).toBe(false)
+  })
+
+  it('[i18n] tells an abort from a failure', () => {
+    expect(isAbortError(new DOMException('gone', 'AbortError'))).toBe(true)
+    expect(isAbortError(new Error('offline'))).toBe(false)
+    expect(isAbortError('AbortError')).toBe(false)
   })
 })
 
