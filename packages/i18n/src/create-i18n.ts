@@ -4,7 +4,11 @@ import type {
   MatchingDictionary
 } from './dictionary.ts'
 import { negotiateLocale } from './negotiate-locale.ts'
-import { createTranslator, type Translator } from './translator.ts'
+import {
+  createTranslator,
+  type FormatLocale,
+  type Translator
+} from './translator.ts'
 
 /**
  * A dictionary the bundler is told to split out — `() => import('./fr')`. The
@@ -99,8 +103,13 @@ export type I18n<
    * again retries. Ignoring that rejection is safe: `translator(locale)` goes on
    * answering with the default locale's translator, which is what the reader
    * was already seeing.
+   *
+   * `formatLocale` is `translator`'s, and the fetch is shared whatever it is.
    */
-  load: (locale: Locale) => Promise<Translator<Reference>>
+  load: (
+    locale: Locale,
+    formatLocale?: FormatLocale
+  ) => Promise<Translator<Reference>>
   /** Every locale the registry knows, whether its dictionary is loaded or not. */
   locales: readonly Locale[]
   /** Which of `locales` a list of BCP-47 tags asks for. */
@@ -113,8 +122,16 @@ export type I18n<
    *
    * The same function every time it is asked for, and a different one on either
    * side of a load. That is what a consumer memoises on.
+   *
+   * `formatLocale` is where numbers and numeric dates take their shape from —
+   * `navigator.languages`, or a format the reader chose — when it is not the
+   * language's own; see `createTranslator`. A list compares by its tags, so
+   * the same preferences hand out the same translator.
    */
-  translator: (locale: Locale) => Translator<Reference>
+  translator: (
+    locale: Locale,
+    formatLocale?: FormatLocale
+  ) => Translator<Reference>
 }
 
 /**
@@ -176,8 +193,8 @@ export const createI18n = <
 
   const collators = new Map<string, Intl.Collator>()
   const loaded = new Map<Locale, Localized<Reference>>()
-  const loading = new Map<Locale, Promise<Translator<Reference>>>()
-  const translators = new Map<Locale, Translator<Reference>>()
+  const loading = new Map<Locale, Promise<Localized<Reference>>>()
+  const translators = new Map<string, Translator<Reference>>()
 
   for (const [locale, registered] of registryWithoutIntersection) {
     if (!isLoader(registered)) {
@@ -208,55 +225,63 @@ export const createI18n = <
    * language it reads changes and the same one when it does not, or every
    * `useMemo` downstream either recomputes forever or serves the old language.
    */
-  const stableTranslatorFor = (
-    locale: Locale,
+  const stableTranslatorFor = ({
+    dictionary,
+    formatLocale,
+    locale
+  }: {
     dictionary: Localized<Reference>
-  ): Translator<Reference> => {
-    const built = translators.get(locale)
+    formatLocale: FormatLocale | undefined
+    locale: Locale
+  }): Translator<Reference> => {
+    const key = `${locale} ${JSON.stringify(formatLocale ?? null)}`
+    const built = translators.get(key)
 
     if (built !== undefined) {
       return built
     }
 
-    const created = createTranslator<Reference>({ dictionary, locale })
+    const created = createTranslator<Reference>({
+      dictionary,
+      formatLocale,
+      locale
+    })
 
-    translators.set(locale, created)
+    translators.set(key, created)
 
     return created
   }
 
-  const translator = (locale: Locale): Translator<Reference> => {
+  const translator = (
+    locale: Locale,
+    formatLocale?: FormatLocale
+  ): Translator<Reference> => {
     const dictionary = loaded.get(locale)
 
     return dictionary === undefined
-      ? stableTranslatorFor(defaultLocale, defaultDictionary)
-      : stableTranslatorFor(locale, dictionary)
+      ? stableTranslatorFor({
+          dictionary: defaultDictionary,
+          formatLocale,
+          locale: defaultLocale
+        })
+      : stableTranslatorFor({ dictionary, formatLocale, locale })
   }
 
-  const load = (locale: Locale): Promise<Translator<Reference>> => {
-    const dictionary = loaded.get(locale)
-
-    if (dictionary !== undefined) {
-      return Promise.resolve(stableTranslatorFor(locale, dictionary))
-    }
-
+  const fetchOnce = (
+    locale: Locale,
+    loader: DictionaryLoader<Reference>
+  ): Promise<Localized<Reference>> => {
     const inFlight = loading.get(locale)
 
     if (inFlight !== undefined) {
       return inFlight
     }
 
-    const loader = registryWithoutIntersection.get(locale)
-
-    if (!isLoader(loader)) {
-      return Promise.resolve(translator(locale))
-    }
-
     const started = fetchDictionary<Reference>(loader)
       .then((dictionary) => {
         loaded.set(locale, dictionary)
 
-        return stableTranslatorFor(locale, dictionary)
+        return dictionary
       })
       .finally(() => {
         loading.delete(locale)
@@ -265,6 +290,21 @@ export const createI18n = <
     loading.set(locale, started)
 
     return started
+  }
+
+  const load = (
+    locale: Locale,
+    formatLocale?: FormatLocale
+  ): Promise<Translator<Reference>> => {
+    const loader = registryWithoutIntersection.get(locale)
+
+    if (loaded.has(locale) || !isLoader(loader)) {
+      return Promise.resolve(translator(locale, formatLocale))
+    }
+
+    return fetchOnce(locale, loader).then((dictionary) =>
+      stableTranslatorFor({ dictionary, formatLocale, locale })
+    )
   }
 
   return {

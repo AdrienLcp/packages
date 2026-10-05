@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { defineTranslation } from './define-translation.ts'
 import { type DictionaryFor, defineDictionary } from './dictionary.ts'
-import { createTranslator } from './translator.ts'
+import { createTranslator, type FormatLocale } from './translator.ts'
 
 const REFERENCE = defineDictionary({
   echo: '{name}, hello {name}',
@@ -611,5 +611,128 @@ describe('a Temporal value', () => {
       'Played on March 1, 2026'
     )
     expect(moments('day', { at })).toBe('Played on {at:date}')
+  })
+})
+
+const FORMATS = defineDictionary({
+  clock: defineTranslation('Opens at {at:date}', {
+    date: { at: { timeStyle: 'short' } }
+  }),
+  crowd: defineTranslation('{count:number} fans', {
+    number: { count: { compactDisplay: 'long', notation: 'compact' } }
+  }),
+  day: defineTranslation('Played on {at:date}', {
+    date: { at: { dateStyle: 'long' } }
+  }),
+  distance: '{km:number} km',
+  posted: defineTranslation('Posted {when:relative}', {
+    relative: { when: { numeric: 'auto', unit: 'day' } }
+  }),
+  seen: 'Seen {at:date}',
+  twelveHours: defineTranslation('At {at:date}', {
+    date: { at: { dateStyle: 'medium', hourCycle: 'h12', timeStyle: 'short' } }
+  }),
+  wallClock: defineTranslation('At {at:date}', {
+    date: { at: { dateStyle: 'medium', timeStyle: 'short' } }
+  }),
+  weekday: defineTranslation('Back on {at:date}', {
+    date: { at: { weekday: 'long' } }
+  })
+})
+
+const englishSentences = (formatLocale?: FormatLocale) =>
+  createTranslator<typeof FORMATS>({
+    dictionary: FORMATS,
+    formatLocale,
+    locale: 'en'
+  })
+
+describe('a format locale apart from the language', () => {
+  const evening = Temporal.PlainDateTime.from('2026-03-01T23:30')
+
+  it('[format] writes a numeric date in the format locale’s order', () => {
+    expect(
+      englishSentences('fr')('seen', {
+        at: Temporal.PlainDate.from('2026-03-01')
+      })
+    ).toBe('Seen 01/03/2026')
+  })
+
+  it('[format] writes a numeric time on the format locale’s clock', () => {
+    expect(
+      englishSentences('en-GB')('clock', {
+        at: Temporal.PlainTime.from('23:30')
+      })
+    ).toBe('Opens at 23:30')
+  })
+
+  it('[format] writes a decimal with the format locale’s separators', () => {
+    expect(englishSentences('de')('distance', { km: 1234.5 })).toBe(
+      '1.234,5 km'
+    )
+  })
+
+  it('[format] takes the first locale a preference list names', () => {
+    expect(englishSentences(['de-DE', 'en'])('distance', { km: 1234.5 })).toBe(
+      '1.234,5 km'
+    )
+  })
+
+  it('[format] names a month in the sentence’s language', () => {
+    expect(
+      englishSentences('fr')('day', {
+        at: Temporal.PlainDate.from('2026-03-01')
+      })
+    ).toBe('Played on March 1, 2026')
+  })
+
+  it('[format] names a weekday in the sentence’s language', () => {
+    expect(
+      englishSentences('fr')('weekday', {
+        at: Temporal.PlainDate.from('2026-03-02')
+      })
+    ).toBe('Back on Monday')
+  })
+
+  it('[format] gives a date in words the format locale’s hour cycle', () => {
+    expect(englishSentences('en-GB')('wallClock', { at: evening })).toBe(
+      'At Mar 1, 2026, 23:30'
+    )
+  })
+
+  it('[format] keeps an hour cycle the dictionary chose', () => {
+    expect(englishSentences('en-GB')('twelveHours', { at: evening })).toBe(
+      'At Mar 1, 2026, 11:30 PM'
+    )
+  })
+
+  it('[format] spells a number out in the sentence’s language', () => {
+    expect(englishSentences('fr')('crowd', { count: 3000 })).toBe(
+      '3 thousand fans'
+    )
+  })
+
+  it('[format] leaves a relative time in the sentence’s language', () => {
+    expect(englishSentences('fr')('posted', { when: -1 })).toBe(
+      'Posted yesterday'
+    )
+  })
+
+  it('[plural] picks the form by the language and writes the count in the format locale', () => {
+    const translate = createTranslator<typeof REFERENCE>({
+      dictionary: FRENCH,
+      formatLocale: 'en',
+      locale: 'fr'
+    })
+
+    expect(translate('score', { count: 0 })).toBe('0 point')
+    expect(translate('score', { count: 1500 })).toBe('1,500 points')
+  })
+
+  it('[format] formats in the language when no format locale is given', () => {
+    expect(englishSentences()('wallClock', { at: evening })).toBe(
+      'At Mar 1, 2026, 11:30 PM'
+    )
+    expect(englishSentences()('distance', { km: 1234.5 })).toBe('1,234.5 km')
   })
 })

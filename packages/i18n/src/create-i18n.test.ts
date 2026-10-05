@@ -42,6 +42,23 @@ describe('translator', () => {
   })
 })
 
+describe('a format locale', () => {
+  it('[i18n] formats numbers in it and keeps the sentence in the language', () => {
+    const translate = i18n.translator('fr', 'en')
+
+    expect(translate('score', { count: 1500 })).toBe('1,500 points')
+    expect(translate('round.none')).toBe('Personne n’a trouvé')
+  })
+
+  it('[i18n] hands out one translator per locale and preference list', () => {
+    expect(i18n.translator('fr', ['en-GB', 'en'])).toBe(
+      i18n.translator('fr', ['en-GB', 'en'])
+    )
+    expect(i18n.translator('fr', 'en')).not.toBe(i18n.translator('fr'))
+    expect(i18n.translator('fr', 'en')).not.toBe(i18n.translator('fr', 'de'))
+  })
+})
+
 describe('negotiate', () => {
   it('[i18n] answers with a registered locale, region dropped', () => {
     expect(i18n.negotiate(['fr-CA'])).toBe('fr')
@@ -157,6 +174,20 @@ describe('a dictionary that is not in the bundle yet', () => {
     await registry.load('de')
 
     expect(fetched()).toBe(1)
+  })
+
+  it('[i18n] fetches once for every format locale, and resolves with each one’s translator', async () => {
+    const { fetched, registry } = buildRegistry()
+
+    const [inGerman, inEnglish] = await Promise.all([
+      registry.load('de'),
+      registry.load('de', 'en')
+    ])
+
+    expect(fetched()).toBe(1)
+    expect(inGerman).toBe(registry.translator('de'))
+    expect(inEnglish).toBe(registry.translator('de', 'en'))
+    expect(inEnglish('score', { count: 1500 })).toBe('1,500 Punkte')
   })
 
   it('[i18n] resolves at once for a locale it already holds', async () => {

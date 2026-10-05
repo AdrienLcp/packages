@@ -76,8 +76,8 @@ The registry exposes six things:
 
 | | |
 | --- | --- |
-| `i18n.translator(locale)` | the translator for that locale, synchronously |
-| `i18n.load(locale)` | fetches a dictionary registered as a loader, and resolves with the translator that reads it |
+| `i18n.translator(locale, formatLocale?)` | the translator for that locale, synchronously |
+| `i18n.load(locale, formatLocale?)` | fetches a dictionary registered as a loader, and resolves with the translator that reads it |
 | `i18n.negotiate(preferred)` | which registered locale a list of BCP-47 tags asks for |
 | `i18n.compare(locale, options?)` | a comparator for `Array.sort`, so `Émile` lands between `Adrien` and `Zoé` rather than after both |
 | `i18n.locales` | every registered locale, loaded or not |
@@ -107,6 +107,48 @@ Order across tags wins over presence: a device listing `de-DE, fr-FR, en` gets
 French, so one tag is exhausted in both directions before the next is looked at.
 `negotiateLocale` is the same rule as a free function, for a caller with no
 registry — a server reading `Accept-Language`, for instance.
+
+### Formats that are not the language's
+
+The language a reader picked and the way they write numbers are two settings.
+A French sentence on an en-GB browser still wants `14:30` and `05/10/2026`, the
+British way. `formatLocale` — a tag, or a preference list such as
+`navigator.languages` — is where numbers and numeric dates take their shape
+from:
+
+```ts
+const translate = i18n.translator('en', navigator.languages) // a French browser
+
+translate('playedAt', { day }) // 'Played on September 3, 2026'
+translate('openedAt', { time }) // 'Opens at 14:30', where `timeStyle: 'short'`
+translate('fileSize', { bytes: 2048 }) // '2 048 bytes written'
+```
+
+| Follows `formatLocale` | Stays in the sentence's language |
+| --- | --- |
+| `{x:number}`, and the `{?}` of a plural | a number spelled out: `compactDisplay: 'long'`, `unitDisplay: 'long'`, `currencyDisplay: 'name'` |
+| a numeric `{x:date}`: no options, `dateStyle: 'short'`, numeric `month`, `timeStyle` up to `long` | a `{x:date}` in words: a `weekday`, an `era`, a `dayPeriod`, a named `month`, `dateStyle` from `medium`, `timeStyle: 'full'`, a long `timeZoneName` — which still takes its hour cycle from `formatLocale`, unless the dictionary sets `hourCycle` or `hour12` |
+| | the plural form chosen, `{x:list}`, `{x:relative}`, `{x:displayname}` |
+
+Left out, it is the language's locale, and nothing changes. A translator is
+kept per locale *and* `formatLocale`; a list compares by its tags, so passing
+`navigator.languages` on every render hands out the same function. When the app
+lets the reader choose a format — a 24-hour clock, a decimal comma — that
+choice is the `formatLocale` instead.
+
+### Sorting content in its own language
+
+`i18n.compare` takes a registered locale: it sorts what the reader writes or
+reads in the interface's language. Content that has a language of its own — a
+French catalogue under an English-only interface — sorts in that language,
+which the interface may not speak at all. That comparator is one constant in
+the app, in the module that owns the content, and needs nothing from here:
+
+```ts
+const CATALOGUE_LOCALE = 'fr'
+
+export const compareCatalogueTitles = new Intl.Collator(CATALOGUE_LOCALE).compare
+```
 
 ## Message syntax
 
@@ -170,7 +212,7 @@ translate('greeting', { name: 'Ada' }) // 'Hello Ada'
 translate('players', { count: 3 }) // '3 players'
 translate('fileSize', { bytes: 2048 }) // '2,048 bytes written'
 translate('rounds', { count: 0 }) // 'No round played'
-translate('playedAt', { day: new Date() }) // 'Played on September 3, 2026'
+translate('playedAt', { day: Temporal.PlainDate.from('2026-09-03') }) // 'Played on September 3, 2026'
 translate('sharedWith', { people: ['Ada', 'Grace', 'Alan'] }) // 'Shared with Ada, Grace, and Alan'
 translate('status', { value: 'draft' }) // 'Status: Draft'
 translate('updated', { when: -1 }) // 'Updated yesterday'

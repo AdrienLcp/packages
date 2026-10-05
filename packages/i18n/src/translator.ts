@@ -41,8 +41,24 @@ export type Translator<Reference> = {
   ) => (string | Node)[]
 }
 
+/**
+ * Where numbers and numeric dates take their shape from — the decimal
+ * separator, the hour cycle, the order of day and month. A tag, or a preference
+ * list such as `navigator.languages`, of which `Intl` takes the first it
+ * supports.
+ */
+export type FormatLocale = string | readonly string[]
+
 type TranslatorOptions<Reference> = {
   dictionary: Dictionary & DictionaryFor<Reference>
+  /**
+   * The reader's formats, when they are not the language's: a French sentence
+   * on an en-GB browser still writes `14:30` and `05/10/2026` the British way.
+   * Anything written in words — a month or weekday name, a list, a relative
+   * time, a plural's form — stays in `locale`, the sentence's language; a date
+   * in words borrows only the hour cycle from here. Defaults to `locale`.
+   */
+  formatLocale?: FormatLocale
   locale: string
 }
 
@@ -62,9 +78,13 @@ type TranslatorOptions<Reference> = {
  */
 export const createTranslator = <Reference>({
   dictionary,
+  formatLocale,
   locale
 }: TranslatorOptions<Reference>): Translator<Reference> => {
-  const formatters = createTranslatorScopedFormatters(locale)
+  const formatters = createTranslatorScopedFormatters({
+    formatLocale: formatLocale ?? locale,
+    locale
+  })
 
   function translate<Key extends PlainKey<Reference>>(key: Key): string
   function translate<
@@ -500,8 +520,19 @@ type Formatters = {
  * Keyed on the options as written: two equivalent option objects whose keys are
  * in a different order get an entry each. They come from dictionary literals,
  * so there are as many entries as the dictionary has distinct formats.
+ *
+ * A number or a date is built in `formatLocale` unless its options write it in
+ * words, which only the sentence's own language may do: `3 thousand`, not
+ * `3 mille`, inside an English sentence. A date in words still takes its hour
+ * cycle from `formatLocale`, the one part of it that is no word.
  */
-const createTranslatorScopedFormatters = (locale: string): Formatters => {
+const createTranslatorScopedFormatters = ({
+  formatLocale,
+  locale
+}: {
+  formatLocale: FormatLocale
+  locale: string
+}): Formatters => {
   const dates = new Map<string, Intl.DateTimeFormat>()
   const displayNames = new Map<string, Intl.DisplayNames>()
   const lists = new Map<string, Intl.ListFormat>()
@@ -509,13 +540,21 @@ const createTranslatorScopedFormatters = (locale: string): Formatters => {
   const plurals = new Map<string, Intl.PluralRules>()
   const relatives = new Map<string, Intl.RelativeTimeFormat>()
 
+  const date = (options?: Intl.DateTimeFormatOptions): Intl.DateTimeFormat =>
+    remembered(dates, options, () =>
+      isDateWrittenInWords(options)
+        ? new Intl.DateTimeFormat(
+            locale,
+            withHourCycle(options, formatHourCycle())
+          )
+        : new Intl.DateTimeFormat(formatLocale, options)
+    )
+
+  const formatHourCycle = (): Intl.DateTimeFormatOptions['hourCycle'] =>
+    date({ hour: 'numeric' }).resolvedOptions().hourCycle
+
   return {
-    date: (options) =>
-      remembered(
-        dates,
-        options,
-        () => new Intl.DateTimeFormat(locale, options)
-      ),
+    date,
     displayname: (options) =>
       remembered(
         displayNames,
@@ -528,7 +567,11 @@ const createTranslatorScopedFormatters = (locale: string): Formatters => {
       remembered(
         numbers,
         options,
-        () => new Intl.NumberFormat(locale, options)
+        () =>
+          new Intl.NumberFormat(
+            isNumberWrittenInWords(options) ? locale : formatLocale,
+            options
+          )
       ),
     plural: (options) =>
       remembered(plurals, options, () => new Intl.PluralRules(locale, options)),
@@ -540,6 +583,46 @@ const createTranslatorScopedFormatters = (locale: string): Formatters => {
       )
   }
 }
+
+const NUMERIC_MONTHS: readonly (string | undefined)[] = [
+  undefined,
+  'numeric',
+  '2-digit'
+]
+
+const WORDED_TIME_ZONE_NAMES: readonly (string | undefined)[] = [
+  'long',
+  'longGeneric'
+]
+
+const isDateWrittenInWords = (
+  options: Intl.DateTimeFormatOptions | undefined
+): boolean =>
+  options !== undefined &&
+  (options.weekday !== undefined ||
+    options.era !== undefined ||
+    options.dayPeriod !== undefined ||
+    !NUMERIC_MONTHS.includes(options.month) ||
+    (options.dateStyle !== undefined && options.dateStyle !== 'short') ||
+    options.timeStyle === 'full' ||
+    WORDED_TIME_ZONE_NAMES.includes(options.timeZoneName))
+
+const isNumberWrittenInWords = (
+  options: Intl.NumberFormatOptions | undefined
+): boolean =>
+  options !== undefined &&
+  ((options.notation === 'compact' && options.compactDisplay === 'long') ||
+    (options.style === 'unit' && options.unitDisplay === 'long') ||
+    (options.style === 'currency' && options.currencyDisplay === 'name'))
+
+/** An hour cycle the dictionary chose, through either option, is kept. */
+const withHourCycle = (
+  options: Intl.DateTimeFormatOptions | undefined,
+  hourCycle: Intl.DateTimeFormatOptions['hourCycle']
+): Intl.DateTimeFormatOptions | undefined =>
+  options?.hour12 !== undefined || options?.hourCycle !== undefined
+    ? options
+    : { ...options, hourCycle }
 
 const remembered = <Formatter>(
   cache: Map<string, Formatter>,
