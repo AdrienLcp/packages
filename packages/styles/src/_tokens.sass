@@ -1,0 +1,40 @@
+/// The tokens every app names the same way, at values that hold until the app
+/// sets its own. Include it first in the app's `:root`; a token declared after
+/// it in the same block wins:
+///
+/// ```sass
+/// @use '@adrienlcp/styles/tokens'
+///
+/// @layer tokens
+///   \:root
+///     @include tokens.defaults
+///     --measure: 62ch
+/// ```
+///
+/// Lines are drawn in `--rule` and `--rule-strong`, the ring in `--focus`: the
+/// app's palette declares them. Until it does, a line is `currentColor` mixed
+/// toward transparent and the ring is `currentColor`, never invisible.
+@mixin defaults
+  --stroke-hair: 1px
+  --stroke-thin: 1.5px
+  --stroke-bold: 2px
+
+  --hairline: var(--stroke-hair) solid var(--rule, color-mix(in oklab, currentColor 25%, transparent))
+  --hairline-strong: var(--stroke-hair) solid var(--rule-strong, color-mix(in oklab, currentColor 55%, transparent))
+
+  --inset-hairline: inset 0 0 0 var(--stroke-hair) var(--rule, color-mix(in oklab, currentColor 25%, transparent))
+  --inset-hairline-strong: inset 0 0 0 var(--stroke-hair) var(--rule-strong, color-mix(in oklab, currentColor 55%, transparent))
+
+  --outline-thick: 2px
+  --outline-offset: 3px
+  --ring: var(--outline-thick) solid var(--focus, currentColor)
+  --ring-offset: var(--outline-offset)
+  --ring-inset: calc(-1 * var(--outline-thick))
+
+  --underline-offset: 0.24em
+  --tracking-tight: -0.02em
+
+  --target: 44px
+  --control-touch: var(--target)
+
+  --measure: 65ch

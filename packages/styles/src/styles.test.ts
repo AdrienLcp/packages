@@ -120,3 +120,102 @@ describe('fonts', () => {
     expect(css).not.toContain('font-stretch')
   })
 })
+
+describe('tokens', () => {
+  const compileTokens = (overrides = '') =>
+    compile(`
+@use 'tokens'
+:root
+  @include tokens.defaults
+${overrides}
+`)
+
+  it('[tokens] declares every shared name at a default value', () => {
+    const css = compileTokens()
+
+    expect(css).toContain('--stroke-hair: 1px')
+    expect(css).toContain('--hairline: var(--stroke-hair) solid var(--rule,')
+    expect(css).toContain('--inset-hairline: inset 0 0 0 var(--stroke-hair)')
+    expect(css).toContain(
+      '--ring: var(--outline-thick) solid var(--focus, currentColor)'
+    )
+    expect(css).toContain('--ring-inset: calc(-1 * var(--outline-thick))')
+    expect(css).toContain('--target: 44px')
+    expect(css).toContain('--control-touch: var(--target)')
+    expect(css).toContain('--measure: 65ch')
+    expect(css).toContain('--tracking-tight: -0.02em')
+    expect(css).toContain('--underline-offset: 0.24em')
+  })
+
+  it('[tokens] lets a value the app declares after them win', () => {
+    const css = compileTokens('  --measure: 62ch')
+
+    expect(css.lastIndexOf('--measure: 62ch')).toBeGreaterThan(
+      css.indexOf('--measure: 65ch')
+    )
+  })
+})
+
+describe('accessibility', () => {
+  it('[a11y] hides from sight without hiding from a screen reader', () => {
+    const css = compile(`
+@use 'accessibility'
+.label
+  @include accessibility.visually-hidden
+`)
+
+    expect(css).toContain('clip-path:inset(50%)')
+    expect(css).toContain('position:absolute')
+    expect(css).not.toContain('display:none')
+    expect(css).not.toContain('visibility:hidden')
+  })
+
+  it('[a11y] rings on keyboard focus only, native or marked by react-aria', () => {
+    const css = compile(`
+@use 'accessibility'
+.button
+  @include accessibility.ring
+`)
+
+    expect(css).toBe(
+      '.button[data-focus-visible],.button:focus-visible{outline:var(--ring);outline-offset:var(--ring-offset)}'
+    )
+  })
+
+  it('[a11y] draws the inset ring inside the box', () => {
+    const css = compile(`
+@use 'accessibility'
+.row
+  @include accessibility.ring-inset
+`)
+
+    expect(css).toContain('outline-offset:var(--ring-inset)')
+  })
+})
+
+describe('spread', () => {
+  const css = compile(`
+@use 'spread'
+.page
+  @include spread.columns($gap: 12px)
+`)
+
+  it('[spread] stacks the columns ruled apart on a narrow screen', () => {
+    expect(css).toContain(
+      '.page .column+.column{border-top:var(--hairline);padding-top:var(--space-l)}'
+    )
+  })
+
+  it('[spread] sets them side by side with the rule between on a wide one', () => {
+    expect(css).toContain(
+      '@media(width >= 900px){.page .columns{gap:var(--space-2xl);grid-template-columns:1fr 1fr}'
+    )
+    expect(css).toContain('border-left:var(--hairline);border-top:0')
+  })
+
+  it('[spread] spaces a column’s own items by the gap it is given', () => {
+    expect(css).toContain(
+      '.page .column{display:flex;flex-direction:column;gap:12px;min-width:0}'
+    )
+  })
+})

@@ -95,6 +95,71 @@ into; `font-face` declares one self-hosted `woff2` file.
 `$weight`, `$style` (`normal`), `$stretch` (left out) and `$display` (`swap`)
 are optional.
 
+### `tokens`
+
+The tokens every app names the same way, so an app sets values, not names.
+Include `defaults` first in the app's `:root`; what the app declares after it
+wins.
+
+```sass
+@use '@adrienlcp/styles/tokens'
+
+@layer tokens
+  :root
+    @include tokens.defaults
+    --measure: 62ch
+```
+
+| Token | Default |
+| --- | --- |
+| `--stroke-hair`, `--stroke-thin`, `--stroke-bold` | `1px`, `1.5px`, `2px` |
+| `--hairline`, `--hairline-strong` | a `--stroke-hair` solid line in `--rule`, `--rule-strong` |
+| `--inset-hairline`, `--inset-hairline-strong` | the same line as an inset `box-shadow`, which takes no room |
+| `--outline-thick`, `--outline-offset` | `2px`, `3px` |
+| `--ring`, `--ring-offset`, `--ring-inset` | an `--outline-thick` solid outline in `--focus`, drawn `--outline-offset` outside the box or inside it |
+| `--underline-offset`, `--tracking-tight` | `0.24em`, `-0.02em` |
+| `--target`, `--control-touch` | `44px`, the smallest touch target |
+| `--measure` | `65ch` |
+
+`--rule`, `--rule-strong` and `--focus` are the app's palette. Until it declares
+them, a line is `currentColor` mixed toward transparent and the ring is
+`currentColor`: never invisible.
+
+### `accessibility`
+
+```sass
+@use '@adrienlcp/styles/accessibility'
+
+.icon-label
+  @include accessibility.visually-hidden
+
+.button
+  @include accessibility.ring
+```
+
+- `visually-hidden` hides from sight, not from a screen reader.
+- `ring` draws `--ring` on keyboard focus only: `:focus-visible` for a native
+  element, `[data-focus-visible]` for one react-aria marks. `ring-inset` draws
+  it inside the box, for a row that fills its container edge to edge or sits
+  in an ancestor that clips. An app on `@adrienlcp/react-aria` has the same
+  pair in its `focus` module.
+
+### `spread`
+
+A page of two columns: `.columns` holding two `.column`s, stacked and ruled
+apart under `breakpoints.wide`, side by side above it with the rule running the
+full height between them.
+
+```sass
+@use '@adrienlcp/styles/spread'
+
+.settings-page
+  @include spread.columns($gap: var(--space-m))
+```
+
+`$gap` spaces a column's own items; `$rule` (`--hairline`), `$stacked-gap`
+(`--space-l`) and `$spread-gap` (`--space-2xl`) are optional.
+
 ## TypeScript
 
 ### `contrast`

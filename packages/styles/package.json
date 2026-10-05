@@ -4,11 +4,14 @@
   "dependencies": {
     "@adrienlcp/result": "workspace:^"
   },
-  "description": "A reset, a reduced-motion switch, Sass mixins for self-hosted fonts, container queries and a breakpoint, and a WCAG contrast check for colour tokens",
+  "description": "A reset, a reduced-motion switch, default tokens, Sass mixins for self-hosted fonts, container queries, a breakpoint, focus rings, visually hidden text and a two-column spread, and a WCAG contrast check for colour tokens",
   "devDependencies": {
     "sass": "^1.105.0"
   },
   "exports": {
+    "./accessibility": {
+      "sass": "./src/_accessibility.sass"
+    },
     "./breakpoints": {
       "sass": "./src/_breakpoints.sass"
     },
@@ -21,7 +24,13 @@
     },
     "./package.json": "./package.json",
     "./reduced-motion.css": "./src/reduced-motion.css",
-    "./reset.css": "./src/reset.css"
+    "./reset.css": "./src/reset.css",
+    "./spread": {
+      "sass": "./src/_spread.sass"
+    },
+    "./tokens": {
+      "sass": "./src/_tokens.sass"
+    }
   },
   "files": [
     "dist",

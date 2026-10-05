@@ -1,0 +1,27 @@
+/// Hidden from sight, still read aloud: a label the layout says without words,
+/// a column header a table needs for a screen reader only.
+@mixin visually-hidden
+  clip-path: inset(50%)
+  height: 1px
+  overflow: hidden
+  position: absolute
+  white-space: nowrap
+  width: 1px
+
+/// The focus ring from the `--ring` tokens, drawn on keyboard focus only.
+/// `data-focus-visible` is react-aria's mark of the same moment, on the element
+/// it styles; `:focus-visible` covers a native element. An app on
+/// `@adrienlcp/react-aria` has the same pair in its `focus` module.
+@mixin ring
+  &[data-focus-visible],
+  &:focus-visible
+    outline: var(--ring)
+    outline-offset: var(--ring-offset)
+
+/// The ring drawn inside the box, for a control that fills its row edge to edge
+/// or sits in an ancestor that clips.
+@mixin ring-inset
+  &[data-focus-visible],
+  &:focus-visible
+    outline: var(--ring)
+    outline-offset: var(--ring-inset)

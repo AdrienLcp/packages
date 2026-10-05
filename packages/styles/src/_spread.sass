@@ -1,0 +1,31 @@
+@use 'breakpoints'
+
+/// A page of two columns, `.columns` holding two `.column`s: stacked and ruled
+/// apart under `breakpoints.wide`, side by side above it with the rule between
+/// them. The rule runs the full height of the spread — one that stops under the
+/// shorter column reads as a broken border. `$gap` spaces a column's own items.
+@mixin columns($gap, $rule: var(--hairline), $stacked-gap: var(--space-l), $spread-gap: var(--space-2xl))
+  .columns
+    display: grid
+    gap: $stacked-gap
+
+  .column
+    display: flex
+    flex-direction: column
+    gap: $gap
+    min-width: 0
+
+    & + .column
+      border-top: $rule
+      padding-top: $stacked-gap
+
+  @include breakpoints.wide
+    .columns
+      gap: $spread-gap
+      grid-template-columns: 1fr 1fr
+
+    .column + .column
+      border-left: $rule
+      border-top: 0
+      padding-left: $spread-gap
+      padding-top: 0
