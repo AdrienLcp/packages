@@ -44,6 +44,16 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      # @adrienlcp/shots drives a real Chromium in its tests. `--with-deps` runs
+      # `apt-get update` over every source the runner image carries, Google's
+      # Chrome repository among them; an index published half-way fails the
+      # whole job on a hash mismatch. Playwright ships its own Chromium, so the
+      # source goes.
+      - name: Install Chromium
+        run: |
+          sudo rm -f /etc/apt/sources.list.d/*google*
+          pnpm --filter @adrienlcp/shots exec playwright install --with-deps chromium
+
       # Fails under the thresholds in vitest.config.ts: a published package
       # must not lose its tests silently.
       - name: Test with coverage
