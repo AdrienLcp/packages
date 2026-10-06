@@ -5,29 +5,8 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <meta content="#eff1f4" data-scheme="light" data-token="--ground" media="(prefers-color-scheme: light)" name="theme-color" />
     <meta content="#181a1c" data-scheme="dark" data-token="--ground" media="(prefers-color-scheme: dark)" name="theme-color" />
-    <style>
-      :root[data-fonts-pending] #root {
-        visibility: hidden;
-      }
-    </style>
-    <script>
-      if ('FontFace' in window) {
-        const root = document.documentElement
-        const reveal = () => delete root.dataset.fontsPending
-        const longestFontWaitMs = 800
-
-        root.dataset.fontsPending = ''
-        setTimeout(reveal, longestFontWaitMs)
-        Promise.all([
-          new FontFace('Onest', "url('/fonts/onest-latin.woff2') format('woff2')", {
-            weight: '100 900'
-          }).load(),
-          new FontFace('JetBrains Mono', "url('/fonts/jetbrains-mono-latin.woff2') format('woff2')", {
-            weight: '100 800'
-          }).load()
-        ]).then(reveal, reveal)
-      }
-    </script>
+    <link as="font" crossorigin href="/fonts/onest-latin.woff2" rel="preload" type="font/woff2" />
+    <link as="font" crossorigin href="/fonts/jetbrains-mono-latin.woff2" rel="preload" type="font/woff2" />
     <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
     <link href="/apple-touch-icon.png" rel="apple-touch-icon" />
     <title>@adrienlcp packages</title>

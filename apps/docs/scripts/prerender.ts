@@ -179,27 +179,6 @@ const pageResourcesFor = ({
   return [...stylesheets, ...preloads]
 }
 
-/**
- * The faces `index.html` waits for before it reveals the page: a prerendered
- * page has markup to paint, so they start downloading with the document. The
- * bare shell has none and does without.
- */
-const PRELOADED_FONT_FACES = ['onest-latin', 'jetbrains-mono-latin']
-
-const fontPreloadsFor = (document: Document): HTMLLinkElement[] =>
-  PRELOADED_FONT_FACES.map((face) =>
-    createLink({
-      attributes: {
-        as: 'font',
-        crossorigin: true,
-        href: `/fonts/${face}.woff2`,
-        rel: 'preload',
-        type: 'font/woff2'
-      },
-      document
-    })
-  )
-
 const isBlankText = (node: Node | null): node is Text =>
   node?.nodeName === '#text' && node.textContent?.trim() === ''
 
@@ -312,7 +291,6 @@ const documentFor = ({
   })
   setContent({ document, selector: 'meta[property="og:url"]', value: url })
   appendToHead(document, [
-    ...fontPreloadsFor(document),
     ...pageResourcesFor({ document, modules: page.modules }),
     ...headTags.map((tag) => document.importNode(tag, true))
   ])
