@@ -1,4 +1,4 @@
-import { Marked, type Tokens } from 'marked'
+import { Marked, Renderer, type Tokens } from 'marked'
 import {
   type BundledLanguage,
   createCssVariablesTheme,
@@ -43,10 +43,10 @@ const leavePreToTheStylesheet: ShikiTransformer = {
   }
 }
 
-const tableInScrollingBox = (html: string): string =>
-  html
-    .replaceAll('<table>', '<div class="table-scroll"><table>')
-    .replaceAll('</table>', '</table></div>')
+/** A wide table scrolls in its own box rather than widening the page. */
+function tableInScrollingBox(this: Renderer, table: Tokens.Table): string {
+  return `<div class="table-scroll">${Renderer.prototype.table.call(this, table)}</div>`
+}
 
 const isRelativeLink = (href: string): boolean =>
   !/^[a-z][a-z\d+.-]*:/i.test(href) &&
@@ -71,8 +71,11 @@ export const createMarkdownRendering = async (): Promise<MarkdownRendering> => {
   const markedFor = (linkBase: string): Marked =>
     new Marked({
       gfm: true,
-      hooks: { postprocess: tableInScrollingBox },
-      renderer: { code: highlight, codespan: renderCodeSpan },
+      renderer: {
+        code: highlight,
+        codespan: renderCodeSpan,
+        table: tableInScrollingBox
+      },
       walkTokens: (token) => {
         if (
           (token.type === 'link' || token.type === 'image') &&

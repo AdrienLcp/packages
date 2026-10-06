@@ -1,10 +1,7 @@
 import type { MarkdownSection } from './markdown-sections.ts'
 
-const escapeRegExp = (text: string): string =>
-  text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-
 const mentionPatternOf = (term: string): RegExp =>
-  new RegExp(String.raw`(?<![\w$-])${escapeRegExp(term)}(?![\w-])`, 'g')
+  new RegExp(String.raw`(?<![\w$-])${RegExp.escape(term)}(?![\w-])`, 'g')
 
 const TITLE_MENTION_WEIGHT = 10
 
