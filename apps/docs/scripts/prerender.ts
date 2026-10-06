@@ -3,7 +3,12 @@ import { dirname, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 import type { PrerenderedPage } from '../src/entry-server.tsx'
-import { escapeAttribute, replaceOnce, setMeta, setTitle } from './head-tags.ts'
+import {
+  createLink,
+  documentTitlesIn,
+  onlyElement,
+  parseHtmlDocument
+} from './html-document.ts'
 
 type EntryServer = typeof import('../src/entry-server.tsx')
 
@@ -123,14 +128,13 @@ const chunkAfterItsStaticImports = ({
   ]
 }
 
-const LINK_TARGETS = /href="([^"]*)"/g
-const SOURCES = /src="([^"]*)"/g
-
 /** Every script and stylesheet the shell already asks for. */
-const requestedBy = (html: string): Set<string> =>
+const requestedBy = (document: Document): Set<string> =>
   new Set(
-    [...html.matchAll(LINK_TARGETS), ...html.matchAll(SOURCES)].flatMap(
-      ([, url]) => url ?? []
+    [...document.querySelectorAll('[href], [src]')].flatMap((element) =>
+      [element.getAttribute('href'), element.getAttribute('src')].flatMap(
+        (url) => url ?? []
+      )
     )
   )
 
@@ -139,23 +143,38 @@ const requestedBy = (html: string): Set<string> =>
  * through dynamic imports once the entry has run: named here, they download
  * with everything else, and the markup paints styled.
  */
-const pageResourcesFor = (modules: string[]): string => {
+const pageResourcesFor = ({
+  document,
+  modules
+}: {
+  document: Document
+  modules: string[]
+}): HTMLLinkElement[] => {
   const seen = new Set<string>()
   const chunks = modules.flatMap((module) =>
     chunkAfterItsStaticImports({ module, seen })
   )
+  const notYetRequested = (href: string) => !alreadyRequested.has(href)
   const stylesheets = [
     ...new Set(chunks.flatMap((chunk) => chunk.css.map((file) => `/${file}`)))
   ]
-    .filter((href) => !alreadyRequested.has(href))
-    .map((href) => `\n    <link rel="stylesheet" crossorigin href="${href}">`)
+    .filter(notYetRequested)
+    .map((href) =>
+      createLink({
+        attributes: { crossorigin: true, href, rel: 'stylesheet' },
+        document
+      })
+    )
   const preloads = [...new Set(chunks.map((chunk) => `/${chunk.file}`))]
-    .filter((href) => !alreadyRequested.has(href))
-    .map(
-      (href) => `\n    <link rel="modulepreload" crossorigin href="${href}">`
+    .filter(notYetRequested)
+    .map((href) =>
+      createLink({
+        attributes: { crossorigin: true, href, rel: 'modulepreload' },
+        document
+      })
     )
 
-  return [...stylesheets, ...preloads].join('')
+  return [...stylesheets, ...preloads]
 }
 
 /**
@@ -163,66 +182,87 @@ const pageResourcesFor = (modules: string[]): string => {
  * page has markup to paint, so they start downloading with the document. The
  * bare shell has none and does without.
  */
-const FONT_PRELOADS = ['onest-latin', 'jetbrains-mono-latin']
-  .map(
-    (face) =>
-      `\n    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/${face}.woff2">`
+const PRELOADED_FONT_FACES = ['onest-latin', 'jetbrains-mono-latin']
+
+const fontPreloadsFor = (document: Document): HTMLLinkElement[] =>
+  PRELOADED_FONT_FACES.map((face) =>
+    createLink({
+      attributes: {
+        as: 'font',
+        crossorigin: true,
+        href: `/fonts/${face}.woff2`,
+        rel: 'preload',
+        type: 'font/woff2'
+      },
+      document
+    })
   )
-  .join('')
 
 /**
- * React writes the page's `<title>` at the front of what it renders. It belongs
- * in the head, where `setTitle` puts it.
+ * React writes the page's `<title>` and its `<link>` tags at the front of what
+ * it renders: parsed as a document, they land in its head and the page in its
+ * body, the way a browser would split them.
  */
-const LEADING_HEAD_TAGS = /^(?:<link\s[^>]*>|<title>[^<]*<\/title>)+/
-
-/** A drawing's `<title>` would match too: there must be exactly one. */
-const DOCUMENT_TITLE = /<title>([^<]*)<\/title>/g
-
-const REACT_TEXT_ESCAPES: Record<string, string> = {
-  '&#x27;': "'",
-  '&amp;': '&',
-  '&gt;': '>',
-  '&lt;': '<',
-  '&quot;': '"'
-}
-
-/** Back to plain text, which `setTitle` escapes for its tag. */
-const unescapeReactText = (text: string): string =>
-  text.replaceAll(
-    /&(?:#x27|amp|gt|lt|quot);/g,
-    (entity) => REACT_TEXT_ESCAPES[entity] ?? entity
-  )
-
-const splitRenderedHead = ({
+const splitRenderedPage = ({
   html,
   path
 }: {
   html: string
   path: string
-}): { markup: string; resources: string; title: string } => {
-  const titles = [...html.matchAll(DOCUMENT_TITLE)]
-  const [onlyTitle] = titles
+}): { headTags: Element[]; markup: Node[]; title: string } => {
+  const { document } = parseHtmlDocument(html)
+  const headTitles = documentTitlesIn(document.head)
+  const titleCount = headTitles.length + documentTitlesIn(document.body).length
+  const [title] = headTitles
 
-  if (titles.length !== 1 || onlyTitle === undefined) {
+  if (titleCount !== 1) {
     throw new Error(
-      `prerender: ${path} rendered ${titles.length} <title> elements, expected 1`
+      `prerender: ${path} rendered ${titleCount} <title> elements, expected 1`
     )
   }
 
-  const headTags = LEADING_HEAD_TAGS.exec(html)?.[0] ?? ''
-
-  if (!headTags.includes(onlyTitle[0])) {
+  if (title === undefined) {
     throw new Error(
       `prerender: ${path} rendered its <title> inside the page rather than ahead of it`
     )
   }
 
   return {
-    markup: html.slice(headTags.length),
-    resources: headTags.replace(DOCUMENT_TITLE, ''),
-    title: unescapeReactText(onlyTitle[1] ?? '')
+    headTags: [...document.head.children].filter((tag) => tag !== title),
+    markup: [...document.body.childNodes],
+    title: title.textContent ?? ''
   }
+}
+
+const HEAD_INDENT = '\n    '
+const HEAD_CLOSE_INDENT = '\n  '
+
+const isBlankText = (node: Node | null): node is Text =>
+  node?.nodeName === '#text' && node.textContent?.trim() === ''
+
+const appendToHead = (document: Document, tags: readonly Node[]): void => {
+  const closingIndent = document.head.lastChild
+
+  if (isBlankText(closingIndent)) {
+    closingIndent.remove()
+  }
+
+  document.head.append(
+    ...tags.flatMap((tag) => [HEAD_INDENT, tag]),
+    HEAD_CLOSE_INDENT
+  )
+}
+
+const setContent = ({
+  document,
+  selector,
+  value
+}: {
+  document: Document
+  selector: string
+  value: string
+}): void => {
+  onlyElement({ document, selector }).setAttribute('content', value)
 }
 
 const documentFor = ({
@@ -232,62 +272,41 @@ const documentFor = ({
   page: PrerenderedPage
   rendered: string
 }): string => {
-  const { markup, resources, title } = splitRenderedHead({
+  const { headTags, markup, title } = splitRenderedPage({
     html: rendered,
     path: page.path
   })
+  const { document, serialize } = parseHtmlDocument(template)
+  const url = `${SITE_ORIGIN}${page.path}`
 
-  return [
-    (html: string) =>
-      replaceOnce({
-        html,
-        pattern: /<html lang="[^"]*">/,
-        replacement: `<html lang="${page.locale}">`
-      }),
-    (html: string) => setTitle({ html, value: title }),
-    (html: string) =>
-      setMeta({
-        html,
-        identifyingAttribute: 'name="description"',
-        value: page.description
-      }),
-    (html: string) =>
-      replaceOnce({
-        html,
-        pattern: /<link\s+href="[^"]*"\s+rel="canonical"\s*\/>/,
-        replacement: `<link href="${escapeAttribute(`${SITE_ORIGIN}${page.path}`)}" rel="canonical" />`
-      }),
-    (html: string) =>
-      setMeta({
-        html,
-        identifyingAttribute: 'property="og:title"',
-        value: title
-      }),
-    (html: string) =>
-      setMeta({
-        html,
-        identifyingAttribute: 'property="og:description"',
-        value: page.description
-      }),
-    (html: string) =>
-      setMeta({
-        html,
-        identifyingAttribute: 'property="og:url"',
-        value: `${SITE_ORIGIN}${page.path}`
-      }),
-    (html: string) =>
-      replaceOnce({
-        html,
-        pattern: /<\/head>/,
-        replacement: `${FONT_PRELOADS}${pageResourcesFor(page.modules)}${resources}\n  </head>`
-      }),
-    (html: string) =>
-      replaceOnce({
-        html,
-        pattern: /<div id="root"><\/div>/,
-        replacement: `<div id="root">${markup}</div>`
-      })
-  ].reduce((html, step) => step(html), template)
+  document.documentElement.lang = page.locale
+  onlyElement({ document, selector: 'head > title' }).textContent = title
+  onlyElement({ document, selector: 'link[rel="canonical"]' }).setAttribute(
+    'href',
+    url
+  )
+  setContent({
+    document,
+    selector: 'meta[name="description"]',
+    value: page.description
+  })
+  setContent({ document, selector: 'meta[property="og:title"]', value: title })
+  setContent({
+    document,
+    selector: 'meta[property="og:description"]',
+    value: page.description
+  })
+  setContent({ document, selector: 'meta[property="og:url"]', value: url })
+  appendToHead(document, [
+    ...fontPreloadsFor(document),
+    ...pageResourcesFor({ document, modules: page.modules }),
+    ...headTags.map((tag) => document.importNode(tag, true))
+  ])
+  onlyElement({ document, selector: '#root' }).replaceChildren(
+    ...markup.map((node) => document.importNode(node, true))
+  )
+
+  return serialize()
 }
 
 /**
@@ -295,15 +314,19 @@ const documentFor = ({
  * bare shell rather than a prerendered page: the not-found page names the path
  * that was asked for, which no build can know, so the app renders it.
  */
-const noindexShellForUnknownPaths = (shell: string): string =>
-  replaceOnce({
-    html: shell,
-    pattern: /<\/head>/,
-    replacement: '  <meta content="noindex" name="robots" />\n  </head>'
-  })
+const noindexShellForUnknownPaths = (shell: string): string => {
+  const { document, serialize } = parseHtmlDocument(shell)
+  const noindex = document.createElement('meta')
+
+  noindex.setAttribute('content', 'noindex')
+  noindex.setAttribute('name', 'robots')
+  appendToHead(document, [noindex])
+
+  return serialize()
+}
 
 const template = await readFile(join(CLIENT_DIR, 'index.html'), 'utf8')
-const alreadyRequested = requestedBy(template)
+const alreadyRequested = requestedBy(parseHtmlDocument(template).document)
 const buildManifest = await readBuildManifest()
 
 const { prerenderedPages, renderPage }: EntryServer = await import(
