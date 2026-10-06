@@ -278,6 +278,9 @@ importers:
       sass:
         specifier: ^1.105.0
         version: 1.105.0
+      sass-parser:
+        specifier: ^0.4.57
+        version: 0.4.57
       shiki:
         specifier: ^4.5.0
         version: 4.5.0
@@ -2013,8 +2016,17 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
 
+  sass-parser@0.4.57:
+    resolution: {integrity: sha512-xeH5YzQMLRsN7e7CpB0bM4EiKXwEW5SBJbIuIpBYbvZY56XvEB5pVR8Hshav+hYetal8pph6rD+czTZXxiuZyA==}
+    engines: {node: '>=18.0.0'}
+
   sass@1.105.0:
     resolution: {integrity: sha512-4EjSuRTyG8M4yRXXY1PT9OUV5zz23xBxJkbIAprohKHqf6HOU4MCpE3U3vAC+iO1gxobBjESNbcj8rYAQZWnyA==}
+    engines: {node: '>=20.19.0'}
+    hasBin: true
+
+  sass@1.105.1:
+    resolution: {integrity: sha512-1CnAWPyrrnVQzXGB/DUep1vYCKCm1CIBr+YxjjiW6wk9qtzemnGP4qicH56T2F9S4Hjtv/Ne3jDz8JqfdDU4oA==}
     engines: {node: '>=20.19.0'}
     hasBin: true
 
@@ -3724,7 +3736,20 @@ snapshots:
       '@rolldown/binding-win32-arm64-msvc': 1.2.11
       '@rolldown/binding-win32-x64-msvc': 1.2.11
 
+  sass-parser@0.4.57:
+    dependencies:
+      postcss: 8.5.28
+      sass: 1.105.1
+
   sass@1.105.0:
+    dependencies:
+      chokidar: 5.0.0
+      immutable: 5.1.9
+      source-map-js: 1.2.1
+    optionalDependencies:
+      '@parcel/watcher': 2.6.0
+
+  sass@1.105.1:
     dependencies:
       chokidar: 5.0.0
       immutable: 5.1.9

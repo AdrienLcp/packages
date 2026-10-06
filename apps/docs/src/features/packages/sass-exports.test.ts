@@ -2,61 +2,83 @@ import { describe, expect, it } from 'vitest'
 
 import { sassExportsOf } from './sass-exports.ts'
 
+const indented = (...lines: string[]) =>
+  sassExportsOf({ path: 'src/_module.sass', source: lines.join('\n') })
+
 describe('sassExportsOf', () => {
   it('[sass-exports] lists mixins, functions and variables under the name a consumer writes', () => {
-    const source = [
-      '@mixin gap($size) {',
-      '}',
-      '@function rem($px) {',
-      '}',
-      '$gutter: 1rem'
-    ].join('\n')
-
-    expect(sassExportsOf(source)).toEqual([
+    expect(
+      indented(
+        '@mixin gap($size)',
+        '  margin: $size',
+        '@function rem($px)',
+        '  @return $px',
+        '$gutter: 1rem'
+      )
+    ).toEqual([
       { kind: 'sass', name: 'gap', summary: null },
       { kind: 'sass', name: 'rem()', summary: null },
       { kind: 'sass', name: '$gutter', summary: null }
     ])
   })
 
-  it('[sass-exports] takes the first sentence of the /// doc as the summary', () => {
-    const source = [
-      '/// Spaces things out. Twice.',
-      '/// Details.',
-      '@mixin gap {',
-      '}'
-    ].join('\n')
+  it('[sass-exports] reads the SCSS syntax from a .scss file', () => {
+    const source = '@mixin gap($size) {\n  margin: $size;\n}\n$gutter: 1rem;'
 
-    expect(sassExportsOf(source)).toEqual([
-      { kind: 'sass', name: 'gap', summary: 'Spaces things out.' }
-    ])
+    expect(
+      sassExportsOf({ path: 'src/_module.scss', source }).map(
+        ({ name }) => name
+      )
+    ).toEqual(['gap', '$gutter'])
+  })
+
+  it('[sass-exports] takes the first sentence of the /// doc as the summary', () => {
+    expect(
+      indented(
+        '/// Spaces things out. Twice.',
+        '/// Details.',
+        '@mixin gap',
+        '  margin: 1rem'
+      )
+    ).toEqual([{ kind: 'sass', name: 'gap', summary: 'Spaces things out.' }])
+  })
+
+  it('[sass-exports] takes neither a plain comment nor a detached doc as the summary', () => {
+    expect(
+      indented('// Not a doc.', '$a: 1', '/// Detached.', '', '$b: 2').map(
+        ({ summary }) => summary
+      )
+    ).toEqual([null, null])
   })
 
   it('[sass-exports] skips the private members Sass hides', () => {
-    const source = [
-      '@mixin _hidden {',
-      '}',
-      '@function -internal() {',
-      '}',
-      '$_secret: 1',
-      '$-other: 2',
-      '$shown: 3'
-    ].join('\n')
-
-    expect(sassExportsOf(source).map(({ name }) => name)).toEqual(['$shown'])
+    expect(
+      indented(
+        '@mixin _hidden',
+        '  margin: 0',
+        '@function -internal()',
+        '  @return 0',
+        '$_secret: 1',
+        '$-other: 2',
+        '$shown: 3'
+      ).map(({ name }) => name)
+    ).toEqual(['$shown'])
   })
 
   it('[sass-exports] skips what is declared inside a block', () => {
-    const source = '@mixin gap {\n  $local: 1\n}'
-
-    expect(sassExportsOf(source).map(({ name }) => name)).toEqual(['gap'])
+    expect(
+      indented('@mixin gap', '  $local: 1', '  margin: $local').map(
+        ({ name }) => name
+      )
+    ).toEqual(['gap'])
   })
 
   it('[sass-exports] reads a file saved with Windows line endings', () => {
     expect(
-      sassExportsOf('/// Gap.\r\n@mixin gap {\r\n}\r\n').map(
-        ({ name, summary }) => [name, summary]
-      )
+      sassExportsOf({
+        path: 'src/_module.sass',
+        source: '/// Gap.\r\n@mixin gap\r\n  margin: 0\r\n'
+      }).map(({ name, summary }) => [name, summary])
     ).toEqual([['gap', 'Gap.']])
   })
 })

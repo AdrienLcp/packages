@@ -31,6 +31,7 @@
     "marked": "^18.0.14",
     "oxc-transform-react": "^0.151.0",
     "sass": "^1.105.0",
+    "sass-parser": "^0.4.57",
     "shiki": "^4.5.0",
     "ts-morph": "^28.0.0",
     "typescript": "^7.0.2",

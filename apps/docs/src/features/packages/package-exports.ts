@@ -25,7 +25,10 @@ const declaredBy = (
     case 'module':
       return moduleExportsOf({ entryPath: entryPoint.path, readSource })
     case 'sass':
-      return sassExportsOf(readSource(entryPoint.path) ?? '')
+      return sassExportsOf({
+        path: entryPoint.path,
+        source: readSource(entryPoint.path) ?? ''
+      })
     case 'file':
       return [{ kind: 'file', name: entryPoint.specifier, summary: null }]
   }

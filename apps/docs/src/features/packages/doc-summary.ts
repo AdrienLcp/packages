@@ -1,5 +1,4 @@
 const SENTENCE_STOPS = new Set(['.', '!', '?'])
-const SASSDOC_LINE_PREFIX = /^\s*\/\/\/\s?/
 
 const endsSentenceAt = (text: string, index: number): boolean =>
   SENTENCE_STOPS.has(text.charAt(index)) &&
@@ -28,24 +27,4 @@ export const firstSentenceOf = (paragraphs: string): string | null => {
   }
 
   return text
-}
-
-/** The text of the `///` lines right above line `lineIndex`, if any. */
-export const sassDocAbove = (
-  lines: readonly string[],
-  lineIndex: number
-): string | null => {
-  const docLines: string[] = []
-
-  for (let index = lineIndex - 1; index >= 0; index--) {
-    const line = lines[index] ?? ''
-
-    if (!SASSDOC_LINE_PREFIX.test(line)) {
-      break
-    }
-
-    docLines.unshift(line.replace(SASSDOC_LINE_PREFIX, ''))
-  }
-
-  return docLines.length === 0 ? null : docLines.join('\n')
 }

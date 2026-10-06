@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { firstSentenceOf, sassDocAbove } from './doc-summary.ts'
+import { firstSentenceOf } from './doc-summary.ts'
 
 describe('firstSentenceOf', () => {
   it('[doc-summary] keeps the first sentence of a paragraph', () => {
@@ -53,28 +53,4 @@ describe('firstSentenceOf', () => {
       expect(firstSentenceOf(paragraphs)).toBeNull()
     }
   )
-})
-
-describe('sassDocAbove', () => {
-  it('[doc-summary] reads the /// lines right above a line', () => {
-    const lines = ['/// Adds a gap.', '/// Twice as wide.', '@mixin gap']
-
-    expect(sassDocAbove(lines, 2)).toBe('Adds a gap.\nTwice as wide.')
-  })
-
-  it('[doc-summary] reads only the doc block touching the line', () => {
-    const lines = ['/// Old.', '$a: 1', '/// New.', '@mixin gap']
-
-    expect(sassDocAbove(lines, 3)).toBe('New.')
-  })
-
-  it('[doc-summary] finds no doc when a blank line separates it from the line', () => {
-    const lines = ['/// Adds a gap.', '', '@mixin gap']
-
-    expect(sassDocAbove(lines, 2)).toBeNull()
-  })
-
-  it('[doc-summary] finds no doc above the first line', () => {
-    expect(sassDocAbove(['@mixin gap'], 0)).toBeNull()
-  })
 })
