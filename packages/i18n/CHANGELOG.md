@@ -1,5 +1,12 @@
 # @adrienlcp/i18n
 
+## 0.5.1
+
+### Patch Changes
+
+- ffdaf08: Keep Web Dev Simplified's copyright notice in the license, as its MIT license requires
+- 5e76b8b: Point each package homepage to its entry on adrienlcp.com
+
 ## 0.5.0
 
 ### Minor Changes

@@ -1,5 +1,15 @@
 # @adrienlcp/react
 
+## 0.4.0
+
+### Minor Changes
+
+- f3e06a3: Add `classNames`, which joins class names and drops the falsy ones, and build `composeClassName` on it
+
+### Patch Changes
+
+- 5e76b8b: Point each package homepage to its entry on adrienlcp.com
+
 ## 0.3.0
 
 ### Minor Changes
