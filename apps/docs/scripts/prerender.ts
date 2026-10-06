@@ -3,13 +3,16 @@ import { dirname, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 import type { PrerenderedPage } from '../src/entry-server.tsx'
-import { replaceOnce, setMeta, setTitle } from './head-tags.ts'
+import { escapeAttribute, replaceOnce, setMeta, setTitle } from './head-tags.ts'
 
 type EntryServer = typeof import('../src/entry-server.tsx')
 
 const ROOT = resolve(import.meta.dirname, '..')
 const CLIENT_DIR = join(ROOT, 'dist')
 const SERVER_ENTRY = join(ROOT, 'dist-ssr', 'entry-server.js')
+
+/** Where Pages serves the site: canonical and Open Graph URLs are absolute. */
+const SITE_ORIGIN = 'https://packages.adrienlcp.com'
 
 /** What the build emitted for each source module. */
 const VITE_MANIFEST_FILE = '.vite/manifest.json'
@@ -247,6 +250,30 @@ const documentFor = ({
         html,
         identifyingAttribute: 'name="description"',
         value: page.description
+      }),
+    (html: string) =>
+      replaceOnce({
+        html,
+        pattern: /<link\s+href="[^"]*"\s+rel="canonical"\s*\/>/,
+        replacement: `<link href="${escapeAttribute(`${SITE_ORIGIN}${page.path}`)}" rel="canonical" />`
+      }),
+    (html: string) =>
+      setMeta({
+        html,
+        identifyingAttribute: 'property="og:title"',
+        value: title
+      }),
+    (html: string) =>
+      setMeta({
+        html,
+        identifyingAttribute: 'property="og:description"',
+        value: page.description
+      }),
+    (html: string) =>
+      setMeta({
+        html,
+        identifyingAttribute: 'property="og:url"',
+        value: `${SITE_ORIGIN}${page.path}`
       }),
     (html: string) =>
       replaceOnce({

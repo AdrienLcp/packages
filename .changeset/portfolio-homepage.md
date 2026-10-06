@@ -13,4 +13,4 @@
 "@adrienlcp/tsconfig": patch
 ---
 
-Point each package homepage to its entry on adrienlacourpaille.dev
+Point each package homepage to its entry on adrienlcp.com
