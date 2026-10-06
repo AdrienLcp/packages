@@ -7,7 +7,6 @@
 "@adrienlcp/react": patch
 "@adrienlcp/result": patch
 "@adrienlcp/safe-storage": patch
-"@adrienlcp/shots": patch
 "@adrienlcp/styles": patch
 "@adrienlcp/theme-preference": patch
 "@adrienlcp/tsconfig": patch

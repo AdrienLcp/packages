@@ -6,7 +6,6 @@
     "packages/react-aria",
     "packages/react-router",
     "packages/safe-storage",
-    "packages/shots",
     "packages/theme-preference"
   ],
   "extends": "./packages/tsconfig/base.json",
