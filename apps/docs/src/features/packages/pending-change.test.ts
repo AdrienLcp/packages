@@ -27,7 +27,7 @@ describe('parsePendingChange', () => {
     const changeset = [
       '---',
       "'@adrienlcp/react': minor",
-      '@adrienlcp/react-aria: patch',
+      '"@adrienlcp/react-aria": patch',
       '---',
       '',
       'Move `composeClassName`.'
@@ -38,6 +38,23 @@ describe('parsePendingChange', () => {
     expect(change.status === 'success' && change.data.bumps).toEqual([
       { bump: 'minor', packageName: '@adrienlcp/react' },
       { bump: 'patch', packageName: '@adrienlcp/react-aria' }
+    ])
+  })
+
+  it('[pending-change] leaves out a package the changeset does not release', () => {
+    const changeset = [
+      '---',
+      '"@adrienlcp/react": minor',
+      '"@adrienlcp/docs": none',
+      '---',
+      '',
+      'Add a hook.'
+    ].join('\n')
+
+    const change = parsePendingChange(changeset)
+
+    expect(change.status === 'success' && change.data.bumps).toEqual([
+      { bump: 'minor', packageName: '@adrienlcp/react' }
     ])
   })
 

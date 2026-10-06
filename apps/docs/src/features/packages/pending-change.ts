@@ -1,4 +1,5 @@
 import { Result } from '@adrienlcp/result'
+import { parseChangesetFile } from '@changesets/parse'
 
 import { isVersionBump, type VersionBump } from './version-bump.ts'
 
@@ -15,43 +16,35 @@ export type PendingChange = {
   summary: string
 }
 
-const CHANGESET = /^---\r?\n([\s\S]*?)\r?\n?---[ \t]*(?:\r?\n|$)([\s\S]*)$/
-const BUMP_LINE = /^\s*["']?([^"':\s]+)["']?\s*:\s*(\S+)\s*$/
-const LINE_BREAK = /\r?\n/
+type ParsedChangeset = ReturnType<typeof parseChangesetFile>
 
-const bumpOfLine = (line: string): Result<PendingBump, 'malformed'> => {
-  const [, packageName, bump] = BUMP_LINE.exec(line) ?? []
-
-  return packageName !== undefined && bump !== undefined && isVersionBump(bump)
-    ? Result.success({ bump, packageName })
-    : Result.failure('malformed')
+const readChangeset = (
+  changeset: string
+): Result<ParsedChangeset, 'malformed'> => {
+  try {
+    return Result.success(parseChangesetFile(changeset))
+  } catch {
+    return Result.failure('malformed')
+  }
 }
 
-/** Reads one `.changeset/*.md` file: its front matter of bumps, then its summary. */
+/**
+ * Reads one `.changeset/*.md` file: its front matter of bumps, then its
+ * summary. A package the changeset marks `none` is left out: it is not
+ * released.
+ */
 export const parsePendingChange = (
   changeset: string
 ): Result<PendingChange, 'malformed'> => {
-  const [, frontMatter, summary] = CHANGESET.exec(changeset) ?? []
+  const parsed = readChangeset(changeset)
 
-  if (frontMatter === undefined || summary === undefined) {
-    return Result.failure('malformed')
+  if (parsed.status === 'failure') {
+    return parsed
   }
 
-  const bumps: PendingBump[] = []
+  const bumps = parsed.data.releases.flatMap(({ name, type }) =>
+    isVersionBump(type) ? [{ bump: type, packageName: name }] : []
+  )
 
-  for (const line of frontMatter.split(LINE_BREAK)) {
-    if (line.trim() === '') {
-      continue
-    }
-
-    const bump = bumpOfLine(line)
-
-    if (bump.status === 'failure') {
-      return bump
-    }
-
-    bumps.push(bump.data)
-  }
-
-  return Result.success({ bumps, summary: summary.trim() })
+  return Result.success({ bumps, summary: parsed.data.summary })
 }

@@ -236,6 +236,9 @@ importers:
       '@adrienlcp/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig
+      '@changesets/parse':
+        specifier: ^1.0.0
+        version: 1.0.0
       '@react-aria/optimize-locales-plugin':
         specifier: ^2.0.2
         version: 2.0.2
