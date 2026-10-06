@@ -7,6 +7,7 @@ import type {
   PackageVersion,
   PendingNote
 } from './house-package.ts'
+import { lastReleaseDateOf } from './last-release-date.ts'
 import { createHeadingSlugger, sectionsOf } from './markdown-sections.ts'
 import type { ReadSource } from './module-exports.ts'
 import { type FiledSection, packageExportsOf } from './package-exports.ts'
@@ -201,15 +202,6 @@ const documentedPackageOf = (
       versions: versionsOf({ directory, manifest, releases, sources })
     }
   }
-}
-
-/** When it last shipped through the changelog: `null` for a package never released that way. */
-export const lastReleaseDateOf = (
-  housePackage: HousePackage
-): string | null => {
-  const [newest] = housePackage.versions
-
-  return newest?.origin === 'changelog' ? newest.date : null
 }
 
 /** Newest release first; a package with no dated release after every dated one, then by name. */

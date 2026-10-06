@@ -1,12 +1,12 @@
 import type React from 'react'
 
-import { lastReleaseDateOf } from '@/features/packages/catalogue'
 import { exportAnchorOf } from '@/features/packages/export-anchor'
 import type {
   ExportFilter,
   FilteredPackage
 } from '@/features/packages/export-filter'
 import { ExportRow } from '@/features/packages/export-row'
+import { lastReleaseDateOf } from '@/features/packages/last-release-date'
 import { PackageMark } from '@/features/packages/package-mark'
 import { packagePathFor } from '@/infrastructure/router/navigation'
 import { ChevronIcon } from '@/presentation/components/icons'

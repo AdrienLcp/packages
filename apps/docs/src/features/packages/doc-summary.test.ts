@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { firstSentenceOf, jsDocBefore, sassDocAbove } from './doc-summary.ts'
+import { firstSentenceOf, sassDocAbove } from './doc-summary.ts'
 
 describe('firstSentenceOf', () => {
   it('[doc-summary] keeps the first sentence of a paragraph', () => {
@@ -53,46 +53,6 @@ describe('firstSentenceOf', () => {
       expect(firstSentenceOf(paragraphs)).toBeNull()
     }
   )
-})
-
-describe('jsDocBefore', () => {
-  it('[doc-summary] reads the doc comment right above a position', () => {
-    const source =
-      'const a = 1\n\n/**\n * Reads it.\n * Twice.\n */\nexport const x = 2'
-
-    expect(jsDocBefore(source, source.indexOf('export'))?.trim()).toBe(
-      'Reads it.\nTwice.'
-    )
-  })
-
-  it('[doc-summary] reads a doc comment written on one line', () => {
-    const source = '/** Reads it. */\nexport const x = 2'
-
-    expect(jsDocBefore(source, source.indexOf('export'))?.trim()).toBe(
-      'Reads it.'
-    )
-  })
-
-  it('[doc-summary] takes the nearest doc comment, not an earlier one', () => {
-    const source =
-      '/** First. */\nexport const a = 1\n\n/** Second. */\nexport const b = 2'
-
-    expect(jsDocBefore(source, source.lastIndexOf('export'))?.trim()).toBe(
-      'Second.'
-    )
-  })
-
-  it('[doc-summary] finds no doc when code sits between the comment and the position', () => {
-    const source = '/** Reads it. */\nconst a = 1\nexport const x = 2'
-
-    expect(jsDocBefore(source, source.indexOf('export'))).toBeNull()
-  })
-
-  it('[doc-summary] does not take a plain block comment for a doc', () => {
-    const source = '/* Not a doc. */\nexport const x = 2'
-
-    expect(jsDocBefore(source, source.indexOf('export'))).toBeNull()
-  })
 })
 
 describe('sassDocAbove', () => {

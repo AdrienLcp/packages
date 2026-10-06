@@ -79,6 +79,57 @@ describe('moduleExportsOf', () => {
     ])
   })
 
+  it('[module-exports] reads the names an export list gives, renamed or not', () => {
+    const source = [
+      'const parse = (text: string) => text',
+      'const LIMIT = 3',
+      'type Shape = { a: 1 }',
+      'export { parse, LIMIT as MAX_SIZE }',
+      'export type { Shape }'
+    ].join('\n')
+
+    expect(singleFile(source).map(({ kind, name }) => [name, kind])).toEqual([
+      ['parse', 'function'],
+      ['MAX_SIZE', 'constant'],
+      ['Shape', 'type']
+    ])
+  })
+
+  it('[module-exports] reads a declaration written over several lines', () => {
+    const source = [
+      '/** Parses the text. */',
+      'export const parse =',
+      '  (text: string) =>',
+      '    text'
+    ].join('\n')
+
+    expect(singleFile(source)).toEqual([
+      { kind: 'function', name: 'parse', summary: 'Parses the text.' }
+    ])
+  })
+
+  it('[module-exports] reads a value whose type is a function as a function', () => {
+    const source = [
+      'const makeParser = () => (text: string) => text',
+      'export const parse = makeParser()'
+    ].join('\n')
+
+    expect(singleFile(source)).toEqual([
+      { kind: 'function', name: 'parse', summary: null }
+    ])
+  })
+
+  it('[module-exports] follows a named re-export into the file that declares it', () => {
+    const files = new Map([
+      ['src/index.ts', "export { second as renamed } from './more.js'"],
+      ['src/more.ts', '/** The second. */\nexport const second = () => 2']
+    ])
+
+    expect(exportsOfEntry(files)).toEqual([
+      { kind: 'function', name: 'renamed', summary: 'The second.' }
+    ])
+  })
+
   it('[module-exports] ignores what is not exported', () => {
     expect(singleFile('const hidden = () => 1\nfunction other() {}')).toEqual(
       []

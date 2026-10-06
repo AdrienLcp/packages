@@ -1,12 +1,12 @@
 import type React from 'react'
 
-import { lastReleaseDateOf } from '@/features/packages/catalogue'
 import {
   exportCountOf,
   filterInventory,
   isFiltering,
   kindCountsOf
 } from '@/features/packages/export-filter'
+import { lastReleaseDateOf } from '@/features/packages/last-release-date'
 import { pendingAcross } from '@/features/packages/pending-across'
 import { PendingNotes } from '@/features/packages/pending-notes'
 import { SearchIcon } from '@/presentation/components/icons'

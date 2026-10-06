@@ -1,7 +1,7 @@
 import type React from 'react'
 
-import { lastReleaseDateOf } from '@/features/packages/catalogue'
 import type { HousePackage } from '@/features/packages/house-package'
+import { lastReleaseDateOf } from '@/features/packages/last-release-date'
 import {
   packageFileUrlOf,
   packageFolderUrlOf

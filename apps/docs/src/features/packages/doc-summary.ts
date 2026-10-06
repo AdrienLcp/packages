@@ -1,5 +1,4 @@
 const SENTENCE_STOPS = new Set(['.', '!', '?'])
-const JSDOC_LINE_PREFIX = /^\s*\*\s?/
 const SASSDOC_LINE_PREFIX = /^\s*\/\/\/\s?/
 
 const endsSentenceAt = (text: string, index: number): boolean =>
@@ -29,30 +28,6 @@ export const firstSentenceOf = (paragraphs: string): string | null => {
   }
 
   return text
-}
-
-/** The text of the `/** … *\/` block that ends right before `position`, if any. */
-export const jsDocBefore = (
-  source: string,
-  position: number
-): string | null => {
-  const before = source.slice(0, position).trimEnd()
-
-  if (!before.endsWith('*/')) {
-    return null
-  }
-
-  const start = before.lastIndexOf('/**')
-
-  if (start === -1) {
-    return null
-  }
-
-  return before
-    .slice(start + 3, -2)
-    .split(/\r?\n/)
-    .map((line) => line.replace(JSDOC_LINE_PREFIX, ''))
-    .join('\n')
 }
 
 /** The text of the `///` lines right above line `lineIndex`, if any. */
