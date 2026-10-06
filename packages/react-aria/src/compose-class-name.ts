@@ -1,3 +1,4 @@
+import { classNames, type PlainClassName } from '@adrienlcp/react'
 import {
   type ClassNameOrFunction,
   composeRenderProps
@@ -12,18 +13,17 @@ export type ClassNameRenderProps<RenderProps> = RenderProps & {
  * Merges a component's own class names with the `className` its caller
  * passed. react-aria lets that `className` be a function of the render state,
  * so the merge is a function too — which is why it fits a react-aria
- * component and never a plain DOM element, where a template literal does.
+ * component and never a plain DOM element, where `classNames` from
+ * `@adrienlcp/react` does.
  *
  * Falsy class names are dropped: `composeClassName(className, 'button', isWide && 'wide')`.
  */
 export const composeClassName = <RenderProps>(
   incoming: ClassNameOrFunction<RenderProps> | undefined,
-  ...ownClassNames: (string | false | null | undefined)[]
+  ...ownClassNames: PlainClassName[]
 ): ((values: ClassNameRenderProps<RenderProps>) => string) =>
   composeRenderProps<
     string | undefined,
     ClassNameRenderProps<RenderProps>,
     string
-  >(incoming, (resolved) =>
-    [...ownClassNames, resolved].filter(Boolean).join(' ')
-  )
+  >(incoming, (resolved) => classNames(...ownClassNames, resolved))

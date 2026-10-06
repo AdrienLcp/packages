@@ -25,6 +25,20 @@ mount. `useOptionalPlayer()` answers `undefined` there instead, for a component
 that also works on its own. The name doubles as the context's `displayName` in
 the React DevTools.
 
+## Joining class names: `classNames`
+
+```tsx
+import { classNames } from '@adrienlcp/react'
+
+<svg className={classNames('icon', className, isActive && 'active')} />
+```
+
+Joins with a space and drops the falsy values, so a conditional class is an
+`&&` and an optional `className` prop needs no ternary. It takes strings only:
+a react-aria `className` may be a function of the render state, which this
+cannot resolve, so it is a type error here and goes through `composeClassName`
+instead.
+
 The react-aria helpers live in
 [`@adrienlcp/react-aria`](https://github.com/AdrienLcp/packages/tree/main/packages/react-aria).
 

@@ -1,7 +1,7 @@
 {
   "author": "Adrien Lacourpaille",
   "bugs": "https://github.com/AdrienLcp/packages/issues",
-  "description": "Generic React helpers: a context that names its missing provider, and an element that finishes its exit transition before unmounting",
+  "description": "Generic React helpers: a context that names its missing provider, an element that finishes its exit transition before unmounting, and a class name join",
   "devDependencies": {
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",

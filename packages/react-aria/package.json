@@ -1,6 +1,9 @@
 {
   "author": "Adrien Lacourpaille",
   "bugs": "https://github.com/AdrienLcp/packages/issues",
+  "dependencies": {
+    "@adrienlcp/react": "workspace:^"
+  },
   "description": "What every react-aria app of mine repeats: a className merge that follows the render state, and a Sass focus ring on data-focus-visible",
   "devDependencies": {
     "@types/react": "19.3.0",

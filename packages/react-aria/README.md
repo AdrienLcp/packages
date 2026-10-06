@@ -2,8 +2,9 @@
 
 What every app of mine built on
 [react-aria-components](https://react-spectrum.adobe.com/react-aria/) repeats,
-kept in one version across them. React 19 and `react-aria-components` are
-peers; Sass is an optional one, for the focus module.
+kept in one version across them. Depends on `@adrienlcp/react`; React 19 and
+`react-aria-components` are peers, and Sass an optional one, for the focus
+module.
 
 ```bash
 pnpm add @adrienlcp/react-aria
@@ -24,7 +25,8 @@ react-aria lets `className` be a function of the component's render state, so
 the merge is a function too, built on react-aria's own `composeRenderProps`: it
 puts the component's own class names first, resolves the caller's against the
 render state, and drops the falsy ones. It fits a react-aria component, never a
-plain DOM element, where a template literal does.
+plain DOM element: there, `classNames` from `@adrienlcp/react` joins the same
+class names into a string, and is what this merge runs once the state is known.
 
 ## A focus ring: `focus`
 
