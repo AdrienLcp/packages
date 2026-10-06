@@ -1,4 +1,5 @@
 import { Result } from '@adrienlcp/result'
+import { z } from 'zod'
 
 /** What the site reads from a package's `package.json`. */
 export type PackageManifest = {
@@ -15,50 +16,61 @@ export type PackageManifest = {
   version: string
 }
 
-type Fields = Record<string, unknown>
+/** A field the site can do without: anything but the expected shape reads as absent. */
+const lenient = <T extends z.ZodType>(schema: T) =>
+  schema.optional().catch(undefined)
 
-const isRecord = (value: unknown): value is Fields =>
-  typeof value === 'object' && value !== null && !Array.isArray(value)
+const namesSchema = lenient(z.record(z.string(), z.unknown()))
 
-const keysOf = (value: unknown): readonly string[] =>
-  isRecord(value) ? Object.keys(value) : []
+const peerMetaSchema = z
+  .object({ optional: z.boolean().optional() })
+  .nullable()
+  .catch(null)
 
-const stringsOf = (value: unknown): readonly string[] =>
-  Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === 'string')
-    : []
+const manifestSchema = z.object({
+  dependencies: namesSchema,
+  description: z.string(),
+  exports: z.unknown().optional(),
+  keywords: lenient(z.array(z.unknown())),
+  name: z.string(),
+  peerDependencies: namesSchema,
+  peerDependenciesMeta: lenient(z.record(z.string(), peerMetaSchema)),
+  version: z.string()
+})
 
-const isOptionalPeer = (meta: unknown): boolean =>
-  isRecord(meta) && meta.optional === true
-
-const optionalPeersOf = (value: unknown): readonly string[] =>
-  isRecord(value)
-    ? Object.entries(value).flatMap(([name, meta]) =>
-        isOptionalPeer(meta) ? [name] : []
-      )
-    : []
+const isString = (value: unknown): value is string => typeof value === 'string'
 
 /** Reads a parsed `package.json`, failing when it lacks a name, a version or a description. */
 export const parsePackageManifest = (
   manifest: unknown
 ): Result<PackageManifest, 'malformed'> => {
-  if (
-    !isRecord(manifest) ||
-    typeof manifest.name !== 'string' ||
-    typeof manifest.version !== 'string' ||
-    typeof manifest.description !== 'string'
-  ) {
+  const parsed = manifestSchema.safeParse(manifest)
+
+  if (!parsed.success) {
     return Result.failure('malformed')
   }
 
+  const {
+    dependencies = {},
+    description,
+    exports,
+    keywords = [],
+    name,
+    peerDependencies = {},
+    peerDependenciesMeta = {},
+    version
+  } = parsed.data
+
   return Result.success({
-    dependencies: keysOf(manifest.dependencies),
-    description: manifest.description,
-    exports: manifest.exports,
-    keywords: stringsOf(manifest.keywords),
-    name: manifest.name,
-    optionalPeers: optionalPeersOf(manifest.peerDependenciesMeta),
-    peers: keysOf(manifest.peerDependencies),
-    version: manifest.version
+    dependencies: Object.keys(dependencies),
+    description,
+    exports,
+    keywords: keywords.filter(isString),
+    name,
+    optionalPeers: Object.entries(peerDependenciesMeta).flatMap(
+      ([peer, meta]) => (meta?.optional === true ? [peer] : [])
+    ),
+    peers: Object.keys(peerDependencies),
+    version
   })
 }

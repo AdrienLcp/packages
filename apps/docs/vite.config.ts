@@ -20,7 +20,8 @@ export default defineConfig({
       plugins: [
         fontaine({
           fallbacks: {},
-          resolvePath: (path) => resolve(import.meta.dirname, 'public', `.${path}`)
+          resolvePath: (path) =>
+            resolve(import.meta.dirname, 'public', `.${path}`)
         })
       ]
     }

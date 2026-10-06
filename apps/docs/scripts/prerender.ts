@@ -2,7 +2,10 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
+import { z } from 'zod'
+
 import type { PrerenderedPage } from '../src/entry-server.tsx'
+import { robotsTxt, sitemapXml } from './crawler-files.ts'
 import {
   createLink,
   documentTitlesIn,
@@ -10,7 +13,6 @@ import {
   onlyElement,
   parseHtmlDocument
 } from './html-document.ts'
-import { robotsTxt, sitemapXml } from './crawler-files.ts'
 
 type EntryServer = typeof import('../src/entry-server.tsx')
 
@@ -24,79 +26,26 @@ const SITE_ORIGIN = 'https://packages.adrienlcp.com'
 /** What the build emitted for each source module. */
 const VITE_MANIFEST_FILE = '.vite/manifest.json'
 
-type BuildChunk = {
-  css: string[]
-  file: string
-  imports: string[]
-}
+const buildChunkSchema = z.object({
+  css: z.array(z.string()).default([]),
+  file: z.string(),
+  imports: z.array(z.string()).default([])
+})
 
-const isStringArray = (value: unknown): value is string[] =>
-  Array.isArray(value) && value.every((item) => typeof item === 'string')
+type BuildChunk = z.infer<typeof buildChunkSchema>
 
-const optionalStrings = ({
-  field,
-  module,
-  value
-}: {
-  field: string
-  module: string
-  value: unknown
-}): string[] => {
-  if (value === undefined) {
-    return []
-  }
-
-  if (!isStringArray(value)) {
-    throw new Error(
-      `prerender: ${module}.${field} in Vite's manifest is not a list of strings`
+const readBuildManifest = async (): Promise<Map<string, BuildChunk>> =>
+  new Map(
+    Object.entries(
+      z
+        .record(z.string(), buildChunkSchema)
+        .parse(
+          JSON.parse(
+            await readFile(join(CLIENT_DIR, VITE_MANIFEST_FILE), 'utf8')
+          )
+        )
     )
-  }
-
-  return value
-}
-
-const buildChunkOf = (module: string, entry: unknown): BuildChunk => {
-  if (typeof entry !== 'object' || entry === null) {
-    throw new Error(`prerender: ${module} in Vite's manifest is not an object`)
-  }
-
-  const file = Reflect.get(entry, 'file')
-
-  if (typeof file !== 'string') {
-    throw new Error(`prerender: ${module} in Vite's manifest names no file`)
-  }
-
-  return {
-    css: optionalStrings({
-      field: 'css',
-      module,
-      value: Reflect.get(entry, 'css')
-    }),
-    file,
-    imports: optionalStrings({
-      field: 'imports',
-      module,
-      value: Reflect.get(entry, 'imports')
-    })
-  }
-}
-
-const readBuildManifest = async (): Promise<Map<string, BuildChunk>> => {
-  const parsed: unknown = JSON.parse(
-    await readFile(join(CLIENT_DIR, VITE_MANIFEST_FILE), 'utf8')
   )
-
-  if (typeof parsed !== 'object' || parsed === null) {
-    throw new Error("prerender: Vite's manifest is not an object")
-  }
-
-  return new Map(
-    Object.entries(parsed).map(([module, entry]) => [
-      module,
-      buildChunkOf(module, entry)
-    ])
-  )
-}
 
 /** `/en` → `en.html`, `/fr/i18n` → `fr/i18n.html`. */
 const htmlFileForPath = (path: string): string => `${path.slice(1)}.html`
