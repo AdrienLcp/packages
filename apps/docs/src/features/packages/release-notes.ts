@@ -1,3 +1,5 @@
+import { lexer, type Token, type Tokens } from 'marked'
+
 import { isVersionBump, type VersionBump } from './version-bump.ts'
 
 export type ChangelogNote = {
@@ -13,32 +15,26 @@ export type ChangelogRelease = {
   version: string
 }
 
-const LINE_BREAK = /\r?\n/
-const RELEASE_HEADING = /^## (\S+)\s*$/
-const BUMP_HEADING = /^### (Major|Minor|Patch) Changes\s*$/
-const NOTE_START = /^- (?:([0-9a-f]{7,40}): )?(.*)$/
-const NOTE_INDENT = '  '
+const RELEASE_DEPTH = 2
+const BUMP_DEPTH = 3
+const BUMP_HEADING = /^(Major|Minor|Patch) Changes$/
+const COMMIT_PREFIX = /^([0-9a-f]{7,40}): /
 
-type NoteDraft = {
-  bump: VersionBump
-  commit: string | null
-  lines: string[]
+const isHeadingOf = (token: Token, depth: number): token is Tokens.Heading =>
+  token.type === 'heading' && token.depth === depth
+
+const bumpOfHeading = (heading: Tokens.Heading): VersionBump | null => {
+  const bump = BUMP_HEADING.exec(heading.text)?.[1]?.toLowerCase() ?? null
+
+  return bump !== null && isVersionBump(bump) ? bump : null
 }
 
-const firstGroup = (pattern: RegExp, line: string): string | null =>
-  pattern.exec(line)?.[1] ?? null
+const noteOf = (bump: VersionBump, item: Tokens.ListItem): ChangelogNote => {
+  const commit = COMMIT_PREFIX.exec(item.text)?.[1] ?? null
+  const text = commit === null ? item.text : item.text.slice(commit.length + 2)
 
-const bumpOfHeading = (line: string): VersionBump | null => {
-  const heading = firstGroup(BUMP_HEADING, line)?.toLowerCase() ?? null
-
-  return heading !== null && isVersionBump(heading) ? heading : null
+  return { bump, commit, text: text.trim() }
 }
-
-const noteOf = ({ bump, commit, lines }: NoteDraft): ChangelogNote => ({
-  bump,
-  commit,
-  text: lines.join('\n').trim()
-})
 
 /**
  * Reads a CHANGELOG.md written by changesets: one release per `## x.y.z`, newest
@@ -49,51 +45,22 @@ export const parseReleaseNotes = (
 ): readonly ChangelogRelease[] => {
   const releases: { notes: ChangelogNote[]; version: string }[] = []
   let bump: VersionBump | null = null
-  let draft: NoteDraft | null = null
 
-  const closeNote = (): void => {
-    if (draft !== null) {
-      releases.at(-1)?.notes.push(noteOf(draft))
-      draft = null
-    }
-  }
-
-  for (const line of changelog.split(LINE_BREAK)) {
-    const version = firstGroup(RELEASE_HEADING, line)
-
-    if (version !== null) {
-      closeNote()
-      releases.push({ notes: [], version })
+  for (const token of lexer(changelog)) {
+    if (isHeadingOf(token, RELEASE_DEPTH)) {
+      releases.push({ notes: [], version: token.text.trim() })
       bump = null
-      continue
-    }
-
-    const headingBump = bumpOfHeading(line)
-
-    if (headingBump !== null) {
-      closeNote()
-      bump = headingBump
-      continue
-    }
-
-    const noteStart = NOTE_START.exec(line)
-
-    if (noteStart !== null && bump !== null) {
-      closeNote()
-      draft = {
-        bump,
-        commit: noteStart[1] ?? null,
-        lines: [noteStart[2] ?? '']
-      }
-      continue
-    }
-
-    if (draft !== null && (line === '' || line.startsWith(NOTE_INDENT))) {
-      draft.lines.push(line.slice(NOTE_INDENT.length))
+    } else if (isHeadingOf(token, BUMP_DEPTH)) {
+      bump = bumpOfHeading(token)
+    } else if (token.type === 'list' && bump !== null) {
+      const listBump = bump
+      releases
+        .at(-1)
+        ?.notes.push(
+          ...token.items.map((item: Tokens.ListItem) => noteOf(listBump, item))
+        )
     }
   }
-
-  closeNote()
 
   return releases
 }
