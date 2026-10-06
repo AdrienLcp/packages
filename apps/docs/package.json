@@ -23,6 +23,7 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
+    "github-slugger": "^2.0.0",
     "marked": "^18.0.14",
     "oxc-transform-react": "^0.151.0",
     "sass": "^1.105.0",

@@ -7,7 +7,7 @@ import type {
   PackageVersion,
   PendingNote
 } from './house-package.ts'
-import { sectionsOf } from './markdown-sections.ts'
+import { createHeadingSlugger, sectionsOf } from './markdown-sections.ts'
 import type { ReadSource } from './module-exports.ts'
 import { type FiledSection, packageExportsOf } from './package-exports.ts'
 import type { PackageManifest } from './package-manifest.ts'
@@ -70,13 +70,13 @@ const installCommandOf = (
 const filedSectionsOf = (
   documents: readonly PackageDocumentSource[]
 ): readonly FiledSection[] => {
-  const takenSlugs = new Set<string>()
+  const slugger = createHeadingSlugger()
 
   return documents.flatMap(({ file, markdown }) =>
     sectionsOf({
       document: markdown,
       openingSlug: file.replace(/\.md$/i, '').toLowerCase(),
-      takenSlugs
+      slugger
     }).map((section) => ({ ...section, file }))
   )
 }

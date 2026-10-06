@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { headingSlugOf, sectionsOf } from './markdown-sections.ts'
+import { createHeadingSlugger, sectionsOf } from './markdown-sections.ts'
 
 const lines = (...text: string[]): string => text.join('\n')
 
-describe('headingSlugOf', () => {
+describe('createHeadingSlugger', () => {
   it.each([
     ['Getting started', 'getting-started'],
     ['Hello, World!', 'hello-world'],
@@ -12,7 +12,7 @@ describe('headingSlugOf', () => {
     ['snake_case and kebab-case', 'snake_case-and-kebab-case'],
     ['Café au lait', 'café-au-lait']
   ])('[markdown-sections] gives %j the anchor %j', (title, slug) => {
-    expect(headingSlugOf(title)).toBe(slug)
+    expect(createHeadingSlugger().slug(title)).toBe(slug)
   })
 })
 
@@ -119,18 +119,18 @@ describe('sectionsOf', () => {
     ).toEqual(['usage', 'usage-1', 'usage-2'])
   })
 
-  it('[markdown-sections] shares taken slugs between documents', () => {
-    const takenSlugs = new Set<string>()
+  it('[markdown-sections] shares one slugger between the documents of a page', () => {
+    const slugger = createHeadingSlugger()
 
     const first = sectionsOf({
       document: lines('Opening.', '## Usage', 'a'),
       openingSlug: 'readme',
-      takenSlugs
+      slugger
     })
     const second = sectionsOf({
       document: lines('Opening.', '## Usage', 'b'),
       openingSlug: 'readme',
-      takenSlugs
+      slugger
     })
 
     expect(
@@ -139,7 +139,6 @@ describe('sectionsOf', () => {
       ['readme', 'usage'],
       ['readme-1', 'usage-1']
     ])
-    expect([...takenSlugs]).toEqual(['readme', 'usage', 'readme-1', 'usage-1'])
   })
 
   it('[markdown-sections] reads a document saved with Windows line endings', () => {
