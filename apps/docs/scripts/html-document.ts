@@ -1,17 +1,46 @@
-import { JSDOM } from 'jsdom'
+import { parseHTML } from 'linkedom'
 
 const HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml'
 
-/** A document parsed the way a browser parses it, to edit and write back out. */
+/** `Node.ELEMENT_NODE`: Node has no DOM globals to read it from. */
+const ELEMENT_NODE = 1
+
+export const isElement = (node: Node): node is Element =>
+  node.nodeType === ELEMENT_NODE
+
+/** A document parsed into the browser DOM, to edit and write back out. */
 export type HtmlDocument = {
   document: Document
   serialize: () => string
 }
 
-export const parseHtmlDocument = (html: string): HtmlDocument => {
-  const dom = new JSDOM(html)
+/**
+ * linkedom keeps the markup's own tree: a fragment stays a fragment, with no
+ * `<html>`, `<head>` or `<body>` made up around it.
+ */
+const parseDocument = (html: string): Document => parseHTML(html).document
 
-  return { document: dom.window.document, serialize: () => dom.serialize() }
+/**
+ * linkedom writes a `<title>` and attribute values as they are, without
+ * escaping an `&`: a text that would read back differently, such as a literal
+ * `&amp;`, fails the build instead of shipping altered.
+ */
+const serializeDocument = (document: Document): string => {
+  const html = document.toString()
+
+  if (parseDocument(html).toString() !== html) {
+    throw new Error(
+      'the edited document does not read back as written: a title or an attribute holds text that parses as a character reference'
+    )
+  }
+
+  return html
+}
+
+export const parseHtmlDocument = (html: string): HtmlDocument => {
+  const document = parseDocument(html)
+
+  return { document, serialize: () => serializeDocument(document) }
 }
 
 /**
@@ -38,10 +67,15 @@ export const onlyElement = ({
   return only
 }
 
-/** The document's `<title>` elements, leaving out a drawing's own. */
-export const documentTitlesIn = (root: Element): readonly Element[] => [
-  ...root.getElementsByTagNameNS(HTML_NAMESPACE, 'title')
-]
+/** The document `<title>` elements among `nodes` and their descendants, leaving out a drawing's own. */
+export const documentTitlesIn = (nodes: readonly Node[]): Element[] =>
+  nodes
+    .filter(isElement)
+    .flatMap((element) => [
+      ...(element.matches('title') ? [element] : []),
+      ...element.querySelectorAll('title')
+    ])
+    .filter((title) => title.namespaceURI === HTML_NAMESPACE)
 
 /** A `<link>` with these attributes, in that order; `true` writes a bare attribute. */
 export const createLink = ({

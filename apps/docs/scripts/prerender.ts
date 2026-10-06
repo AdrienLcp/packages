@@ -6,9 +6,11 @@ import type { PrerenderedPage } from '../src/entry-server.tsx'
 import {
   createLink,
   documentTitlesIn,
+  isElement,
   onlyElement,
   parseHtmlDocument
 } from './html-document.ts'
+import { robotsTxt, sitemapXml } from './crawler-files.ts'
 
 type EntryServer = typeof import('../src/entry-server.tsx')
 
@@ -198,10 +200,16 @@ const fontPreloadsFor = (document: Document): HTMLLinkElement[] =>
     })
   )
 
+const isBlankText = (node: Node | null): node is Text =>
+  node?.nodeName === '#text' && node.textContent?.trim() === ''
+
+/** What may open a document's head: the tags React hoists ahead of a page. */
+const HOISTED_TAG_NAMES = new Set(['link', 'meta', 'title'])
+
 /**
  * React writes the page's `<title>` and its `<link>` tags at the front of what
- * it renders: parsed as a document, they land in its head and the page in its
- * body, the way a browser would split them.
+ * it renders: those go to the document's head, and what follows the first
+ * other node is the page, the way a browser would split them.
  */
 const splitRenderedPage = ({
   html,
@@ -210,9 +218,18 @@ const splitRenderedPage = ({
   html: string
   path: string
 }): { headTags: Element[]; markup: Node[]; title: string } => {
-  const { document } = parseHtmlDocument(html)
-  const headTitles = documentTitlesIn(document.head)
-  const titleCount = headTitles.length + documentTitlesIn(document.body).length
+  const nodes = [...parseHtmlDocument(html).document.childNodes]
+  const pageStart = nodes.findIndex(
+    (node) =>
+      !isBlankText(node) &&
+      !(isElement(node) && HOISTED_TAG_NAMES.has(node.localName))
+  )
+  const hoisted = nodes
+    .slice(0, pageStart === -1 ? nodes.length : pageStart)
+    .filter(isElement)
+  const markup = pageStart === -1 ? [] : nodes.slice(pageStart)
+  const headTitles = documentTitlesIn(hoisted)
+  const titleCount = headTitles.length + documentTitlesIn(markup).length
   const [title] = headTitles
 
   if (titleCount !== 1) {
@@ -228,17 +245,14 @@ const splitRenderedPage = ({
   }
 
   return {
-    headTags: [...document.head.children].filter((tag) => tag !== title),
-    markup: [...document.body.childNodes],
+    headTags: hoisted.filter((tag) => tag !== title),
+    markup,
     title: title.textContent ?? ''
   }
 }
 
 const HEAD_INDENT = '\n    '
 const HEAD_CLOSE_INDENT = '\n  '
-
-const isBlankText = (node: Node | null): node is Text =>
-  node?.nodeName === '#text' && node.textContent?.trim() === ''
 
 const appendToHead = (document: Document, tags: readonly Node[]): void => {
   const closingIndent = document.head.lastChild
@@ -349,6 +363,13 @@ await writeFile(
   noindexShellForUnknownPaths(template),
   'utf8'
 )
+
+await writeFile(
+  join(CLIENT_DIR, 'sitemap.xml'),
+  await sitemapXml({ origin: SITE_ORIGIN, pages: prerenderedPages }),
+  'utf8'
+)
+await writeFile(join(CLIENT_DIR, 'robots.txt'), robotsTxt(SITE_ORIGIN), 'utf8')
 
 console.info(
   `prerendered ${prerenderedPages.length} documents into ${CLIENT_DIR}`

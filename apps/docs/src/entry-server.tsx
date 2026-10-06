@@ -20,7 +20,19 @@ export type PrerenderedPage = {
   modules: string[]
   /** Where the document is served, from the site root: `/fr/i18n`. */
   path: string
+  /** The same page in every locale, itself included, for the sitemap's alternates. */
+  translations: PageTranslation[]
 }
+
+export type PageTranslation = {
+  locale: Locale
+  path: string
+}
+
+const translationsOf = (
+  pathIn: (locale: Locale) => string
+): PageTranslation[] =>
+  LOCALES.map((locale) => ({ locale, path: pathIn(locale) }))
 
 const homeFor = (locale: Locale): PrerenderedPage => ({
   description: i18n.translator(locale)('app.description'),
@@ -29,7 +41,8 @@ const homeFor = (locale: Locale): PrerenderedPage => ({
     pageModuleFor(localizedPaths.home),
     loaderModuleFor(localizedPaths.home)
   ],
-  path: homePathFor(locale)
+  path: homePathFor(locale),
+  translations: translationsOf(homePathFor)
 })
 
 const packagePagesFor = (locale: Locale): PrerenderedPage[] =>
@@ -40,7 +53,10 @@ const packagePagesFor = (locale: Locale): PrerenderedPage[] =>
       pageModuleFor(localizedPaths.package),
       loaderModuleFor(localizedPaths.package)
     ],
-    path: packagePathFor({ locale, packageName: housePackage.name })
+    path: packagePathFor({ locale, packageName: housePackage.name }),
+    translations: translationsOf((translated) =>
+      packagePathFor({ locale: translated, packageName: housePackage.name })
+    )
   }))
 
 /** Read off the catalogue, so a package added there gets its own documents. */
