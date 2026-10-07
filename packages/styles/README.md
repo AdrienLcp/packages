@@ -13,8 +13,8 @@ pnpm add @adrienlcp/styles
 
 | File | Does |
 | --- | --- |
-| `reset.css` | Box sizing, zeroed margins and paddings, inherited fonts on controls, bare buttons that fire on the first tap (`touch-action: manipulation`), links in their parent's color with their underline kept, bare lists, balanced headings, pretty paragraphs, and `interpolate-size: allow-keywords` so a transition reaches `height: auto` (Chromium; elsewhere the size snaps as before), and no tap highlight on mobile — every pressable then owes its own pressed style. Inside `@layer reset` |
-| `reduced-motion.css` | Collapses `--transition-fast`, `--transition-base` and `--transition-slow` to `0ms` under `prefers-reduced-motion: reduce`, and stills view transitions, which React's `<ViewTransition>` starts whatever the preference. Unlayered, so it beats the tokens wherever they are defined |
+| `reset.css` | Box sizing, zeroed margins and paddings, inherited fonts on controls, bare buttons that fire on the first tap (`touch-action: manipulation`), links in their parent's color with their underline kept, bare lists, balanced headings, pretty paragraphs, and `interpolate-size: allow-keywords` so a transition reaches `height: auto` (Chromium; elsewhere the size snaps as before), no tap highlight on mobile — every pressable then owes its own pressed style —, headings and paragraphs that break a long word rather than overflow, a textarea that resizes only vertically, and anchors that scroll to `--scroll-offset` below the top (the height of a sticky header, `0px` until set). Inside `@layer reset`, except `[hidden]`, kept hidden whatever `display` a component gives it |
+| `reduced-motion.css` | Collapses `--transition-fast`, `--transition-base` and `--transition-slow` to `0ms` under `prefers-reduced-motion: reduce`, ends every keyframe animation at once, looping ones included, and stills view transitions, which React's `<ViewTransition>` starts whatever the preference. Unlayered, so it beats the tokens wherever they are defined |
 
 Import them once — from JavaScript, or from the global stylesheet in Sass:
 
@@ -118,6 +118,7 @@ wins.
 | `--outline-thick`, `--outline-offset` | `2px`, `3px` |
 | `--ring`, `--ring-offset`, `--ring-inset` | an `--outline-thick` solid outline in `--focus`, drawn `--outline-offset` outside the box or inside it |
 | `--underline-offset`, `--tracking-tight` | `0.24em`, `-0.02em` |
+| `--icon-s`, `--icon-m`, `--icon-l` | `1rem`, `1.25rem`, `1.5rem` |
 | `--target`, `--control-touch` | `44px`, the smallest touch target |
 | `--measure` | `65ch` |
 
@@ -168,6 +169,27 @@ with the screen without leaving rem:
   error.
 - `rem($pixels)` turns a size read off a design file into rem, at 16px to the
   rem.
+
+### `text-box`
+
+A box around one line of text centres its ink, not its line box:
+
+```sass
+@use '@adrienlcp/styles/text-box'
+
+.badge
+  @include text-box.trimmed-block(var(--space-xs))
+
+.score
+  @include text-box.trimmed-figure
+```
+
+- `trimmed-block($padding-block)` trims to cap height and baseline and grows
+  the padding by `(1lh - 1cap) / 2`, so the box keeps its size. Without
+  `text-box`, the plain padding stays.
+- `trimmed-figure` trims a numeral on a line of its own; without `text-box` it
+  falls back to `line-height: 1`.
+- Only a block container is trimmed: wrap a flex item's loose text in a `span`.
 
 ### `spread`
 
@@ -222,29 +244,40 @@ it('every ink reads on every surface, in both themes', () => {
 - A translucent foreground is measured over its background. An `oklch()`
   outside sRGB is clipped, as an sRGB screen draws it.
 
-### `units`
+### `audit`
 
-The rem rule is checked, not remembered: a test reads every stylesheet and
-fails on a text size or a spacing that the user's font size cannot reach.
+The rules nobody should have to remember, checked in a test that reads every
+stylesheet:
 
 ```ts
 import { globSync, readFileSync } from 'node:fs'
 
-import { findUnitFailures } from '@adrienlcp/styles/units'
-import { expect, it } from 'vitest'
+import { findTypeLiterals, findUnitFailures } from '@adrienlcp/styles/audit'
+import { describe, expect, it } from 'vitest'
 
 const STYLESHEETS = globSync('src/**/*.{sass,css}')
 
-it.each(STYLESHEETS)('%s sizes text and spacing in rem', (path) => {
-  expect(findUnitFailures(readFileSync(path, 'utf8'))).toEqual([])
+describe.each(STYLESHEETS)('%s', (path) => {
+  const stylesheet = readFileSync(path, 'utf8')
+
+  it('sizes text and spacing in rem', () => {
+    expect(findUnitFailures(stylesheet)).toEqual([])
+  })
+
+  it.skipIf(path.endsWith('_typography.sass'))('takes its text voice from the typography mixins', () => {
+    expect(findTypeLiterals(stylesheet)).toEqual([])
+  })
 })
 ```
 
-- It reads `font-size`, `font`, `--text-*`, `--space-*`, `margin*`,
-  `padding*`, `gap`, `row-gap`, `column-gap` and `text-indent`.
-- A failure is `pixels` — any `px` value there, `clamp()` bounds and `calc()`
+- `findUnitFailures` reads `font-size`, `font`, `--text-*`, `--space-*`,
+  `margin*`, `padding*`, `gap`, `row-gap`, `column-gap` and `text-indent`. A
+  failure is `pixels` — any `px` value there, `clamp()` bounds and `calc()`
   terms included — or `viewport-without-rem`: a text size driven by `vw`, `vh`,
   `vmin` or a container unit with no rem part, which zoom cannot enlarge.
-- Strokes, radii, shadows and the touch target stay in px and are not read. A
+  Strokes, radii, shadows and the touch target stay in px and are not read. A
   surface sized on the viewport — a scoreboard on a TV — derives its sizes from
   a named unit token (`calc(var(--cu) * 4)`), which passes.
+- `findTypeLiterals` lists every `font-weight`, `line-height` and
+  `letter-spacing` written as a number or a keyword: a text voice is declared
+  once, in a mixin, and a component includes it. `inherit` and `var()` pass.

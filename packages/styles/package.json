@@ -14,6 +14,7 @@
     "./accessibility": {
       "sass": "./src/_accessibility.sass"
     },
+    "./audit": "./dist/audit.js",
     "./breakpoints": {
       "sass": "./src/_breakpoints.sass"
     },
@@ -33,10 +34,12 @@
     "./spread": {
       "sass": "./src/_spread.sass"
     },
+    "./text-box": {
+      "sass": "./src/_text-box.sass"
+    },
     "./tokens": {
       "sass": "./src/_tokens.sass"
-    },
-    "./units": "./dist/units.js"
+    }
   },
   "files": [
     "dist",

@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { findUnitFailures } from './units.ts'
+import { findTypeLiterals, findUnitFailures } from './audit.ts'
 
 const kinds = (stylesheet: string) =>
   findUnitFailures(stylesheet).map(({ kind, line }) => ({ kind, line }))
 
 describe('findUnitFailures', () => {
-  it('[units] passes rem sizes, rem clamps and named tokens', () => {
+  it('[audit] passes rem sizes, rem clamps and named tokens', () => {
     expect(
       kinds(`
 :root
@@ -28,7 +28,7 @@ describe('findUnitFailures', () => {
     ).toEqual([])
   })
 
-  it('[units] flags a text size or a spacing in px, wherever it sits in the value', () => {
+  it('[audit] flags a text size or a spacing in px, wherever it sits in the value', () => {
     expect(
       kinds(`.plate
   font-size: 9.4px
@@ -47,7 +47,7 @@ describe('findUnitFailures', () => {
     ])
   })
 
-  it('[units] flags a text size the viewport drives with no rem part', () => {
+  it('[audit] flags a text size the viewport drives with no rem part', () => {
     expect(
       kinds(`.hero
   font-size: 2.4vw
@@ -59,7 +59,29 @@ describe('findUnitFailures', () => {
     ])
   })
 
-  it('[units] ignores a commented-out declaration', () => {
+  it('[audit] ignores a commented-out declaration', () => {
     expect(kinds('  // font-size: 12px')).toEqual([])
+  })
+})
+
+describe('findTypeLiterals', () => {
+  it('[audit] passes a voice that comes from tokens and mixins', () => {
+    expect(
+      findTypeLiterals(`.title
+  @include typography.title
+  font-weight: var(--weight-strong)
+  line-height: inherit
+  letter-spacing: var(--tracking-tight)`)
+    ).toEqual([])
+  })
+
+  it('[audit] flags a weight, a leading or a tracking written as a literal', () => {
+    expect(
+      findTypeLiterals(`.score
+  font-weight: 650
+  line-height: 1.05
+  letter-spacing: 0.06em
+  font-weight: bold`).map(({ line }) => line)
+    ).toEqual([2, 3, 4, 5])
   })
 })

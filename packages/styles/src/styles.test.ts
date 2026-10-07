@@ -30,9 +30,34 @@ describe('reset', () => {
     const reset = readFileSync(new URL('reset.css', import.meta.url), 'utf8')
     expect(reset).toMatch(/html \{[^}]*interpolate-size: allow-keywords;/)
   })
+
+  it('stops a scrolled-to anchor below a sticky header the app measures', () => {
+    const reset = readFileSync(new URL('reset.css', import.meta.url), 'utf8')
+    expect(reset).toMatch(
+      /html \{[^}]*scroll-padding-block-start: var\(--scroll-offset, 0px\);/
+    )
+  })
+
+  it('keeps hidden elements hidden whatever display a component gives them, unlayered', () => {
+    const reset = readFileSync(new URL('reset.css', import.meta.url), 'utf8')
+    const unlayered = reset.slice(reset.indexOf('\n}\n') + 3)
+    expect(unlayered).toMatch(
+      /^\s*\/\*[^*]*\*\/\s*\[hidden\]:not\(\[hidden="until-found"\]\) \{\s*display: none !important;/
+    )
+  })
 })
 
 describe('reduced motion', () => {
+  it('ends every keyframe animation at once, looping ones included', () => {
+    const css = readFileSync(
+      new URL('reduced-motion.css', import.meta.url),
+      'utf8'
+    )
+    expect(css).toMatch(
+      /\*,\s*::before,\s*::after \{\s*animation-duration: 0s;\s*animation-iteration-count: 1;/
+    )
+  })
+
   it('stills every view transition, which no duration token reaches', () => {
     const css = readFileSync(
       new URL('reduced-motion.css', import.meta.url),
@@ -143,6 +168,7 @@ ${overrides}
     expect(css).toContain('--target: 44px')
     expect(css).toContain('--control-touch: var(--target)')
     expect(css).toContain('--measure: 65ch')
+    expect(css).toContain('--icon-m: 1.25rem')
     expect(css).toContain('--tracking-tight: -0.02em')
     expect(css).toContain('--underline-offset: 0.24em')
   })
@@ -224,6 +250,29 @@ describe('sizes', () => {
     ['rem() given rem', 'sizes.rem(1rem)']
   ])('[sizes] refuses %s', (_, call) => {
     expect(() => compileSize(call)).toThrow()
+  })
+})
+
+describe('text-box', () => {
+  it('[text-box] trims a one-line box and grows its padding by what the trim removed', () => {
+    const css = compile(`
+@use 'text-box'
+.stamp
+  @include text-box.trimmed-block(var(--space-s))
+`)
+    expect(css).toBe(
+      '.stamp{padding-block:var(--space-s)}@supports(text-box: trim-both cap alphabetic){.stamp{padding-block:calc(var(--space-s) + (1lh - 1cap)/2);text-box:trim-both cap alphabetic}}'
+    )
+  })
+
+  it('[text-box] trims a figure, with a line-height of 1 where text-box is missing', () => {
+    const css = compile(`
+@use 'text-box'
+.score
+  @include text-box.trimmed-figure
+`)
+    expect(css).toContain('.score{line-height:1}')
+    expect(css).toContain('text-box:trim-both cap alphabetic')
   })
 })
 

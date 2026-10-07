@@ -6,6 +6,14 @@
     --transition-slow: 0ms;
   }
 
+  /* A keyframe animation no duration token reaches, a looping one above all: it ends at once, and the element keeps the look its rules give it. */
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0s;
+    animation-iteration-count: 1;
+  }
+
   /* React's <ViewTransition> starts one whatever the preference: it still swaps, without moving. */
   ::view-transition-group(*),
   ::view-transition-image-pair(*),

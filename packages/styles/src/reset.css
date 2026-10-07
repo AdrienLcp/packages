@@ -15,10 +15,12 @@
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
+    scroll-padding-block-start: var(--scroll-offset, 0px);
   }
 
   body {
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     line-height: 1.5;
   }
 
@@ -46,6 +48,10 @@
     border: none;
   }
 
+  textarea {
+    resize: vertical;
+  }
+
   a {
     color: inherit;
   }
@@ -53,16 +59,25 @@
   h1,
   h2,
   h3,
-  h4 {
+  h4,
+  h5,
+  h6 {
     text-wrap: balance;
+    overflow-wrap: break-word;
   }
 
   p {
     text-wrap: pretty;
+    overflow-wrap: break-word;
   }
 
   ul,
   ol {
     list-style: none;
   }
+}
+
+/* Unlayered: a component's `display: flex` would otherwise show what `hidden` hides. */
+[hidden]:not([hidden="until-found"]) {
+  display: none !important;
 }
