@@ -70,7 +70,7 @@
       grid-template-columns: minmax(0, 1fr)
       margin-block-end: 2.25rem
 
-      @media (width >= 1180px)
+      @include layout.container-wide(73.75rem)
         align-items: start
         column-gap: 28px
         grid-template-columns: auto minmax(0, 1fr)
@@ -114,7 +114,7 @@
       display: grid
       gap: var(--space-2xl)
 
-      @media (width < 1280px)
+      @include layout.container-narrow(80rem)
         > .package-main
           display: contents
 
@@ -124,7 +124,7 @@
         #package-documentation
           order: 2
 
-      @media (width >= 1280px)
+      @include layout.container-wide(80rem)
         align-items: start
         column-gap: var(--space-xl)
         grid-template-columns: minmax(0, 1fr) var(--side-column-width)
@@ -160,7 +160,7 @@
 
       padding: 0 var(--space-row) 10px
 
-  @media (width < 560px)
+  @include layout.container-narrow(35rem)
     .package-page .package-head
       grid-template-columns: minmax(0, 1fr)
 

@@ -78,7 +78,7 @@
       height: 14px
       width: 14px
 
-  @media (width < 860px)
+  @include layout.container-narrow(53.75rem)
     .export-row
       grid-template-areas: 'square main chevron' 'square aside chevron'
       grid-template-columns: var(--square-s) minmax(0, 1fr) 14px

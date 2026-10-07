@@ -1,3 +1,4 @@
+@use '../../presentation/styles/layout'
 @use '../../presentation/styles/typography'
 
 @layer components
@@ -8,7 +9,7 @@
     padding: 10px 0 var(--space-s)
     z-index: 5
 
-    @media (width >= 720px)
+    @include layout.container-wide(45rem)
       inset-block-start: var(--topbar-height)
       position: sticky
 
@@ -25,5 +26,5 @@
       margin-inline-start: auto
       white-space: nowrap
 
-      @media (width < 720px)
+      @include layout.container-narrow(45rem)
         margin-inline-start: 0

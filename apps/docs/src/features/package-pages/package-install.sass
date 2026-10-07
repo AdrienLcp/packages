@@ -18,7 +18,7 @@
       white-space: nowrap
 
   // On a phone the whole command stays readable: it wraps at its spaces.
-  @media (width < 560px)
+  @include layout.container-narrow(35rem)
     .package-install .package-install-command
       overflow-wrap: anywhere
       white-space: normal

@@ -32,7 +32,7 @@
 
   // On a phone the name takes the brand's place, whole: `react-router` and
   // `react-aria` must not both read `react-…`. The brand comes back at the top.
-  @media (width < 480px)
+  @include layout.container-narrow(30rem)
     .package-header-context
       border-inline-start: none
       padding-inline-start: 0
