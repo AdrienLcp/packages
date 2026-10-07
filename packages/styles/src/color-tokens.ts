@@ -13,10 +13,28 @@ export type TokenError =
 /** Every custom property a stylesheet declares, with each value it is given. */
 export type TokenDeclarations = ReadonlyMap<string, readonly string[]>
 
-const DECLARATION_PATTERN = /(--[\w-]+)\s*:\s*([^;\n}]+)/g
+const DECLARATION_START_PATTERN = /(--[\w-]+)\s*:/g
+const WHITESPACE_RUN_PATTERN = /\s+/g
+const VALUE_ENDS = new Set([';', '}', '\n'])
 const COMMENT_PATTERN = /\/\*[\s\S]*?\*\/|^\s*\/\/.*$/gm
-const VAR_PATTERN = /^var\(\s*(--[\w-]+)\s*(?:,\s*(.+))?\)$/
+const VAR_PATTERN = /^var\(\s*(--[\w-]+)\s*(?:,\s*(.+?))?\s*\)$/
 const LIGHT_DARK_PATTERN = /^light-dark\((.+)\)$/
+
+/**
+ * The value that starts at `start`, on one line: it ends at `;`, `}` or a line
+ * break no parenthesis holds open, since indented `.sass` has no semicolons.
+ */
+const readValue = (source: string, start: number) => {
+  let depth = 0
+  let end = start
+  for (; end < source.length; end += 1) {
+    const character = source[end] ?? ''
+    if (character === '(') depth += 1
+    if (character === ')') depth -= 1
+    if (depth <= 0 && VALUE_ENDS.has(character)) break
+  }
+  return source.slice(start, end).replace(WHITESPACE_RUN_PATTERN, ' ').trim()
+}
 
 /** Reads the custom properties of a `.css` or indented `.sass` source. */
 export const readTokenDeclarations = (
@@ -24,12 +42,14 @@ export const readTokenDeclarations = (
 ): TokenDeclarations => {
   const declarations = new Map<string, string[]>()
 
-  for (const [, name = '', value = ''] of stylesheet
-    .replace(COMMENT_PATTERN, '')
-    .matchAll(DECLARATION_PATTERN)) {
+  const source = stylesheet.replace(COMMENT_PATTERN, '')
+
+  for (const declaration of source.matchAll(DECLARATION_START_PATTERN)) {
+    const [start, name = ''] = declaration
+    const value = readValue(source, declaration.index + start.length)
+    if (value === '') continue
     const values = declarations.get(name) ?? []
-    const trimmed = value.trim()
-    if (!values.includes(trimmed)) values.push(trimmed)
+    if (!values.includes(value)) values.push(value)
     declarations.set(name, values)
   }
 

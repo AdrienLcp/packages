@@ -1,7 +1,9 @@
 # packages
 
-Small TypeScript packages with no runtime dependencies outside this repository,
-each one typed as far as the compiler lets it go. A package built for a
+Small TypeScript packages with no runtime dependencies outside this repository
+but [culori](https://culorijs.org), which the WCAG contrast check of
+`@adrienlcp/styles` reads colours with, each one typed as far as the compiler
+lets it go. A package built for a
 third-party library is named after it and takes that library as a peer
 dependency.
 

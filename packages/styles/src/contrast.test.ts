@@ -145,6 +145,59 @@ describe('findContrastFailures', () => {
     )
   })
 
+  it('[contrast] reads a CSS value written over several lines', () => {
+    const tokens = `:root {
+  --ground: light-dark(
+    oklch(1 0 0),
+    oklch(0.2 0 0)
+  );
+  --ink: light-dark(
+    oklch(0.2 0 0),
+    oklch(0.3 0 0)
+  );
+}`
+    const [failure, ...rest] = findContrastFailures(tokens, [
+      pair('--ink', '--ground')
+    ])
+    expect(rest).toEqual([])
+    expect(failure).toMatchObject({ kind: 'too-low', schemes: ['dark'] })
+  })
+
+  it('[contrast] reads a Sass value its parentheses carry over several lines', () => {
+    const tokens = `
+:root
+  --ink: var(
+    --absent,
+    #000
+  )
+  --ground: oklch(
+    1 0 0
+  )
+`
+    expect(findContrastFailures(tokens, [pair('--ink', '--ground')])).toEqual(
+      []
+    )
+  })
+
+  it('[contrast] reads an upper-case oklch() and hex', () => {
+    const tokens = ':root { --ink: OKLCH(0 0 0); --ground: #FFF; }'
+    expect(
+      findContrastFailures(tokens, [pair('--ink', '--ground', 21)])
+    ).toEqual([])
+  })
+
+  it('[contrast] reads no colour form but oklch() and hex', () => {
+    const tokens = ':root { --ink: black; --ground: rgb(255 255 255); }'
+    expect(findContrastFailures(tokens, [pair('--ink', '--ground')])).toEqual([
+      {
+        error: 'unsupported-color',
+        kind: 'unreadable',
+        pair: pair('--ink', '--ground'),
+        token: '--ground'
+      }
+    ])
+  })
+
   it('[contrast] reports a background it cannot read', () => {
     const tokens = ':root { --ink: #000; --veil: #ffffff80; }'
     expect(

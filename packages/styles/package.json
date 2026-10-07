@@ -2,10 +2,12 @@
   "author": "Adrien Lacourpaille",
   "bugs": "https://github.com/AdrienLcp/packages/issues",
   "dependencies": {
-    "@adrienlcp/result": "workspace:^"
+    "@adrienlcp/result": "workspace:^",
+    "culori": "^4.0.2"
   },
   "description": "A reset, a reduced-motion switch, default tokens, Sass mixins for self-hosted fonts, container queries, a breakpoint, focus rings, visually hidden text and a two-column spread, and a WCAG contrast check for colour tokens",
   "devDependencies": {
+    "@types/culori": "^4.0.1",
     "sass": "^1.105.0"
   },
   "exports": {

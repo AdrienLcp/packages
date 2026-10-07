@@ -1,4 +1,4 @@
-import { composite, contrastRatio } from './color.ts'
+import { composite, contrastRatio, isTranslucent } from './color.ts'
 import {
   type ColorScheme,
   readTokenDeclarations,
@@ -58,7 +58,7 @@ const checkPair = (
   const background = resolveToken(declarations, pair.background, scheme)
   if (background.status === 'failure')
     return { kind: 'unreadable', pair, ...background.error }
-  if (background.data.alpha < 1)
+  if (isTranslucent(background.data))
     return {
       error: 'translucent-background',
       kind: 'unreadable',
