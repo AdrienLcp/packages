@@ -15,12 +15,10 @@ import {
   type LucideIcon,
   type LucideProps,
   Moon,
-  Parentheses,
   PenLine,
   Search,
   Sparkles,
-  Sun,
-  Type
+  Sun
 } from 'lucide-react'
 import type React from 'react'
 
@@ -46,6 +44,46 @@ const iconOf = (
       {...SIZED_BY_STYLESHEET}
       {...glyphProps}
     />
+  )
+
+  return Icon
+}
+
+type CodeGlyph = {
+  fontSize: number
+  fontStyle?: 'italic'
+  fontWeight: number
+  letterSpacing?: string
+  text: string
+}
+
+/** A kind written as code writes it, set in the code face and centred in the icons' 24-unit box. */
+const codeGlyphIconOf = ({
+  fontSize,
+  fontStyle,
+  fontWeight,
+  letterSpacing,
+  text
+}: CodeGlyph): React.FC<IconProps> => {
+  const Icon: React.FC<IconProps> = ({ className }) => (
+    <svg aria-hidden className={className} viewBox='0 0 24 24'>
+      <text
+        dominantBaseline='central'
+        fill='currentColor'
+        fontSize={fontSize}
+        style={{
+          fontFamily: 'var(--font-code)',
+          fontStyle,
+          fontWeight,
+          letterSpacing
+        }}
+        textAnchor='middle'
+        x='12'
+        y='12'
+      >
+        {text}
+      </text>
+    </svg>
   )
 
   return Icon
@@ -108,11 +146,21 @@ export const LightThemeIcon = iconOf(Sun)
 export const DarkThemeIcon = iconOf(Moon)
 
 /** One glyph per export kind, in the same stroke grammar. */
-export const FunctionIcon = iconOf(Parentheses)
+export const FunctionIcon = codeGlyphIconOf({
+  fontSize: 18,
+  fontStyle: 'italic',
+  fontWeight: 400,
+  text: 'ƒ'
+})
 
 export const HookIcon = iconOf(FishingHook)
 
-export const TypeIcon = iconOf(Type)
+export const TypeIcon = codeGlyphIconOf({
+  fontSize: 13,
+  fontWeight: 700,
+  letterSpacing: '-0.12em',
+  text: '<T>'
+})
 
 export const ConstantIcon = iconOf(Equal)
 
