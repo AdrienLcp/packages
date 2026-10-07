@@ -1,5 +1,11 @@
 # @adrienlcp/styles
 
+## 0.7.0
+
+### Minor Changes
+
+- eadb563: `reset.css` removes the mobile tap highlight: a pressable shows its own pressed style instead of the browser's rectangle
+
 ## 0.6.2
 
 ### Patch Changes
