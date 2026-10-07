@@ -5,7 +5,7 @@
     "@adrienlcp/result": "workspace:^",
     "culori": "^4.0.2"
   },
-  "description": "A reset, a reduced-motion switch, default tokens, Sass mixins for self-hosted fonts, container queries, a breakpoint, focus rings, visually hidden text and a two-column spread, and a WCAG contrast check for colour tokens",
+  "description": "A reset, a reduced-motion switch, default tokens, Sass mixins for self-hosted fonts, container queries, a breakpoint, focus rings, visually hidden text and a two-column spread, a fluid size in rem, and checks for WCAG contrast between colour tokens and for sizes the user's font size cannot reach",
   "devDependencies": {
     "@types/culori": "^4.0.1",
     "sass": "^1.105.0"
@@ -27,12 +27,16 @@
     "./package.json": "./package.json",
     "./reduced-motion.css": "./src/reduced-motion.css",
     "./reset.css": "./src/reset.css",
+    "./sizes": {
+      "sass": "./src/_sizes.sass"
+    },
     "./spread": {
       "sass": "./src/_spread.sass"
     },
     "./tokens": {
       "sass": "./src/_tokens.sass"
-    }
+    },
+    "./units": "./dist/units.js"
   },
   "files": [
     "dist",

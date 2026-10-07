@@ -1,0 +1,41 @@
+@use 'sass:math'
+@use 'sass:meta'
+
+/// The pixel size a `rem` stands for when the user has not changed it. Only
+/// used to turn a size read off a design file into rem.
+$root-pixels: 16px
+
+/// A size handed over in pixels, written in rem: `rem(14px)` → `0.875rem`.
+@function rem($pixels)
+  @if math.unit($pixels) != 'px'
+    @error 'rem() takes a size in px, got #{$pixels}.'
+  @return math.div($pixels, $root-pixels) * 1rem
+
+/// A size that grows with the viewport from `$min` at `$from` to `$max` at
+/// `$to`, and holds still outside:
+///
+/// ```sass
+/// --text-display: #{sizes.fluid(2rem, 3.5rem)}
+/// ```
+///
+/// Every bound is rem and the middle term carries a rem part, so the size
+/// still follows the user's font size and zoom. `$max` stays within 2.5 times
+/// `$min`: past that, a 200 % zoom on a wide screen can no longer double the
+/// text (WCAG 1.4.4).
+@function fluid($min, $max, $from: 20rem, $to: 80rem)
+  @each $name, $size in (min: $min, max: $max, from: $from, to: $to)
+    @if math.unit($size) != 'rem'
+      @error 'fluid() takes every size in rem, got $#{$name}: #{$size}.'
+  @if $max <= $min
+    @error 'fluid() grows from $min to a larger $max, got #{$min} → #{$max}.'
+  @if $to <= $from
+    @error 'fluid() needs $from below $to, got #{$from} → #{$to}.'
+  @if $max > $min * 2.5
+    @error 'fluid() keeps $max within 2.5 × $min so a 200 % zoom still doubles it, got #{$min} → #{$max}.'
+
+  $slope: math.div($max - $min, $to - $from)
+  $intercept: $min - $slope * $from
+  @return clamp(#{$min}, #{_round($intercept)} + #{_round($slope * 100)}vw, #{$max})
+
+@function _round($number)
+  @return math.div(math.round($number * 10000), 10000)

@@ -193,6 +193,40 @@ describe('accessibility', () => {
   })
 })
 
+describe('sizes', () => {
+  const compileSize = (call: string) =>
+    compile(`
+@use 'sizes'
+.a
+  font-size: ${call}
+`)
+
+  it('[sizes] grows from min to max between 20rem and 80rem', () => {
+    expect(compileSize('sizes.fluid(2rem, 3.5rem)')).toBe(
+      '.a{font-size:clamp(2rem,1.5rem + 2.5vw,3.5rem)}'
+    )
+  })
+
+  it('[sizes] takes another range of viewports', () => {
+    expect(compileSize('sizes.fluid(1rem, 2rem, 30rem, 50rem)')).toBe(
+      '.a{font-size:clamp(1rem,-0.5rem + 5vw,2rem)}'
+    )
+  })
+
+  it('[sizes] converts pixels at 16px to the rem', () => {
+    expect(compileSize('sizes.rem(14px)')).toBe('.a{font-size:.875rem}')
+  })
+
+  it.each([
+    ['a px bound', 'sizes.fluid(14px, 2rem)'],
+    ['a max past 2.5 times the min', 'sizes.fluid(1rem, 3rem)'],
+    ['a max below the min', 'sizes.fluid(2rem, 1rem)'],
+    ['rem() given rem', 'sizes.rem(1rem)']
+  ])('[sizes] refuses %s', (_, call) => {
+    expect(() => compileSize(call)).toThrow()
+  })
+})
+
 describe('spread', () => {
   const css = compile(`
 @use 'spread'

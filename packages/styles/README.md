@@ -144,6 +144,31 @@ them, a line is `currentColor` mixed toward transparent and the ring is
   in an ancestor that clips. An app on `@adrienlcp/react-aria` has the same
   pair in its `focus` module.
 
+### `sizes`
+
+Every text size and every spacing is rem, so it follows the font size the user
+chose and the zoom. `fluid` lets a display size or a section's spacing grow
+with the screen without leaving rem:
+
+```sass
+@use '@adrienlcp/styles/sizes'
+
+@layer tokens
+  :root
+    --text-display: #{sizes.fluid(2rem, 3.5rem)}
+    --space-section: #{sizes.fluid(3rem, 6rem)}
+    --text-caption: #{sizes.rem(13px)}
+```
+
+- `fluid($min, $max, $from: 20rem, $to: 80rem)` returns
+  `clamp($min, <rem> + <vw>, $max)`: `$min` up to a `$from`-wide viewport,
+  `$max` from `$to`, a straight line between. Every argument is rem, and
+  `$max` stays within 2.5 times `$min` — past that, a 200 % zoom on a wide
+  screen no longer doubles the size (WCAG 1.4.4). Anything else is a compile
+  error.
+- `rem($pixels)` turns a size read off a design file into rem, at 16px to the
+  rem.
+
 ### `spread`
 
 A page of two columns: `.columns` holding two `.column`s, stacked and ruled
@@ -196,3 +221,30 @@ it('every ink reads on every surface, in both themes', () => {
   translucent background — what shows through decides that contrast.
 - A translucent foreground is measured over its background. An `oklch()`
   outside sRGB is clipped, as an sRGB screen draws it.
+
+### `units`
+
+The rem rule is checked, not remembered: a test reads every stylesheet and
+fails on a text size or a spacing that the user's font size cannot reach.
+
+```ts
+import { globSync, readFileSync } from 'node:fs'
+
+import { findUnitFailures } from '@adrienlcp/styles/units'
+import { expect, it } from 'vitest'
+
+const STYLESHEETS = globSync('src/**/*.{sass,css}')
+
+it.each(STYLESHEETS)('%s sizes text and spacing in rem', (path) => {
+  expect(findUnitFailures(readFileSync(path, 'utf8'))).toEqual([])
+})
+```
+
+- It reads `font-size`, `font`, `--text-*`, `--space-*`, `margin*`,
+  `padding*`, `gap`, `row-gap`, `column-gap` and `text-indent`.
+- A failure is `pixels` — any `px` value there, `clamp()` bounds and `calc()`
+  terms included — or `viewport-without-rem`: a text size driven by `vw`, `vh`,
+  `vmin` or a container unit with no rem part, which zoom cannot enlarge.
+- Strokes, radii, shadows and the touch target stay in px and are not read. A
+  surface sized on the viewport — a scoreboard on a TV — derives its sizes from
+  a named unit token (`calc(var(--cu) * 4)`), which passes.
