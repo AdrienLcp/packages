@@ -5,7 +5,7 @@
 @layer components
   .package-exports
     display: grid
-    gap: 1.375rem
+    gap: var(--space-m)
 
     .package-exports-label
       @include typography.group-label
@@ -13,9 +13,9 @@
       align-items: baseline
       display: flex
       flex-wrap: wrap
-      gap: 0.125rem var(--space-xs)
+      gap: var(--space-4xs) var(--space-xs)
       justify-content: space-between
-      padding: 0 var(--space-row) 0.4375rem
+      padding: 0 var(--space-row) var(--space-2xs)
 
     .package-exports-section
       @include focus.ring

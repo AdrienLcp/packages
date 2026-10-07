@@ -7,16 +7,16 @@
       align-items: end
       display: flex
       flex-wrap: wrap
-      gap: 0.625rem var(--space-xl)
+      gap: var(--space-2xs) var(--space-xl)
       justify-content: space-between
-      padding: var(--space-xs) 0 1.125rem
+      padding: var(--space-xs) 0 var(--space-s)
 
     .home-title
       @include typography.title
 
     .home-intro
       color: var(--ink-soft)
-      margin-block-start: 0.375rem
+      margin-block-start: var(--space-3xs)
       max-width: 36rem
       text-wrap: pretty
 
@@ -25,7 +25,7 @@
 
       display: flex
       flex-wrap: wrap
-      gap: 0.125rem 1.125rem
+      gap: var(--space-4xs) var(--space-s)
 
       b
         @include typography.figure-strong
@@ -45,7 +45,7 @@
       display: grid
       gap: var(--space-xs)
       justify-items: start
-      padding: 1.125rem 0
+      padding: var(--space-s) 0
 
       .state-row
         padding-block: 0

@@ -14,13 +14,13 @@
       padding: var(--space-row) var(--space-row) var(--space-s)
 
       .state-row
-        padding: 0.125rem 0 0
+        padding: var(--space-4xs) 0 0
 
     .package-version-line
       align-items: center
       display: flex
       flex-wrap: wrap
-      gap: 0.375rem var(--space-2xs)
+      gap: var(--space-3xs) var(--space-2xs)
 
     .package-version-number
       @include typography.figures
@@ -43,7 +43,7 @@
       @include typography.note
 
       align-items: baseline
-      column-gap: 0.375rem
+      column-gap: var(--space-3xs)
       display: grid
       grid-template-columns: auto minmax(0, 1fr)
 

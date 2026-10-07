@@ -6,7 +6,7 @@
     display: grid
     gap: var(--space-xs)
     grid-template-columns: var(--square-s) minmax(0, 1fr)
-    padding: var(--space-xs) var(--space-row) 0.8125rem
+    padding: var(--space-xs) var(--space-row)
 
     .state-row-title
       @include typography.row-title
@@ -17,6 +17,6 @@
     .state-row-body
       @include typography.caption
 
-      margin-block-start: 0.1875rem
+      margin-block-start: var(--space-4xs)
       max-width: var(--measure-note)
       text-wrap: pretty

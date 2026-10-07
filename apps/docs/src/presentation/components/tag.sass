@@ -8,9 +8,9 @@
     border-radius: var(--radius-full)
     color: var(--ink)
     display: inline-flex
-    gap: 0.3125rem
+    gap: var(--space-3xs)
     height: 1.375rem
-    padding: 0 0.5625rem
+    padding: 0 var(--space-2xs)
     white-space: nowrap
 
     > svg
@@ -19,7 +19,6 @@
 
     &.newest
       background: var(--track)
-      padding-inline-start: 0.4375rem
 
       > svg
         color: var(--accent)
@@ -40,4 +39,3 @@
       color: var(--ink-soft)
       outline: var(--stroke-hair) dashed var(--mute)
       outline-offset: calc(-1 * var(--stroke-hair))
-      padding-inline-start: 0.4375rem

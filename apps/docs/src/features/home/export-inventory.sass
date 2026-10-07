@@ -5,7 +5,7 @@
 @layer components
   .export-inventory
     display: grid
-    gap: 1.625rem
+    gap: var(--space-l)
 
     .inventory-group
       @include layout.plane
@@ -24,7 +24,7 @@
       align-items: center
       display: flex
       flex-wrap: wrap
-      gap: var(--space-3xs) 0.625rem
+      gap: var(--space-3xs) var(--space-2xs)
 
     .inventory-package-name
       @include typography.package-name
@@ -37,7 +37,7 @@
 
       display: block
       font-size: var(--text-s)
-      margin-block-start: 0.125rem
+      margin-block-start: var(--space-4xs)
       max-width: var(--measure-note)
       text-wrap: pretty
 
@@ -46,7 +46,7 @@
       @include typography.figures
 
       display: grid
-      gap: 0.125rem
+      gap: var(--space-4xs)
       justify-items: end
       text-align: end
 
