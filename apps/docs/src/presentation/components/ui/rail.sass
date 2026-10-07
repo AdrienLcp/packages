@@ -31,10 +31,14 @@
       padding: 0 var(--space-2xs)
       position: relative
       text-decoration: none
-      transition: color var(--transition-fast, 0s) var(--timing)
+      transition: color var(--transition-fast, 0s) var(--timing), scale var(--transition-fast, 0s) var(--timing)
 
       &[data-hovered]:not([data-selected], [aria-current])
         color: var(--ink)
+
+      &[data-pressed]:not([data-selected], [aria-current])
+        color: var(--ink)
+        scale: var(--press-scale)
 
       &[data-selected],
       &[aria-current]

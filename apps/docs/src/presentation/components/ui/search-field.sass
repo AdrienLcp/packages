@@ -1,3 +1,4 @@
+@use '../../styles/focus'
 @use '../../styles/layout'
 
 @layer components
@@ -16,6 +17,8 @@
       width: 1.125rem
 
     .search-field-input
+      @include focus.ring
+
       background: var(--ply)
       border: 0
       border-radius: var(--radius-field)
@@ -25,7 +28,6 @@
       font-size: var(--text-l)
       min-height: var(--control-touch)
       padding: 0 var(--control-touch) 0 41px
-      transition: box-shadow var(--transition-fast, 0s) var(--timing)
       width: 100%
 
       &::placeholder
@@ -34,10 +36,6 @@
 
       &::-webkit-search-cancel-button
         display: none
-
-      &[data-focused]
-        box-shadow: var(--shadow-ply), 0 0 0 var(--outline-thick) var(--accent)
-        outline: none
 
     .search-field-shortcut
       background: var(--track)

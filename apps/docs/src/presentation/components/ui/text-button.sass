@@ -17,7 +17,7 @@
     gap: 6px
     min-height: 2.5rem
     padding: 0 var(--space-row)
-    transition: background-color var(--transition-fast, 0s) var(--timing)
+    transition: background-color var(--transition-fast, 0s) var(--timing), scale var(--transition-fast, 0s) var(--timing)
     white-space: nowrap
 
     > svg
@@ -26,3 +26,7 @@
 
     &[data-hovered]
       background: var(--track)
+
+    &[data-pressed]
+      background: var(--track)
+      scale: var(--press-scale)

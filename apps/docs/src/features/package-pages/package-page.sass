@@ -22,9 +22,9 @@
         height: 1.375rem
         width: 1.375rem
 
-      &[data-hovered] span
-        text-decoration: underline
-        text-underline-offset: var(--underline-offset)
+      &[data-hovered] span,
+      &[data-pressed] span
+        @include typography.underline
 
       @include layout.wide
         display: none
@@ -98,10 +98,14 @@
       gap: 6px
       min-height: var(--control-m)
       padding: 0 var(--space-xs)
-      transition: background-color var(--transition-fast, 0s) var(--timing)
+      transition: background-color var(--transition-fast, 0s) var(--timing), scale var(--transition-fast, 0s) var(--timing)
 
-      &:hover
+      &[data-hovered]
         background: var(--track)
+
+      &[data-pressed]
+        background: var(--track)
+        scale: var(--press-scale)
 
     .package-jump-count
       @include typography.figures

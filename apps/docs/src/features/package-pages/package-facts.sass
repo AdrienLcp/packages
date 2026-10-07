@@ -1,5 +1,6 @@
 @use '../../presentation/styles/focus'
 @use '../../presentation/styles/layout'
+@use '../../presentation/styles/typography'
 
 @layer components
   .package-facts
@@ -29,6 +30,6 @@
       border-radius: var(--radius-inline)
       color: var(--accent)
 
-      &[data-hovered]
-        text-decoration: underline
-        text-underline-offset: var(--underline-offset)
+      &[data-hovered],
+      &[data-pressed]
+        @include typography.underline

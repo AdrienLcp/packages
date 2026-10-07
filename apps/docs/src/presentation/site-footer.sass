@@ -1,4 +1,5 @@
 @use './styles/focus'
+@use './styles/typography'
 
 @layer components
   .site-footer
@@ -25,6 +26,6 @@
       height: 0.875rem
       width: 0.875rem
 
-    &[data-hovered]
-      text-decoration: underline
-      text-underline-offset: var(--underline-offset)
+    &[data-hovered],
+    &[data-pressed]
+      @include typography.underline

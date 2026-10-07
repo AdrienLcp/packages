@@ -66,27 +66,30 @@ export const PackagePage: React.FC = () => {
             aria-label={translate('package.navigation')}
             className='package-jumps'
           >
-            <a className='package-jump' href={`#${SECTION_IDS.exports}`}>
+            <Link className='package-jump' href={`#${SECTION_IDS.exports}`}>
               {translate('exports.title')}
               <span className='package-jump-count'>
                 {housePackage.exports.length}
               </span>
-            </a>
-            <a className='package-jump' href={`#${SECTION_IDS.pending}`}>
+            </Link>
+            <Link className='package-jump' href={`#${SECTION_IDS.pending}`}>
               {translate('pending.title')}
               <span className='package-jump-count'>
                 {housePackage.pending.length}
               </span>
-            </a>
-            <a className='package-jump' href={`#${SECTION_IDS.versions}`}>
+            </Link>
+            <Link className='package-jump' href={`#${SECTION_IDS.versions}`}>
               {translate('versions.title')}
               <span className='package-jump-count'>
                 {housePackage.versions.length}
               </span>
-            </a>
-            <a className='package-jump' href={`#${SECTION_IDS.documentation}`}>
+            </Link>
+            <Link
+              className='package-jump'
+              href={`#${SECTION_IDS.documentation}`}
+            >
               {translate('docs.title')}
-            </a>
+            </Link>
           </nav>
         </div>
       </div>

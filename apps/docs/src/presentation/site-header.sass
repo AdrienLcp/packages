@@ -30,6 +30,10 @@
     letter-spacing: -0.01em
     min-height: var(--control-touch)
     min-width: 0
+    transition: scale var(--transition-fast, 0s) var(--timing)
+
+    &[data-pressed]
+      scale: var(--press-scale)
 
   .site-brand-scope
     color: var(--ink-soft)

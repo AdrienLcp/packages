@@ -13,13 +13,13 @@
       gap: var(--space-s)
       min-width: 0
       padding: var(--space-m) 22px 22px
-      transition: box-shadow var(--transition-slow, 0s) var(--timing)
 
       &:focus
         outline: none
 
       &.is-target
-        box-shadow: 0 0 0 var(--outline-thick) var(--accent)
+        outline: var(--ring)
+        outline-offset: 0
 
     .doc-section-title
       @include typography.subheading
