@@ -1,5 +1,11 @@
 # @adrienlcp/styles
 
+## 0.9.1
+
+### Patch Changes
+
+- 56e5308: `findUnitFailures` no longer flags a size handed to `rem()` in pixels — `sizes.rem(13px)` is the conversion the rule asks for
+
 ## 0.9.0
 
 ### Minor Changes
