@@ -1,8 +1,10 @@
 @use '../../styles/focus'
+@use '../../styles/typography'
 
 @layer components
   .text-button
     @include focus.ring
+    @include typography.action
 
     align-items: center
     background: var(--accent-wash)
@@ -12,8 +14,6 @@
     cursor: pointer
     display: inline-flex
     font: inherit
-    font-size: var(--text-s)
-    font-weight: 600
     gap: 6px
     min-height: 2.5rem
     padding: 0 var(--space-row)

@@ -43,7 +43,7 @@
         scale: 1
 
       &[aria-current] .sidebar-row-name
-        font-weight: 600
+        @include typography.strong
 
       &.is-out .sidebar-row-name
         color: var(--ink-soft)
@@ -52,7 +52,8 @@
         color: var(--mute)
 
     .sidebar-row-name
-      font-weight: 500
+      @include typography.medium
+
       overflow: hidden
       text-overflow: ellipsis
       white-space: nowrap

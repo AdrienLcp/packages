@@ -1,16 +1,16 @@
 @use './styles/focus'
+@use './styles/typography'
 
 @layer components
   .skip-link
     @include focus.ring
+    @include typography.action
 
     align-items: center
     background: var(--ink)
     border-radius: var(--radius-control)
     color: var(--plane)
     display: inline-flex
-    font-size: var(--text-s)
-    font-weight: 600
     left: var(--gutter)
     min-height: var(--control-touch)
     padding: 0 var(--space-s)

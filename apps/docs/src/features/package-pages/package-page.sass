@@ -7,12 +7,12 @@
     // The sidebar is the way back on a wide screen.
     .package-back
       @include focus.ring
+      @include typography.medium
 
       align-items: center
       border-radius: var(--radius-control)
       color: var(--accent)
       display: inline-flex
-      font-weight: 500
       gap: 2px
       margin-inline-start: -4px
       min-height: var(--control-touch)
@@ -44,23 +44,19 @@
         padding-block-start: var(--space-m)
 
     .package-title
-      @include typography.title
-
-      font-size: var(--text-package-title)
-      line-height: 1.08
+      @include typography.package-title
 
     // The full name, set like on home: the scope quieter, never above as a label.
     .package-scope
-      color: var(--ink-soft)
-      font-weight: 500
+      @include typography.scope
 
     .package-name
       overflow-wrap: anywhere
 
     .package-description
+      @include typography.lead
+
       color: var(--ink-soft)
-      font-size: var(--text-xl)
-      line-height: 1.45
       max-width: var(--measure-lead)
       text-wrap: pretty
 
@@ -89,12 +85,12 @@
 
     .package-jump
       @include focus.ring
+      @include typography.medium
 
       align-items: center
       border-radius: var(--radius-full)
       display: inline-flex
       font-size: var(--text-s)
-      font-weight: 500
       gap: 6px
       min-height: var(--control-m)
       padding: 0 var(--space-xs)

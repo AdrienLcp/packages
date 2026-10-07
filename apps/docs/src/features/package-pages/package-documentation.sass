@@ -22,12 +22,11 @@
         outline-offset: 0
 
     .doc-section-title
-      @include typography.subheading
+      @include typography.section-title
 
       align-items: baseline
       display: flex
       flex-wrap: wrap
-      font-weight: 600
       gap: var(--space-3xs) var(--space-xs)
       justify-content: space-between
 
@@ -35,11 +34,9 @@
         font-size: 0.9em
 
     .doc-section-file
+      @include typography.file-path
+
       color: var(--ink-soft)
-      font-family: var(--font-code)
-      font-size: var(--text-2xs)
-      font-weight: 400
-      letter-spacing: 0
 
     .doc-section-body
       display: grid
@@ -58,8 +55,8 @@
       ul,
       ol,
       blockquote
-        font-size: var(--text-m)
-        line-height: 1.6
+        @include typography.prose
+
         max-width: var(--measure)
         text-wrap: pretty
 
@@ -80,12 +77,13 @@
 
       h4,
       h5
+        @include typography.strong
+
         font-size: var(--text-m)
-        font-weight: 600
         margin-block-start: var(--space-2xs)
 
       strong
-        font-weight: 600
+        @include typography.strong
 
       a
         color: var(--accent)
@@ -104,10 +102,10 @@
         color: var(--ink)
 
       pre
+        @include typography.code-block
+
         background: var(--sunk)
         border-radius: var(--radius-control)
-        font-size: var(--text-xs)
-        line-height: 1.65
         max-width: 100%
         overflow-x: auto
         padding: var(--space-row) var(--space-s)
@@ -131,8 +129,9 @@
         width: 100%
 
       th
+        @include typography.strong
+
         color: var(--ink-soft)
-        font-weight: 600
         padding: 6px 10px
         text-align: start
         white-space: nowrap

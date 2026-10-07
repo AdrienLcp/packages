@@ -1,4 +1,5 @@
 @use '../../presentation/styles/layout'
+@use '../../presentation/styles/typography'
 
 @layer components
   .package-works-with
@@ -26,10 +27,9 @@
       width: 2.25rem
 
     .works-with-name
+      @include typography.tool-name
+
       display: block
-      font-size: var(--text-s)
-      font-weight: 600
-      line-height: 1.2
 
     .works-with-note
       color: var(--ink-soft)

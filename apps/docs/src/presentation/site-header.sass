@@ -2,6 +2,7 @@
 
 @use './styles/focus'
 @use './styles/layout'
+@use './styles/typography'
 
 @layer components
   .site-header
@@ -20,14 +21,12 @@
 
   .site-brand
     @include focus.ring
+    @include typography.brand
 
     align-items: center
     border-radius: var(--radius-control)
     display: inline-flex
-    font-size: var(--text-l)
-    font-weight: 600
     gap: var(--space-xs)
-    letter-spacing: -0.01em
     min-height: var(--control-touch)
     min-width: 0
     transition: scale var(--transition-fast, 0s) var(--timing)
@@ -36,8 +35,7 @@
       scale: var(--press-scale)
 
   .site-brand-scope
-    color: var(--ink-soft)
-    font-weight: 500
+    @include typography.scope
 
   .site-settings
     align-items: center
