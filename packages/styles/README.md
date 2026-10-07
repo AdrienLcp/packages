@@ -13,7 +13,7 @@ pnpm add @adrienlcp/styles
 
 | File | Does |
 | --- | --- |
-| `reset.css` | Box sizing, zeroed margins and paddings, inherited fonts on controls, bare buttons and lists, balanced headings, pretty paragraphs, and `interpolate-size: allow-keywords` so a transition reaches `height: auto` (Chromium; elsewhere the size snaps as before). Inside `@layer reset` |
+| `reset.css` | Box sizing, zeroed margins and paddings, inherited fonts on controls, bare buttons and lists, balanced headings, pretty paragraphs, and `interpolate-size: allow-keywords` so a transition reaches `height: auto` (Chromium; elsewhere the size snaps as before), and no tap highlight on mobile — every pressable then owes its own pressed style. Inside `@layer reset` |
 | `reduced-motion.css` | Collapses `--transition-fast`, `--transition-base` and `--transition-slow` to `0ms` under `prefers-reduced-motion: reduce`, and stills view transitions, which React's `<ViewTransition>` starts whatever the preference. Unlayered, so it beats the tokens wherever they are defined |
 
 Import them once — from JavaScript, or from the global stylesheet in Sass:
