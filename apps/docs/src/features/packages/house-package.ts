@@ -59,6 +59,8 @@ export type PendingNote = {
 export type HousePackage = {
   /** The other house packages it depends on, by `name`. */
   dependsOn: readonly string[]
+  /** The third-party packages it depends on, by npm name. */
+  dependsOnElsewhere: readonly string[]
   description: string
   ecosystem: readonly EcosystemTie[]
   exports: readonly PackageExport[]

@@ -30,6 +30,7 @@ const packageOf = (
   exports: readonly PackageExport[]
 ): HousePackage => ({
   dependsOn: [],
+  dependsOnElsewhere: [],
   description: '',
   ecosystem: [],
   exports,

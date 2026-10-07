@@ -271,7 +271,7 @@ describe('buildCatalogue', () => {
     })
   })
 
-  it('[catalogue] names the house packages a package depends on, without their scope', () => {
+  it('[catalogue] names the house packages a package depends on without their scope, and the others apart', () => {
     const { packages } = catalogueOf([
       sourcesOf('safe-storage', {
         manifest: {
@@ -282,5 +282,6 @@ describe('buildCatalogue', () => {
     ])
 
     expect(packages[0]?.dependsOn).toEqual(['result'])
+    expect(packages[0]?.dependsOnElsewhere).toEqual(['zod'])
   })
 })

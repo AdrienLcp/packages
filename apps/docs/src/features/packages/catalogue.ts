@@ -160,6 +160,9 @@ const documentedPackageOf = (
       dependsOn: manifest.dependencies
         .filter((dependency) => dependency.startsWith(HOUSE_SCOPE))
         .map((dependency) => dependency.slice(HOUSE_SCOPE.length)),
+      dependsOnElsewhere: manifest.dependencies.filter(
+        (dependency) => !dependency.startsWith(HOUSE_SCOPE)
+      ),
       description: manifest.description,
       ecosystem: ecosystemOf({
         entryPoints,
