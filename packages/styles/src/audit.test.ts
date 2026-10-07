@@ -59,6 +59,15 @@ describe('findUnitFailures', () => {
     ])
   })
 
+  it('[audit] passes pixels handed to rem(), which converts them', () => {
+    expect(
+      kinds(`.chip
+  padding: sizes.rem(3px) var(--space-s)
+  --text-caption: #{sizes.rem(13px)}
+  margin: rem(2px)`)
+    ).toEqual([])
+  })
+
   it('[audit] ignores a commented-out declaration', () => {
     expect(kinds('  // font-size: 12px')).toEqual([])
   })
