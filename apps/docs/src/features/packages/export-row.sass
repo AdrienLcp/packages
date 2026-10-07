@@ -9,16 +9,16 @@
 
     align-items: center
     display: grid
-    gap: 3px var(--space-xs)
+    gap: 0.1875rem var(--space-xs)
     grid-template-areas: 'square main aside chevron'
-    grid-template-columns: var(--square-s) minmax(0, 1fr) auto 14px
+    grid-template-columns: var(--square-s) minmax(0, 1fr) auto 0.875rem
     min-height: 3.25rem
-    padding: 9px var(--space-row)
+    padding: 0.5625rem var(--space-row)
 
     > .icon-square
       align-self: start
       grid-area: square
-      margin-block-start: 1px
+      margin-block-start: 0.0625rem
 
     &.is-target
       background: var(--accent-wash)
@@ -47,7 +47,7 @@
 
       display: block
       font-size: var(--text-s)
-      margin-block-start: 1px
+      margin-block-start: 0.0625rem
       text-wrap: pretty
 
       code
@@ -57,7 +57,7 @@
 
     .export-row-aside
       display: grid
-      gap: 1px
+      gap: 0.0625rem
       grid-area: aside
       justify-items: end
       min-width: 0
@@ -75,13 +75,13 @@
     .export-row-chevron
       color: var(--mute)
       grid-area: chevron
-      height: 14px
-      width: 14px
+      height: 0.875rem
+      width: 0.875rem
 
   @include layout.container-narrow(53.75rem)
     .export-row
       grid-template-areas: 'square main chevron' 'square aside chevron'
-      grid-template-columns: var(--square-s) minmax(0, 1fr) 14px
+      grid-template-columns: var(--square-s) minmax(0, 1fr) 0.875rem
 
       .export-row-aside
         display: flex
