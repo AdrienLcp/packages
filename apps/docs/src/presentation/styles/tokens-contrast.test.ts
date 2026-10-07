@@ -9,7 +9,14 @@ import { expect, it } from 'vitest'
 
 const TOKENS = readFileSync(new URL('_tokens.sass', import.meta.url), 'utf8')
 
-const SURFACES = ['--sunk', '--ground', '--plane', '--ply']
+const SURFACES = [
+  '--sunk',
+  '--ground',
+  '--plane',
+  '--ply',
+  '--hover',
+  '--press'
+]
 const TEXT_INKS = ['--ink', '--ink-soft', '--mute', '--accent']
 
 const PAIRS: ContrastPair[] = SURFACES.flatMap((background) => [

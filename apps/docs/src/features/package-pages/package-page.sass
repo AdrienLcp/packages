@@ -4,9 +4,6 @@
 
 @layer components
   .package-page
-    section
-      scroll-margin-block-start: calc(var(--topbar-height) + var(--space-s))
-
     // The sidebar is the way back on a wide screen.
     .package-back
       @include focus.ring
@@ -27,7 +24,7 @@
 
       &[data-hovered] span
         text-decoration: underline
-        text-underline-offset: 0.2em
+        text-underline-offset: var(--underline-offset)
 
       @include layout.wide
         display: none
@@ -62,7 +59,7 @@
 
     .package-description
       color: var(--ink-soft)
-      font-size: var(--text-l)
+      font-size: var(--text-xl)
       line-height: 1.45
       max-width: var(--measure-lead)
       text-wrap: pretty
@@ -96,12 +93,12 @@
       align-items: center
       border-radius: var(--radius-full)
       display: inline-flex
-      font-size: var(--text-m)
+      font-size: var(--text-s)
       font-weight: 500
       gap: 6px
       min-height: var(--control-m)
       padding: 0 var(--space-xs)
-      transition: background-color var(--transition-fast, 0) var(--timing)
+      transition: background-color var(--transition-fast, 0s) var(--timing)
 
       &:hover
         background: var(--track)
@@ -155,7 +152,7 @@
       p
         @include typography.caption
 
-        font-size: var(--text-m)
+        font-size: var(--text-s)
         text-wrap: pretty
 
     .package-side-title

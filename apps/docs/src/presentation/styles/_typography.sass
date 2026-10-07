@@ -5,9 +5,8 @@
 
 @mixin body
   font-family: var(--font-ui)
-  font-size: var(--text-base)
+  font-size: var(--text-m)
   font-weight: 400
-  line-height: 1.5
 
 /// A screen's title: the inventory's, a package's.
 @mixin title
@@ -19,35 +18,154 @@
 
 /// A block's heading in the page: exports, documentation.
 @mixin heading
-  font-size: var(--text-2xl)
+  font-size: var(--text-3xl)
   font-weight: 700
   letter-spacing: -0.015em
   line-height: 1.2
 
+/// A package's own title, a step larger than a screen's and set tighter.
+@mixin package-title
+  @include title
+
+  font-size: var(--text-package-title)
+  line-height: 1.08
+
+/// The sentence under a package's title.
+@mixin lead
+  font-size: var(--text-xl)
+  line-height: 1.45
+
+/// The site's name in the top bar, and the package name that takes its place.
+@mixin brand
+  font-size: var(--text-l)
+  font-weight: 600
+  letter-spacing: -0.01em
+
+/// The package name in the top bar of a phone, free to wrap on two lines.
+@mixin brand-compact
+  font-size: var(--text-s)
+  line-height: 1.15
+
+/// The `@adrienlcp/` before a package name, set quieter than the name.
+@mixin scope
+  color: var(--ink-soft)
+  font-weight: 500
+
+/// A package's name in the inventory.
+@mixin package-name
+  font-size: var(--text-xl)
+  font-weight: 600
+  letter-spacing: -0.01em
+
 /// A heading in the side column, or a documentation section's.
 @mixin subheading
-  font-size: var(--text-l)
+  font-size: var(--text-xl)
   font-weight: 700
   letter-spacing: -0.01em
   line-height: 1.3
 
+/// A documentation section's heading, its file name beside it.
+@mixin section-title
+  font-size: var(--text-xl)
+  font-weight: 600
+  letter-spacing: -0.01em
+  line-height: 1.3
+
+/// The source file a documentation section comes from.
+@mixin file-path
+  font-family: var(--font-code)
+  font-size: var(--text-2xs)
+  font-weight: 400
+  letter-spacing: normal
+
+/// The README's running text.
+@mixin prose
+  font-size: var(--text-m)
+  line-height: 1.6
+
+/// A highlighted code block.
+@mixin code-block
+  font-size: var(--text-xs)
+  line-height: 1.65
+
+/// A release note, a pending change: smaller than prose, one paragraph or two.
+@mixin note
+  font-size: var(--text-s)
+  line-height: 1.5
+
+/// A version number heading its release.
+@mixin version
+  font-size: var(--text-2xl)
+  font-weight: 700
+  letter-spacing: -0.01em
+
+/// The title of a state row: an empty list, a missing match.
+@mixin row-title
+  font-weight: 600
+  line-height: 1.3
+
+/// A tool's name under its logo.
+@mixin tool-name
+  font-size: var(--text-s)
+  font-weight: 600
+  line-height: 1.2
+
+/// A count or a version that stands out in a line of captions.
+@mixin figure-strong
+  font-size: var(--text-m)
+  font-weight: 600
+
+/// A button's label, the skip link's.
+@mixin action
+  font-size: var(--text-s)
+  font-weight: 600
+
+/// A segmented control's choice.
+@mixin segment
+  font-size: var(--text-xs)
+  font-weight: 600
+
+/// A filter chip's label.
+@mixin chip
+  font-size: var(--text-xs)
+  font-weight: 500
+
+/// A release tag: a bump, the newest.
+@mixin tag
+  font-size: var(--text-2xs)
+  font-weight: 600
+
+/// Text set a weight above its neighbours, at their size.
+@mixin strong
+  font-weight: 600
+
+/// Text set half a weight above its neighbours, at their size: a name in a
+/// row, a link that leads somewhere.
+@mixin medium
+  font-weight: 500
+
+/// A link's underline, under the pointer or a press.
+@mixin underline
+  text-decoration: underline
+  text-underline-offset: var(--underline-offset)
+
 /// The quiet label above a grouped list, as a settings screen sets it.
 @mixin group-label
   color: var(--ink-soft)
-  font-size: var(--text-s)
+  font-size: var(--text-xs)
   font-weight: 600
   line-height: 1.3
 
 /// Secondary text beside or under a row's name.
 @mixin caption
   color: var(--ink-soft)
-  font-size: var(--text-s)
+  font-size: var(--text-xs)
   line-height: 1.45
 
 /// A symbol, a specifier, a version in code.
 @mixin symbol
   font-family: var(--font-code)
-  font-size: var(--text-m)
+  font-size: var(--text-s)
   font-weight: 600
   letter-spacing: -0.01em
 

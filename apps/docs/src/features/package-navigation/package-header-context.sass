@@ -3,9 +3,9 @@
 @layer components
   .package-header-context
     align-items: center
-    border-inline-start: var(--separator-line)
+    border-inline-start: var(--hairline)
     display: inline-flex
-    font-size: var(--text-body)
+    font-size: var(--text-l)
     font-weight: 600
     gap: var(--space-2xs)
     letter-spacing: -0.01em
@@ -13,7 +13,7 @@
     opacity: 0
     padding-inline-start: var(--space-xs)
     transform: translateY(4px)
-    transition: opacity var(--transition-fast, 0) var(--timing), transform var(--transition-fast, 0) var(--timing), visibility 0s linear var(--transition-fast, 0)
+    transition: opacity var(--transition-fast, 0s) var(--timing), transform var(--transition-fast, 0s) var(--timing), visibility 0s linear var(--transition-fast, 0s)
     visibility: hidden
 
     &[data-shown]
@@ -41,7 +41,7 @@
         display: none
 
     .package-header-context-name
-      font-size: var(--text-m)
+      font-size: var(--text-s)
       line-height: 1.15
       white-space: normal
 

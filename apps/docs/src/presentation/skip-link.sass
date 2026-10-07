@@ -5,14 +5,14 @@
     border-radius: var(--radius-control)
     color: var(--plane)
     display: inline-flex
-    font-size: var(--text-m)
+    font-size: var(--text-s)
     font-weight: 600
     left: var(--gutter)
     min-height: var(--control-touch)
     padding: 0 var(--space-s)
     position: fixed
     top: var(--space-2xs)
-    transition: translate var(--transition-base, 0) var(--timing)
+    transition: translate var(--transition-base, 0s) var(--timing)
     translate: 0 calc(-100% - var(--space-m))
     z-index: 30
 
@@ -22,6 +22,6 @@
       visibility: hidden
 
     &:focus-visible
-      outline: var(--outline-thin) solid var(--accent)
+      outline: var(--outline-thick) solid var(--accent)
       outline-offset: 3px
       translate: 0

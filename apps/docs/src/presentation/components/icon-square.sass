@@ -10,7 +10,7 @@
     flex: none
     height: var(--square-size)
     place-items: center
-    transition: background-color var(--transition-base, 0) var(--timing), box-shadow var(--transition-base, 0) var(--timing), color var(--transition-base, 0) var(--timing)
+    transition: background-color var(--transition-base, 0s) var(--timing), box-shadow var(--transition-base, 0s) var(--timing), color var(--transition-base, 0s) var(--timing)
     width: var(--square-size)
 
     > svg
@@ -44,7 +44,7 @@
 
     &.hollow
       background: transparent
-      box-shadow: inset 0 0 0 1.5px var(--ring)
+      box-shadow: inset 0 0 0 var(--stroke-thin) var(--rule-strong)
       color: var(--mute)
 
     &.slot

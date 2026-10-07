@@ -1,14 +1,15 @@
-// The page leaving clears first, then the one arriving fades in.
-::view-transition-old(.page-out)
-  animation: page-out var(--transition-base) var(--timing) both
+@layer components
+  // The page leaving clears first, then the one arriving fades in.
+  ::view-transition-old(.page-out)
+    animation: page-out var(--transition-base, 0s) var(--timing) both
 
-::view-transition-new(.page-in)
-  animation: page-in var(--transition-base) var(--timing) var(--transition-fast) both
+  ::view-transition-new(.page-in)
+    animation: page-in var(--transition-base, 0s) var(--timing) var(--transition-fast, 0s) both
 
-@keyframes page-out
-  to
-    opacity: 0
+  @keyframes page-out
+    to
+      opacity: 0
 
-@keyframes page-in
-  from
-    opacity: 0
+  @keyframes page-in
+    from
+      opacity: 0

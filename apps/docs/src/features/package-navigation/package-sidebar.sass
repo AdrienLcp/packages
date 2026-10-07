@@ -30,7 +30,7 @@
 
     .sidebar-row
       @include focus.ring-inset
-      @include layout.row-hover
+      @include layout.pressable-row
 
       align-items: center
       display: grid
@@ -61,12 +61,12 @@
       @include typography.figures
 
       color: var(--ink-soft)
-      font-size: var(--text-s)
+      font-size: var(--text-xs)
 
     .sidebar-row-dot
       background: var(--accent)
       border-radius: 50%
       height: 6px
       scale: 0
-      transition: scale var(--transition-slow, 0) var(--timing)
+      transition: scale var(--transition-slow, 0s) var(--timing)
       width: 6px

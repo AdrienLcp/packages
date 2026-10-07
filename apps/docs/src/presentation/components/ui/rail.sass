@@ -22,7 +22,7 @@
       color: var(--ink-soft)
       cursor: pointer
       display: inline-flex
-      font-size: var(--text-s)
+      font-size: var(--text-xs)
       font-weight: 600
       isolation: isolate
       justify-content: center
@@ -31,7 +31,7 @@
       padding: 0 var(--space-2xs)
       position: relative
       text-decoration: none
-      transition: color var(--transition-fast, 0) var(--timing)
+      transition: color var(--transition-fast, 0s) var(--timing)
 
       &[data-hovered]:not([data-selected], [aria-current])
         color: var(--ink)
@@ -47,7 +47,7 @@
       box-shadow: var(--shadow-ply)
       inset: 0
       position: absolute
-      transition: translate var(--transition-slow, 0) var(--timing)
+      transition: translate var(--transition-slow, 0s) var(--timing)
       z-index: -1
 
     .rail-slot-label

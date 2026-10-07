@@ -2,19 +2,19 @@
 @use '@adrienlcp/styles/reset.css'
 @use '@adrienlcp/theme-preference/color-scheme.css'
 @use './fonts'
+@use './layout'
 @use './tokens'
 @use './typography'
 
 @layer base
   html
     background: var(--ground)
-    scroll-padding-block-start: calc(var(--topbar-height, 4rem) + var(--space-xs))
-    scrollbar-color: var(--ring) var(--ground)
+    scrollbar-color: var(--rule-strong) var(--ground)
 
   body
+    @include layout.container
     @include typography.body
 
-    -webkit-font-smoothing: antialiased
     background: var(--ground)
     caret-color: var(--accent)
     color: var(--ink)
@@ -37,7 +37,6 @@
     font-size: 0.88em
 
   svg
-    display: block
     flex: none
 
   ::selection

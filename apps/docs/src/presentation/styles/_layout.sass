@@ -1,4 +1,5 @@
 @forward '@adrienlcp/styles/breakpoints' with ($wide-screen: 1024px)
+@forward '@adrienlcp/styles/containers'
 
 /// A rounded surface one step lighter than what it rests on: a grouped list,
 /// a documentation section. No border; the step is the edge.
@@ -13,7 +14,7 @@
   position: relative
 
   & + &::before
-    background: var(--separator)
+    background: var(--rule)
     content: ''
     height: var(--stroke-hair)
     left: $inset
@@ -22,9 +23,12 @@
     top: 0
     z-index: 1
 
-/// Hover on a pressable row.
-@mixin row-hover
-  transition: background-color var(--transition-fast, 0) var(--timing)
+/// A row of a plane that is a link: lit under the pointer, sunk under a press.
+@mixin pressable-row
+  transition: background-color var(--transition-fast, 0s) var(--timing)
 
   &[data-hovered]
     background: var(--hover)
+
+  &[data-pressed]
+    background: var(--press)
