@@ -40,9 +40,14 @@
   }
 
   button {
+    touch-action: manipulation;
     cursor: pointer;
     background: none;
     border: none;
+  }
+
+  a {
+    color: inherit;
   }
 
   h1,
