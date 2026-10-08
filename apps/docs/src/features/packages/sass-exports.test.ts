@@ -11,13 +11,13 @@ describe('sassExportsOf', () => {
       indented(
         '@mixin gap($size)',
         '  margin: $size',
-        '@function rem($px)',
-        '  @return $px',
+        '@function double($size)',
+        '  @return $size * 2',
         '$gutter: 1rem'
       )
     ).toEqual([
       { kind: 'sass', name: 'gap', summary: null },
-      { kind: 'sass', name: 'rem()', summary: null },
+      { kind: 'sass', name: 'double()', summary: null },
       { kind: 'sass', name: '$gutter', summary: null }
     ])
   })
