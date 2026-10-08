@@ -1,5 +1,11 @@
 # @adrienlcp/react-aria
 
+## 0.4.0
+
+### Minor Changes
+
+- 22f370c: `REACT_ARIA_TOKENS` lists the custom properties react-aria-components sets at runtime (`--trigger-width`, `--disclosure-panel-height`, `--visual-viewport-height`…), to pass to `findTokenFailures` as `provided`.
+
 ## 0.3.0
 
 ### Minor Changes
