@@ -457,6 +457,26 @@ A failed `load` rejects and forgets the attempt, so asking again retries.
 Ignoring that rejection is safe: the reader stays on the default locale, which is
 what they were already reading.
 
+A page prerendered in a loaded locale cannot take that first English frame:
+hydration would find English where the markup holds German, and React throws
+the markup away. Its entry awaits the dictionary before it renders anything, and
+a route that can change the locale awaits it in its loader:
+
+```ts
+// main.tsx — the translator every provider reads is German from the first render
+await i18n.load(locale)
+hydrateRoot(container, <App locale={locale} />)
+
+// the root route's loader — a navigation into another language
+export const rootLoader = async ({ locale }: { locale: Locale }) => {
+  await i18n.load(locale)
+}
+```
+
+The provider sits above the router, so a page the router renders from scratch —
+the not-found one — reads the same translator instead of falling back to the
+default locale.
+
 ### Switching locale before the last one arrived
 
 A reader who clicks French, then German, then Spanish starts three loads, and
