@@ -239,6 +239,9 @@ importers:
         specifier: ^16.34.0
         version: 16.34.0
     devDependencies:
+      '@adrienlcp/prerender':
+        specifier: workspace:*
+        version: link:../../packages/prerender
       '@adrienlcp/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig

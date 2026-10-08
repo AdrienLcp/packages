@@ -18,6 +18,7 @@
     "simple-icons": "^16.34.0"
   },
   "devDependencies": {
+    "@adrienlcp/prerender": "workspace:*",
     "@adrienlcp/tsconfig": "workspace:*",
     "@changesets/parse": "^1.0.0",
     "@react-aria/optimize-locales-plugin": "^2.0.2",

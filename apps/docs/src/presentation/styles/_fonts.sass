@@ -5,3 +5,5 @@
   @include fonts.font-face('Onest', '/fonts/onest-latin-ext.woff2', fonts.$latin-ext, $weight: 100 900)
   @include fonts.font-face('JetBrains Mono', '/fonts/jetbrains-mono-latin.woff2', fonts.$latin, $weight: 100 800)
   @include fonts.font-face('JetBrains Mono', '/fonts/jetbrains-mono-latin-ext.woff2', fonts.$latin-ext, $weight: 100 800)
+
+  @include fonts.fallback-faces('Onest', (ascent: 0.97, descent: 0.305, cap-height: 0.707), 1.05204, (100 449: 0.9976, 450 549: 0.9867, 550 649: 0.9771, 650 900: 1.038), $trimmed-to-capitals: true)

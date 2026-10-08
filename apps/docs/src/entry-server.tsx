@@ -17,8 +17,8 @@ export type PrerenderedPage = {
   description: string
   locale: Locale
   /**
-   * How Vite's build manifest keys the chunks this page runs: its own, then
-   * its loader's, preloaded so the app takes over without another round trip.
+   * How Vite's build manifest keys the chunks this page runs, its own then its
+   * loader's: their stylesheets are inlined, so the page paints styled.
    */
   modules: string[]
   /** Where the document is served, from the site root: `/fr/i18n`. */
