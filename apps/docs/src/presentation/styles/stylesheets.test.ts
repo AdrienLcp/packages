@@ -2,16 +2,24 @@ import { globSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { findTypeLiterals, findUnitFailures } from '@adrienlcp/styles/audit'
+import {
+  findTokenFailures,
+  findTypeLiterals,
+  findUnitFailures,
+  findUnnamedValues
+} from '@adrienlcp/styles/audit'
 import { describe, expect, it } from 'vitest'
 
 const SOURCE_DIRECTORY = fileURLToPath(new URL('../..', import.meta.url))
 const STYLESHEETS = globSync('**/*.{sass,css}', { cwd: SOURCE_DIRECTORY })
+const SOURCES = globSync('**/*.{sass,css,ts,tsx}', {
+  cwd: SOURCE_DIRECTORY
+}).map((path) => readFileSync(join(SOURCE_DIRECTORY, path), 'utf8'))
 
 describe.each(STYLESHEETS)('%s', (path) => {
   const stylesheet = readFileSync(join(SOURCE_DIRECTORY, path), 'utf8')
 
-  it('[units] sizes text and spacing in rem', () => {
+  it('[units] sizes text, spacing and boxes in rem', () => {
     expect(findUnitFailures(stylesheet)).toEqual([])
   })
 
@@ -21,4 +29,12 @@ describe.each(STYLESHEETS)('%s', (path) => {
       expect(findTypeLiterals(stylesheet)).toEqual([])
     }
   )
+
+  it('[tokens] takes its radii and durations from tokens', () => {
+    expect(findUnnamedValues(stylesheet)).toEqual([])
+  })
+})
+
+it('[tokens] reads only custom properties that exist, under their one shared name', () => {
+  expect(findTokenFailures(SOURCES)).toEqual([])
 })

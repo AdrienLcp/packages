@@ -1,4 +1,4 @@
-@forward '@adrienlcp/styles/breakpoints' with ($wide-screen: 1024px)
+@forward '@adrienlcp/styles/breakpoints' with ($wide-screen: 64rem)
 @forward '@adrienlcp/styles/containers'
 
 /// A rounded surface one step lighter than what it rests on: a grouped list,
@@ -25,7 +25,7 @@
 
 /// A row of a plane that is a link: lit under the pointer, sunk under a press.
 @mixin pressable-row
-  transition: background-color var(--transition-fast, 0s) var(--timing)
+  transition: background-color var(--transition-fast, 0s) var(--ease-out)
 
   &[data-hovered]
     background: var(--hover)

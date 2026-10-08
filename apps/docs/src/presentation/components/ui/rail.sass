@@ -25,12 +25,12 @@
       display: inline-flex
       isolation: isolate
       justify-content: center
-      min-height: var(--control-s)
+      min-height: var(--control-height)
       min-width: 2.5rem
       padding: 0 var(--space-2xs)
       position: relative
       text-decoration: none
-      transition: color var(--transition-fast, 0s) var(--timing), scale var(--transition-fast, 0s) var(--timing)
+      transition: color var(--transition-fast, 0s) var(--ease-out), scale var(--transition-fast, 0s) var(--ease-out)
 
       &[data-hovered]:not([data-selected], [aria-current])
         color: var(--ink)
@@ -50,7 +50,7 @@
       box-shadow: var(--shadow-ply)
       inset: 0
       position: absolute
-      transition: translate var(--transition-slow, 0s) var(--timing)
+      transition: translate var(--transition-slow, 0s) var(--ease-out)
       z-index: -1
 
     .rail-slot-label
