@@ -9,7 +9,7 @@ import {
   type PackageDocumentSource,
   type PackageSources
 } from './catalogue.ts'
-import { dayVersionEnteredChangelog } from './changelog-history.ts'
+import { readReleaseDays } from './changelog-history.ts'
 import { createMarkdownRendering } from './markdown-rendering.ts'
 import { parsePackageManifest } from './package-manifest.ts'
 import { parsePendingChange } from './pending-change.ts'
@@ -104,32 +104,24 @@ export const cataloguePlugin = ({
   const changesetRoot = join(repositoryRoot, '.changeset')
   const unknownDays: string[] = []
 
-  const releaseDateOf: CatalogueSources['releaseDateOf'] = ({
-    directory,
-    version
-  }) => {
-    const day = dayVersionEnteredChangelog({
-      changelogPath: `packages/${directory}/${CHANGELOG}`,
-      repositoryRoot,
-      version
-    })
+  const buildFromRepository = async (): Promise<Catalogue> => {
+    const releaseDays = readReleaseDays(repositoryRoot)
 
-    if (day.status === 'failure') {
-      unknownDays.push(`${directory}@${version}`)
-      return null
-    }
-
-    return day.data
-  }
-
-  const buildFromRepository = async (): Promise<Catalogue> =>
-    buildCatalogue({
+    return buildCatalogue({
       linkBaseOf: packageFolderUrlOf,
       packages: packageSourcesIn(packagesRoot),
       pendingChanges: pendingChangesIn(changesetRoot),
-      releaseDateOf,
+      releaseDateOf: ({ directory, version }) => {
+        if (releaseDays.status === 'failure') {
+          unknownDays.push(`${directory}@${version}`)
+          return null
+        }
+
+        return releaseDays.data.get(directory)?.get(version) ?? null
+      },
       render: await createMarkdownRendering()
     })
+  }
 
   let built: Promise<Catalogue> | null = null
   const build = (): Promise<Catalogue> => {

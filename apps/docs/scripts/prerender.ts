@@ -348,7 +348,7 @@ const template = await readFile(join(CLIENT_DIR, 'index.html'), 'utf8')
 const alreadyRequested = requestedBy(parseHtmlDocument(template).document)
 const buildManifest = await readBuildManifest()
 
-const { prerenderedPages, renderPage }: EntryServer = await import(
+const { llmsTxt, prerenderedPages, renderPage }: EntryServer = await import(
   pathToFileURL(SERVER_ENTRY).href
 )
 
@@ -375,6 +375,7 @@ await writeFile(
   'utf8'
 )
 await writeFile(join(CLIENT_DIR, 'robots.txt'), robotsTxt(SITE_ORIGIN), 'utf8')
+await writeFile(join(CLIENT_DIR, 'llms.txt'), llmsTxt(SITE_ORIGIN), 'utf8')
 
 console.info(
   `prerendered ${prerenderedPages.length} documents into ${CLIENT_DIR}`

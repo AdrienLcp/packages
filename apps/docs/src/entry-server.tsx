@@ -1,4 +1,5 @@
 import { CATALOGUE } from '@/features/packages/catalogue-content'
+import { llmsTxtOf, llmsTxtPagesOf } from '@/features/packages/llms-txt'
 import { packageFolderUrlOf } from '@/features/packages/repository'
 import {
   homePathFor,
@@ -102,3 +103,25 @@ export const prerenderedPages: PrerenderedPage[] = LOCALES.flatMap((locale) => [
  */
 export const renderPage = (page: PrerenderedPage): Promise<string> =>
   prerenderPath(page)
+
+/** `llms.txt` on `origin`, read off the catalogue: a new package lands in it with the build. */
+export const llmsTxt = (origin: string): string => {
+  const locale: Locale = 'en'
+  const translate = i18n.translator(locale)
+
+  return llmsTxtOf({
+    home: {
+      description: 'every package and every export, searchable',
+      title: 'Home',
+      url: `${origin}${homePathFor(locale)}`
+    },
+    locales: `Every page exists in English under ${homePathFor('en')} and in French under ${homePathFor('fr')}.`,
+    name: translate('app.name'),
+    pages: llmsTxtPagesOf({
+      packages: CATALOGUE,
+      urlOf: ({ name }) =>
+        `${origin}${packagePathFor({ locale, packageName: name })}`
+    }),
+    summary: translate('app.description')
+  })
+}

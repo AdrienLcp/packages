@@ -34,6 +34,8 @@ const createPackageProject = (): Project =>
       module: ts.ModuleKind.ESNext,
       moduleResolution: ts.ModuleResolutionKind.Bundler,
       noEmit: true,
+      // What a module exports never depends on the standard library: loading it per package cost seconds.
+      noLib: true,
       target: ts.ScriptTarget.ESNext
     },
     useInMemoryFileSystem: true

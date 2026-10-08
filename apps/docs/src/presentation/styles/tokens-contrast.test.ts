@@ -28,6 +28,16 @@ const PAIRS: ContrastPair[] = SURFACES.flatMap((background) => [
   { background, foreground: '--focus', minimum: WCAG_AA.nonText }
 ])
 
+const SCROLLBAR_THUMB: ContrastPair = {
+  background: '--ground',
+  foreground: '--rule-strong',
+  minimum: WCAG_AA.nonText
+}
+
 it('[contrast] every ink reads on every surface, in both themes', () => {
   expect(findContrastFailures(TOKENS, PAIRS)).toEqual([])
+})
+
+it('[contrast] the scrollbar thumb stands out from the ground, in both themes', () => {
+  expect(findContrastFailures(TOKENS, [SCROLLBAR_THUMB])).toEqual([])
 })
