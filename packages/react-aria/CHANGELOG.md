@@ -1,5 +1,11 @@
 # @adrienlcp/react-aria
 
+## 0.4.1
+
+### Patch Changes
+
+- 40938ca: `ring-focusables` skips what react-aria's `VisuallyHidden` clips — the input under a `Switch`, a `Checkbox`, a `Radio` — and what sits inside it, so the hidden input no longer draws a ring beside the visible control.
+
 ## 0.4.0
 
 ### Minor Changes

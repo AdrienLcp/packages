@@ -1,5 +1,15 @@
 # @adrienlcp/styles
 
+## 0.13.0
+
+### Minor Changes
+
+- 585e2f6: `@adrienlcp/styles/metric-twins`: `metricTwins()`, a PostCSS plugin listed after `fontaine/postcss` that widens each fallback face naming Arial, Courier New or Times New Roman alone to the fonts drawn on the same metrics (Liberation, Arimo, Cousine, Tinos, Roboto), so the face loads on Linux and Android and the web font swap moves no line. `METRIC_TWINS` and `withMetricTwins` come with it.
+
+### Patch Changes
+
+- 40938ca: `ring-focusables` skips what react-aria's `VisuallyHidden` clips — the input under a `Switch`, a `Checkbox`, a `Radio` — and what sits inside it, so the hidden input no longer draws a ring beside the visible control.
+
 ## 0.12.0
 
 ### Minor Changes
