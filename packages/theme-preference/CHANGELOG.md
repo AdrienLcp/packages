@@ -1,5 +1,11 @@
 # @adrienlcp/theme-preference
 
+## 0.4.0
+
+### Minor Changes
+
+- 22f370c: `@adrienlcp/theme-preference/scheme` ships `dark` and `light` Sass mixins for a value `light-dark()` cannot carry, under the same precedence as `color-scheme.css`: the system preference unless `data-theme` says otherwise.
+
 ## 0.3.1
 
 ### Patch Changes
