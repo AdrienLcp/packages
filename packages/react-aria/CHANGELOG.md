@@ -1,5 +1,11 @@
 # @adrienlcp/react-aria
 
+## 0.2.0
+
+### Minor Changes
+
+- 3cfcd12: `ring` and `ring-inset` take `$on`, a selector that draws the ring on a descendant of the focused element — a `Switch`'s track — and `ring-within` rings a box while a field inside it has focus, a `SearchField`'s `Group`
+
 ## 0.1.1
 
 ### Patch Changes
