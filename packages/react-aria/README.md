@@ -28,6 +28,23 @@ render state, and drops the falsy ones. It fits a react-aria component, never a
 plain DOM element: there, `classNames` from `@adrienlcp/react` joins the same
 class names into a string, and is what this merge runs once the state is known.
 
+## The custom properties react-aria sets: `REACT_ARIA_TOKENS`
+
+react-aria-components writes a few custom properties on the elements it
+renders — `--trigger-width` on a popover, `--disclosure-panel-height`,
+`--tab-panel-width`, `--tree-item-level`, `--visual-viewport-height` — which a
+stylesheet reads but never declares. `findTokenFailures` from
+`@adrienlcp/styles/audit` takes them as provided:
+
+```ts
+import { REACT_ARIA_TOKENS } from '@adrienlcp/react-aria'
+import { findTokenFailures } from '@adrienlcp/styles/audit'
+
+expect(findTokenFailures(SOURCES, { provided: REACT_ARIA_TOKENS })).toEqual([])
+```
+
+A test reads react-aria's build and fails when a release adds or drops one.
+
 ## A focus ring: `focus`
 
 `ring` and `ring-inset` draw the outline on `[data-focus-visible]`, which

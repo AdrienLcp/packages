@@ -1,0 +1,28 @@
+/// A value `light-dark()` cannot carry — a percentage, a length, a shadow's
+/// geometry, an image — set per theme with the same precedence as
+/// `color-scheme.css`: the explicit choice stamped in `data-theme` beats the
+/// system preference. Write it inside `@layer tokens`, at the root of a file:
+///
+/// ```sass
+/// @use '@adrienlcp/theme-preference/scheme'
+///
+/// @layer tokens
+///   @include scheme.dark
+///     --tint-strength: 38%
+/// ```
+@mixin dark
+  @media (prefers-color-scheme: dark)
+    :root:not([data-theme='light'])
+      @content
+
+  :root[data-theme='dark']
+    @content
+
+/// The light side of `dark`, for an app whose default values are the dark ones.
+@mixin light
+  @media (prefers-color-scheme: light)
+    :root:not([data-theme='dark'])
+      @content
+
+  :root[data-theme='light']
+    @content

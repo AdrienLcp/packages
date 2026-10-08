@@ -4,11 +4,12 @@
   "dependencies": {
     "@adrienlcp/safe-storage": "workspace:^"
   },
-  "description": "Light, dark or system theme with no flash on load, and a browser toolbar that follows the choice",
+  "description": "Light, dark or system theme with no flash on load, and a browser toolbar that follows the choice, and Sass mixins for a value per theme that light-dark() cannot carry",
   "devDependencies": {
     "@types/react": "19.3.0",
     "happy-dom": "20.14.5",
     "react": "19.3.0",
+    "sass": "^1.105.0",
     "vite": "8.3.1"
   },
   "exports": {
@@ -16,9 +17,13 @@
     "./color-scheme.css": "./color-scheme.css",
     "./package.json": "./package.json",
     "./react": "./dist/use-theme-preference.js",
+    "./scheme": {
+      "sass": "./_scheme.sass"
+    },
     "./vite": "./dist/theme-preference-vite-plugin.js"
   },
   "files": [
+    "_scheme.sass",
     "color-scheme.css",
     "dist"
   ],
@@ -26,6 +31,7 @@
   "keywords": [
     "color-scheme",
     "dark-mode",
+    "sass",
     "theme",
     "theme-color",
     "typescript"
@@ -34,10 +40,14 @@
   "name": "@adrienlcp/theme-preference",
   "peerDependencies": {
     "react": ">=18",
+    "sass": ">=1.80.0",
     "vite": ">=7"
   },
   "peerDependenciesMeta": {
     "react": {
+      "optional": true
+    },
+    "sass": {
       "optional": true
     },
     "vite": {

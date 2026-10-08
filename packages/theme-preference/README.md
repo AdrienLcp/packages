@@ -38,6 +38,20 @@ package ships it: import `@adrienlcp/theme-preference/color-scheme.css` once
 The file is unlayered, so it wins over any `color-scheme` a layered stylesheet
 sets.
 
+A value `light-dark()` cannot carry — a percentage, a length, a shadow's
+geometry — goes through the `scheme` Sass mixins, which follow the same
+precedence: the system preference, unless `data-theme` says otherwise.
+
+```sass
+@use '@adrienlcp/theme-preference/scheme'
+
+@layer tokens
+  @include scheme.dark
+    --tint-strength: 38%
+```
+
+`scheme.light` is the mirror, for an app whose defaults are the dark values.
+
 ## The store
 
 ```ts

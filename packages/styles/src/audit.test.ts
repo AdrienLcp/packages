@@ -7,8 +7,10 @@ import {
   findTypeLiterals,
   findUnitFailures,
   findUnnamedValues,
+  SHARED_TOKEN_DEFAULTS,
   SHARED_TOKENS
 } from './audit.ts'
+import { withoutComments } from './source-comments.ts'
 
 const kinds = (stylesheet: string) =>
   findUnitFailures(stylesheet).map(({ kind, line }) => ({ kind, line }))
@@ -96,8 +98,55 @@ describe('findUnitFailures', () => {
     ])
   })
 
+  it('[audit] flags a px inside a transform translate function', () => {
+    expect(
+      kinds(`.knob
+  transform: translateX(2px)
+  transform: rotate(45deg) translate(0, -1px)
+  transform: translateY(calc(var(--space-s) + 3px))
+  transform: translate3d(0, 0, 1px)
+  transform: translateZ(4px) scale(1.1)
+  transform: translateX(var(--space-s)) rotate(2deg)
+  transform: scale(1.02)`)
+    ).toEqual([
+      { kind: 'pixels', line: 2 },
+      { kind: 'pixels', line: 3 },
+      { kind: 'pixels', line: 4 },
+      { kind: 'pixels', line: 5 },
+      { kind: 'pixels', line: 6 }
+    ])
+  })
+
+  it('[audit] passes a zero length in px, signed or not', () => {
+    expect(
+      kinds(`.flat
+  margin: 0px
+  inset: -0px 0.0px
+  transform: translateY(0px)
+  --safe-area-top: env(safe-area-inset-top, 0px)`)
+    ).toEqual([])
+  })
+
   it('[audit] ignores a commented-out declaration', () => {
     expect(kinds('  // font-size: 12px')).toEqual([])
+    expect(kinds('  /* margin: 4px */')).toEqual([])
+  })
+})
+
+describe('withoutComments', () => {
+  it('[audit] blanks line and block comments, keeping the line count', () => {
+    const source = `a // var(--gone)
+b /* var(--gone)
+ */ c`
+    const stripped = withoutComments(source)
+    expect(stripped).not.toContain('--gone')
+    expect(stripped.split('\n')).toHaveLength(3)
+  })
+
+  it('[audit] keeps a // inside a url() or a string', () => {
+    const source = `background: url(https://example.com/a.png)
+const link = 'https://example.com'`
+    expect(withoutComments(source)).toBe(source)
   })
 })
 
@@ -159,6 +208,35 @@ describe('findUnnamedValues', () => {
       { kind: 'duration', line: 7 }
     ])
   })
+
+  it('[audit] flags a font size written as a literal length', () => {
+    expect(
+      unnamed(`.leaf
+  font-size: 1.25rem
+  font-size: 20px
+  font-size: 1.1em
+  font-size: clamp(1rem, 2vw, 2rem)`)
+    ).toEqual([
+      { kind: 'text-size', line: 2 },
+      { kind: 'text-size', line: 3 },
+      { kind: 'text-size', line: 4 },
+      { kind: 'text-size', line: 5 }
+    ])
+  })
+
+  it('[audit] passes a font size from a step, a fitted floor, a unit token, the parent or a keyword', () => {
+    expect(
+      unnamed(`.leaf
+  font-size: var(--text-m)
+  font-size: max(var(--text-s), 7cqi)
+  font-size: calc(var(--cu) * 4)
+  font-size: 1em
+  font-size: 100%
+  font-size: inherit
+  font-size: smaller
+  --text-title: 2.75rem`)
+    ).toEqual([])
+  })
 })
 
 describe('findTokenFailures', () => {
@@ -199,14 +277,107 @@ describe('findTokenFailures', () => {
     ])
   })
 
-  it('[audit] knows every name tokens.defaults declares', () => {
+  it('[audit] passes a name a library provides at runtime', () => {
+    const sources = [
+      `.list
+  max-block-size: var(--visual-viewport-height)`
+    ]
+    expect(findTokenFailures(sources)).toEqual([
+      { kind: 'undeclared', name: '--visual-viewport-height' }
+    ])
+    expect(
+      findTokenFailures(sources, { provided: ['--visual-viewport-height'] })
+    ).toEqual([])
+  })
+
+  it('[audit] does not read a name in a comment, in a stylesheet or a script', () => {
+    expect(
+      findTokenFailures([
+        `.a
+  // the night book lifts var(--tint-n)
+  /* var(--old-name) */
+  background: url(https://example.com/a.png)`,
+        `// reads var(--from-a-comment)
+/** var(--from-a-doc-block) */
+const href = 'https://example.com'`
+      ])
+    ).toEqual([])
+  })
+
+  it('[audit] skips a name built by Sass or template interpolation', () => {
+    const placeholder = ['$', '{index}'].join('')
+    expect(
+      findTokenFailures([
+        `.leaf
+  color: var(--g#{$generation})
+  background: var(--on-g#{$generation})`,
+        `const fill = \`var(--pawn-${placeholder})\``,
+        'const edge = `var(--pawn-` + side + `)`'
+      ])
+    ).toEqual([])
+  })
+
+  it('[audit] passes a family name that is derived or names something else', () => {
+    expect(
+      findTokenFailures([
+        `:root
+  --target-reach: calc((var(--target) - var(--icon-m)) / -2)
+  --control-ink: oklch(20% 0 0)
+  --ring-color-muted: var(--rule)
+.a
+  margin: var(--target-reach)
+  color: var(--control-ink)
+  outline-color: var(--ring-color-muted)`
+      ])
+    ).toEqual([])
+  })
+
+  it('[audit] flags a family name with a size suffix, or holding a bare length', () => {
+    expect(
+      findTokenFailures([
+        `:root
+  --control-touch: max(var(--target), 3rem)
+  --control-lg: calc(var(--target) * 1.25)
+  --control-2xs: 1.5rem
+  --outline-thin: 1px
+  --control-row: 2.5rem`
+      ]).map(({ name }) => name)
+    ).toEqual([
+      '--control-2xs',
+      '--control-lg',
+      '--control-row',
+      '--control-touch',
+      '--outline-thin'
+    ])
+  })
+
+  it('[audit] flags a second name for a distinctive default value', () => {
+    expect(
+      findTokenFailures([
+        `:root
+  --timing: cubic-bezier(0.16, 1, 0.3, 1)
+  --edge: inset 0 0 0 var(--stroke-hair) var(--rule, color-mix(in oklab, currentColor 25%, transparent))
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1)
+  --gap-hair: 1px
+  --wait: 150ms`
+      ])
+    ).toEqual([
+      { kind: 'alias', name: '--edge' },
+      { kind: 'alias', name: '--timing' }
+    ])
+  })
+
+  it('[audit] holds every name and value tokens.defaults declares', () => {
     const tokens = readFileSync(
       new URL('_tokens.sass', import.meta.url),
       'utf8'
     )
-    const declared = [...tokens.matchAll(/^\s*(--[\w-]+):/gm)].map(
-      ([, name]) => name
+    const declared = Object.fromEntries(
+      [...tokens.matchAll(/^\s*(--[\w-]+):\s*(.+?)\s*$/gm)].map(
+        ([, name, value]) => [name, value]
+      )
     )
-    expect(SHARED_TOKENS).toEqual(expect.arrayContaining(declared))
+    expect(SHARED_TOKEN_DEFAULTS).toEqual(declared)
+    expect(SHARED_TOKENS).toEqual(expect.arrayContaining(Object.keys(declared)))
   })
 })

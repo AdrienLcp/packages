@@ -15,6 +15,12 @@
 /// app's palette declares them. The `--transition-*` durations are the ones
 /// `reduced-motion.css` collapses: an app's own duration is written over them. Until it does, a line is `currentColor` mixed
 /// toward transparent and the ring is `currentColor`, never invisible.
+///
+/// The `--safe-area-*` insets are what the notch, the rounded corners and the
+/// home indicator cover once `viewport-fit=cover` lays the page under them:
+/// `0px` elsewhere, so `max(var(--space-m), var(--safe-area-bottom))` pads an
+/// edge on every device. The bottom reads Android's `safe-area-max-inset-bottom`
+/// first, the static ceiling of a bar that retracts on scroll.
 @mixin defaults
   --stroke-hair: 1px
   --stroke-thin: 1.5px
@@ -48,3 +54,8 @@
   --control-height: max(var(--target), 2.75rem)
 
   --measure: 65ch
+
+  --safe-area-top: env(safe-area-inset-top, 0px)
+  --safe-area-right: env(safe-area-inset-right, 0px)
+  --safe-area-bottom: env(safe-area-max-inset-bottom, env(safe-area-inset-bottom, 0px))
+  --safe-area-left: env(safe-area-inset-left, 0px)

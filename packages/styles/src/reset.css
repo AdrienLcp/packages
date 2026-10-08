@@ -84,5 +84,6 @@
 
 /* Unlayered: a component's `display: flex` would otherwise show what `hidden` hides. */
 [hidden]:not([hidden="until-found"]) {
+  /* biome-ignore lint/complexity/noImportantStyles: an author `display` on a hidden element must never show it, whatever its specificity or layer. */
   display: none !important;
 }

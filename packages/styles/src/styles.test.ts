@@ -50,7 +50,7 @@ describe('reset', () => {
     const reset = readFileSync(new URL('reset.css', import.meta.url), 'utf8')
     const unlayered = reset.slice(reset.indexOf('\n}\n') + 3)
     expect(unlayered).toMatch(
-      /^\s*\/\*[^*]*\*\/\s*\[hidden\]:not\(\[hidden="until-found"\]\) \{\s*display: none !important;/
+      /^\s*\/\*[^*]*\*\/\s*\[hidden\]:not\(\[hidden="until-found"\]\) \{\s*(\/\*[^*]*\*\/\s*)?display: none !important;/
     )
   })
 })

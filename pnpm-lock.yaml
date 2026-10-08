@@ -443,9 +443,12 @@ importers:
       react:
         specifier: 19.3.0
         version: 19.3.0
+      sass:
+        specifier: ^1.105.0
+        version: 1.105.1
       vite:
         specifier: 8.3.1
-        version: 8.3.1(@types/node@26.6.3)(sass@1.105.0)(yaml@2.9.1)
+        version: 8.3.1(@types/node@26.6.3)(sass@1.105.1)(yaml@2.9.1)
 
   packages/tsconfig: {}
 
@@ -4234,6 +4237,19 @@ snapshots:
       '@types/node': 26.6.3
       fsevents: 2.3.3
       sass: 1.105.0
+      yaml: 2.9.1
+
+  vite@8.3.1(@types/node@26.6.3)(sass@1.105.1)(yaml@2.9.1):
+    dependencies:
+      lightningcss: 1.33.0
+      picomatch: 4.0.7
+      postcss: 8.5.28
+      rolldown: 1.2.11
+      tinyglobby: 0.2.17
+    optionalDependencies:
+      '@types/node': 26.6.3
+      fsevents: 2.3.3
+      sass: 1.105.1
       yaml: 2.9.1
 
   vitest@5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(happy-dom@20.14.5)(jsdom@30.1.2)(vite@8.3.1(@types/node@26.6.3)(sass@1.105.0)(yaml@2.9.1)):

@@ -126,6 +126,7 @@ wins.
 | `--transition-fast`, `--transition-base`, `--transition-slow` | `150ms`, `250ms`, `400ms` — what `reduced-motion.css` collapses |
 | `--ease-out` | `cubic-bezier(0.16, 1, 0.3, 1)` |
 | `--measure` | `65ch` |
+| `--safe-area-top`, `--safe-area-right`, `--safe-area-bottom`, `--safe-area-left` | what the notch, the corners and the home indicator cover under `viewport-fit=cover`, `0px` elsewhere; the bottom reads Android's `safe-area-max-inset-bottom` first. Pad an edge with `max(var(--space-m), var(--safe-area-bottom))` |
 
 `--rule`, `--rule-strong` and `--focus` are the app's palette. Until it declares
 them, a line is `currentColor` mixed toward transparent and the ring is
@@ -262,6 +263,7 @@ stylesheet:
 ```ts
 import { globSync, readFileSync } from 'node:fs'
 
+import { REACT_ARIA_TOKENS } from '@adrienlcp/react-aria'
 import {
   findTokenFailures,
   findTypeLiterals,
@@ -290,15 +292,21 @@ describe.each(STYLESHEETS)('%s', (path) => {
 })
 
 it('reads only custom properties that exist, under their one shared name', () => {
-  expect(findTokenFailures(SOURCES)).toEqual([])
+  expect(findTokenFailures(SOURCES, { provided: REACT_ARIA_TOKENS })).toEqual([])
 })
 ```
 
+`REACT_ARIA_TOKENS` comes from `@adrienlcp/react-aria`; an app without
+react-aria leaves the options out.
+
+- Comments are never read, in a stylesheet or a script; a `//` inside a string
+  or a `url()` is no comment.
 - `findUnitFailures` reads `font-size`, `font`, `margin*`, `padding*`, the
   gaps, `text-indent`, `width`, `height` and their logical, `min-` and `max-`
-  forms, `inset*`, `top`, `right`, `bottom`, `left`, `translate`, `flex-basis`
-  and every custom property. A failure is `pixels` — any `px` value there,
-  `clamp()` bounds and `calc()` terms included — or `viewport-without-rem`: a
+  forms, `inset*`, `top`, `right`, `bottom`, `left`, `translate`, `flex-basis`,
+  the `translate*()` functions of a `transform`, and every custom property. A
+  failure is `pixels` — any non-zero `px` value there, `clamp()` bounds and
+  `calc()` terms included — or `viewport-without-rem`: a
   text size driven by `vw`, `vh`, `vmin` or a container unit with no rem part,
   which zoom cannot enlarge. Strokes, outlines, radii, shadows and the touch
   target stay in px: their properties and their `--stroke-*`, `--outline-*`,
@@ -308,13 +316,24 @@ it('reads only custom properties that exist, under their one shared name', () =>
 - `findTypeLiterals` lists every `font-weight`, `line-height` and
   `letter-spacing` written as a number or a keyword: a text voice is declared
   once, in a mixin, and a component includes it. `inherit` and `var()` pass.
-- `findUnnamedValues` lists a radius (`radius`) or a transition or animation
-  duration or delay (`duration`) written as a literal: a radius is a
-  `--radius-*` token, a duration is written over `--transition-*`, which
-  `reduced-motion.css` collapses. `0` and `0s` pass.
+- `findUnnamedValues` lists a radius (`radius`), a transition or animation
+  duration or delay (`duration`) or a `font-size` (`text-size`) written as a
+  literal: a radius is a `--radius-*` token, a duration is written over
+  `--transition-*`, which `reduced-motion.css` collapses, a text size is a
+  `--text-*` step. `0` and `0s` pass; a font size passes when it reads a
+  `var()` — a fitted floor `max(var(--text-s), 7cqi)`, a unit token
+  `calc(var(--cu) * 4)` —, keeps the parent's size (`1em`, `100%`) or is a
+  keyword.
 - `findTokenFailures` takes every source — stylesheets and the scripts that
   set a property through `style` — and lists a name read through `var()` but
-  declared nowhere and not shared (`undeclared`: a rename without an alias),
-  or a second name in a family the shared set holds in one (`parallel`:
-  `--control-m` beside `--control-height`, `--outline-thin` beside
-  `--outline-thick`). `SHARED_TOKENS` lists the names that pass undeclared.
+  declared nowhere, not shared and not `provided` (`undeclared`: a rename
+  without an alias); a second size in a family the shared set holds in one
+  (`parallel`: a `--control-*`, `--outline-*`, `--ring-*` or `--target-*` name
+  whose suffix is a size step or a size word — `--control-m`,
+  `--control-touch`, `--outline-thin` — or whose value is a bare length; a
+  derived `--target-reach` or a colour `--control-ink` passes); and a second
+  name for a shared value (`alias`: `--timing: cubic-bezier(0.16, 1, 0.3, 1)`
+  is `--ease-out`), compared only on values with a space, a comma or a
+  function. A name built by interpolation — `--g#{$n}`, `--pawn-${n}` — is not
+  read. `SHARED_TOKENS` lists the names that pass undeclared;
+  `SHARED_TOKEN_DEFAULTS` maps each `defaults` token to its value.
