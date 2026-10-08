@@ -5,7 +5,7 @@ $latin-ext: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0
 
 /// One self-hosted `woff2` file. `$weight` and `$stretch` take a range for a
 /// variable face.
-@mixin font-face($family, $url, $unicode-range, $weight: 400, $style: normal, $stretch: null, $display: swap)
+@mixin font-face($family, $url, $unicode-range, $weight: 400, $style: normal, $stretch: null, $display: optional)
   @font-face
     font-display: $display
     font-family: $family

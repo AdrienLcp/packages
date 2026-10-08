@@ -94,8 +94,10 @@ into; `font-face` declares one self-hosted `woff2` file.
 @include fonts.font-face('Archivo', '/fonts/archivo-latin-ext.woff2', fonts.$latin-ext, $weight: 100 900, $stretch: 62% 125%)
 ```
 
-`$weight`, `$style` (`normal`), `$stretch` (left out) and `$display` (`swap`)
-are optional.
+`$weight`, `$style` (`normal`), `$stretch` (left out) and `$display`
+(`optional`) are optional. `optional` keeps the fallback face for the page's
+whole life when the font misses the first ~100 ms, so the font never swaps in
+under a reader and moves a line; it is cached for the next page.
 
 ### `tokens`
 
