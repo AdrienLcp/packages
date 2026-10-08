@@ -1,6 +1,9 @@
 import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
+import { createElement } from 'react'
+import { Checkbox, Switch } from 'react-aria-components'
+import { renderToString } from 'react-dom/server'
 import { compileString } from 'sass'
 import { describe, expect, it } from 'vitest'
 
@@ -98,9 +101,35 @@ describe('focus', () => {
   @include focus.ring-focusables
 `)
     expect(css).toContain(
-      ':where(a[href],button,input,select,textarea,summary,[tabindex],[contenteditable])[data-focus-visible]'
+      ':where(a[href],button,input,select,textarea,summary,[tabindex],[contenteditable])'
     )
-    expect(css).not.toContain('*')
+    expect(css).not.toMatch(/[{,]\*/)
     expect(css).not.toContain('role')
   })
+
+  it('[focus] skips the input react-aria hides under a switch or a checkbox', () => {
+    const css = compile(`
+@use 'focus'
+@layer base
+  @include focus.ring-focusables
+`)
+    expect(css).toContain(
+      ':where(:not([style*="inset(50%)"],[style*="inset(50%)"] *))[data-focus-visible]'
+    )
+    expect(css).toContain(
+      ':where(:not([style*="inset(50%)"],[style*="inset(50%)"] *)):focus-visible'
+    )
+  })
+
+  it.each([
+    ['Switch', createElement(Switch, null, 'Sound')],
+    ['Checkbox', createElement(Checkbox, null, 'Sound')]
+  ])(
+    '[focus] finds the clip it skips around the input of a %s',
+    (_, control) => {
+      expect(renderToString(control)).toMatch(
+        /<span style="[^"]*inset\(50%\)[^"]*"><input/
+      )
+    }
+  )
 })

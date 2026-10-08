@@ -71,7 +71,9 @@ focus. `ring-within` rings a box while a field inside it has focus: a
 `ring-focusables`, included once at the root of the base layer, rings every
 element that takes focus at zero specificity — never `*`, since a `Group` or a
 `Select` root stamps `data-focus-visible` while the control inside holds the
-focus, and would ring beside it. Configure the ring once, in the app's own `_focus.sass`, and have
+focus, and would ring beside it. It skips the input `VisuallyHidden` clips
+under a `Switch`, a `Checkbox` or a `Radio`: the visible control rings
+through `$on`. Configure the ring once, in the app's own `_focus.sass`, and have
 components `@use` that file:
 
 ```sass

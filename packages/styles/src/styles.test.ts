@@ -270,9 +270,20 @@ describe('accessibility rings', () => {
   @include accessibility.ring-focusables
 `)
     expect(css).toContain(
-      ':where(a[href],button,input,select,textarea,summary,[tabindex],[contenteditable])[data-focus-visible]'
+      ':where(a[href],button,input,select,textarea,summary,[tabindex],[contenteditable])'
     )
-    expect(css).not.toContain('*')
+    expect(css).not.toMatch(/[{,]\*/)
+  })
+
+  it('[a11y] skips what react-aria clips out of sight, and what it clips', () => {
+    const css = compile(`
+@use 'accessibility'
+@layer base
+  @include accessibility.ring-focusables
+`)
+    expect(css).toContain(
+      ':where(:not([style*="inset(50%)"],[style*="inset(50%)"] *))[data-focus-visible]'
+    )
   })
 })
 

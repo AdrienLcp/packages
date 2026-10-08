@@ -4,6 +4,11 @@ $ring-width: 2px !default
 $ring-color: currentColor !default
 $ring-offset: 3px !default
 
+/// react-aria's `VisuallyHidden` clips with an inline `clip-path: inset(50%)`,
+/// on the hidden element or on its wrapper. The match reads both
+/// serialisations: React's server string and the browser's own.
+$_visually-hidden: "[style*='inset(50%)']"
+
 /// react-aria stamps `data-focus-visible` on keyboard focus only, and on the
 /// element it styles: a control built over a hidden input rings through it
 /// alone. The `:focus-visible` twin covers a native element.
@@ -36,9 +41,10 @@ $ring-offset: 3px !default
 /// the app's base layer. It matches what can take focus, never `*`: a `Group`
 /// or a `Select` root stamps `data-focus-visible` while the control inside
 /// holds the focus, and a ring on both draws two. A control built over a hidden
-/// input rings in its own stylesheet, through `$on`.
+/// input rings in its own stylesheet, through `$on`: the input itself, clipped
+/// by react-aria's `VisuallyHidden`, is skipped, and so is anything it clips.
 @mixin ring-focusables
-  :where(a[href], button, input, select, textarea, summary, [tabindex], [contenteditable])
+  :where(a[href], button, input, select, textarea, summary, [tabindex], [contenteditable]):where(:not(#{$_visually-hidden}, #{$_visually-hidden} *))
     @include ring
 
 @mixin _on-focus-visible($on)

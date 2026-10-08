@@ -157,7 +157,9 @@ them, a line is `currentColor` mixed toward transparent and the ring is
 - `ring-focusables`, included once at the root of the base layer, rings every
   element that takes focus at zero specificity. It never matches `*`: a
   wrapper that stamps `data-focus-visible` while a control inside holds the
-  focus — react-aria's `Group`, a `Select` root — would ring beside it.
+  focus — react-aria's `Group`, a `Select` root — would ring beside it. It
+  skips what react-aria's `VisuallyHidden` clips — the input of a `Switch`, a
+  `Checkbox`, a `Radio` — since the visible control rings instead.
 
 ### `sizes`
 

@@ -37,13 +37,21 @@
     outline: var(--ring)
     outline-offset: $offset
 
+/// react-aria's `VisuallyHidden` clips with an inline `clip-path: inset(50%)`,
+/// on the hidden element or on its wrapper. The match reads both
+/// serialisations: React's server string and the browser's own.
+$_visually-hidden: "[style*='inset(50%)']"
+
 /// The ring every element that takes focus draws by default, at zero
 /// specificity so a component's own ring wins. Included once, at the root of
 /// the app's base layer. It matches what can take focus, never `*`: a wrapper
 /// that stamps `data-focus-visible` while the control inside holds the focus —
-/// react-aria's `Group`, a `Select` root — would ring beside it.
+/// react-aria's `Group`, a `Select` root — would ring beside it. An element
+/// clipped by an inline `clip-path: inset(50%)` — react-aria's `VisuallyHidden`
+/// around the input of a `Switch` or a `Checkbox` — is skipped, and so is
+/// anything it clips: the visible control rings instead.
 @mixin ring-focusables
-  :where(a[href], button, input, select, textarea, summary, [tabindex], [contenteditable])
+  :where(a[href], button, input, select, textarea, summary, [tabindex], [contenteditable]):where(:not(#{$_visually-hidden}, #{$_visually-hidden} *))
     @include ring
 
 @mixin _on-focus-visible($on)
