@@ -4,7 +4,9 @@ export const FR_DICTIONARY = defineDictionary({
   app: {
     description:
       'Documentation et historique des versions des paquets @adrienlcp : de petits paquets TypeScript typés, sans dépendance.',
-    name: '@adrienlcp packages'
+    name: '@adrienlcp packages',
+    shareImageAlt:
+      'Le logotype @adrienlcp/packages à côté de la liste des paquets, chacun avec sa marque de couleur.'
   },
   docs: {
     how: 'Le README et les documents à côté, tels qu’écrits dans le dépôt.',

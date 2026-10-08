@@ -311,6 +311,11 @@ const documentFor = ({
     selector: 'meta[property="og:locale"]',
     value: openGraphLocaleOf(page.locale)
   })
+  setContent({
+    document,
+    selector: 'meta[property="og:image:alt"]',
+    value: page.shareImageAlt
+  })
   onlyElement({
     document,
     selector: 'script[type="application/ld+json"]'

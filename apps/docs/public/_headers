@@ -1,2 +1,5 @@
 https://adrienlcp-packages.pages.dev/*
   X-Robots-Tag: noindex
+
+https://:deployment.adrienlcp-packages.pages.dev/*
+  X-Robots-Tag: noindex
