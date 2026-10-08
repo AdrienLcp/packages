@@ -75,6 +75,11 @@
   ol {
     list-style: none;
   }
+
+  /* A z-index inside the app stays inside it: react-aria's overlays, portalled to body, always land above. */
+  #root {
+    isolation: isolate;
+  }
 }
 
 /* Unlayered: a component's `display: flex` would otherwise show what `hidden` hides. */

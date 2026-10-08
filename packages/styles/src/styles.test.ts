@@ -20,25 +20,33 @@ const exportTargets = Object.values(manifest.exports).map((target) =>
 )
 
 describe('the package manifest', () => {
-  it.each(exportTargets)('points %s at a file that ships', (target) => {
-    expect(existsSync(new URL(`../${target}`, import.meta.url))).toBe(true)
-  })
+  it.each(exportTargets)(
+    '[manifest] points %s at a file that ships',
+    (target) => {
+      expect(existsSync(new URL(`../${target}`, import.meta.url))).toBe(true)
+    }
+  )
 })
 
 describe('reset', () => {
-  it('lets every size transition reach an intrinsic keyword', () => {
+  it('[reset] lets every size transition reach an intrinsic keyword', () => {
     const reset = readFileSync(new URL('reset.css', import.meta.url), 'utf8')
     expect(reset).toMatch(/html \{[^}]*interpolate-size: allow-keywords;/)
   })
 
-  it('stops a scrolled-to anchor below a sticky header the app measures', () => {
+  it('[reset] stops a scrolled-to anchor below a sticky header the app measures', () => {
     const reset = readFileSync(new URL('reset.css', import.meta.url), 'utf8')
     expect(reset).toMatch(
       /html \{[^}]*scroll-padding-block-start: var\(--scroll-offset, 0px\);/
     )
   })
 
-  it('keeps hidden elements hidden whatever display a component gives them, unlayered', () => {
+  it('[reset] keeps every stacking context of the app under the overlays portalled to body', () => {
+    const reset = readFileSync(new URL('reset.css', import.meta.url), 'utf8')
+    expect(reset).toMatch(/#root \{\s*isolation: isolate;/)
+  })
+
+  it('[reset] keeps hidden elements hidden whatever display a component gives them, unlayered', () => {
     const reset = readFileSync(new URL('reset.css', import.meta.url), 'utf8')
     const unlayered = reset.slice(reset.indexOf('\n}\n') + 3)
     expect(unlayered).toMatch(
@@ -48,7 +56,7 @@ describe('reset', () => {
 })
 
 describe('reduced motion', () => {
-  it('ends every keyframe animation at once, looping ones included', () => {
+  it('[motion] ends every keyframe animation at once, looping ones included', () => {
     const css = readFileSync(
       new URL('reduced-motion.css', import.meta.url),
       'utf8'
@@ -58,7 +66,7 @@ describe('reduced motion', () => {
     )
   })
 
-  it('stills every view transition, which no duration token reaches', () => {
+  it('[motion] stills every view transition, which no duration token reaches', () => {
     const css = readFileSync(
       new URL('reduced-motion.css', import.meta.url),
       'utf8'
@@ -70,7 +78,7 @@ describe('reduced motion', () => {
 })
 
 describe('breakpoints', () => {
-  it('splits every width into wide or narrow at 900px', () => {
+  it('[breakpoints] splits every width into wide or narrow at 56.25rem', () => {
     const css = compile(`
 @use 'breakpoints'
 .a
@@ -79,23 +87,23 @@ describe('breakpoints', () => {
   @include breakpoints.narrow
     color: blue
 `)
-    expect(css).toContain('@media(width >= 900px){.a{color:red}}')
-    expect(css).toContain('@media(width < 900px){.a{color:blue}}')
+    expect(css).toContain('@media(width >= 56.25rem){.a{color:red}}')
+    expect(css).toContain('@media(width < 56.25rem){.a{color:blue}}')
   })
 
-  it('takes another breakpoint through configuration', () => {
+  it('[breakpoints] takes another breakpoint through configuration', () => {
     const css = compile(`
-@use 'breakpoints' with ($wide-screen: 1024px)
+@use 'breakpoints' with ($wide-screen: 64rem)
 .a
   @include breakpoints.wide
     color: red
 `)
-    expect(css).toContain('width >= 1024px')
+    expect(css).toContain('width >= 64rem')
   })
 })
 
 describe('containers', () => {
-  it('declares an inline-size container, named only when given a name', () => {
+  it('[containers] declares an inline-size container, named only when given a name', () => {
     const css = compile(`
 @use 'containers'
 .anonymous
@@ -109,7 +117,7 @@ describe('containers', () => {
     )
   })
 
-  it('splits every container width into wide or narrow at the given width', () => {
+  it('[containers] splits every container width into wide or narrow at the given width', () => {
     const css = compile(`
 @use 'containers'
 .a
@@ -122,7 +130,7 @@ describe('containers', () => {
     expect(css).toContain('@container (width < 30rem){.a{color:blue}}')
   })
 
-  it('queries a named container', () => {
+  it('[containers] queries a named container', () => {
     const css = compile(`
 @use 'containers'
 .a
@@ -134,7 +142,7 @@ describe('containers', () => {
 })
 
 describe('fonts', () => {
-  it('declares a face and leaves out an axis it was not given', () => {
+  it('[fonts] declares a face and leaves out an axis it was not given', () => {
     const css = compile(`
 @use 'fonts'
 @include fonts.font-face('Archivo', '/fonts/archivo-latin.woff2', fonts.$latin, $weight: 600 900)
@@ -171,6 +179,8 @@ ${overrides}
     expect(css).toContain('--icon-m: 1.25rem')
     expect(css).toContain('--tracking-tight: -0.02em')
     expect(css).toContain('--underline-offset: 0.24em')
+    expect(css).toContain('--transition-base: 250ms')
+    expect(css).toContain('--ease-out: cubic-bezier(0.16, 1, 0.3, 1)')
   })
 
   it('[tokens] lets a value the app declares after them win', () => {
@@ -243,6 +253,29 @@ describe('accessibility', () => {
   })
 })
 
+describe('accessibility rings', () => {
+  it('[a11y] moves one ring off --ring-offset', () => {
+    const css = compile(`
+@use 'accessibility'
+.chip
+  @include accessibility.ring($offset: 1px)
+`)
+    expect(css).toContain('outline-offset:1px')
+  })
+
+  it('[a11y] rings what takes focus by default, never a wrapper that mirrors it', () => {
+    const css = compile(`
+@use 'accessibility'
+@layer base
+  @include accessibility.ring-focusables
+`)
+    expect(css).toContain(
+      ':where(a[href],button,input,select,textarea,summary,[tabindex],[contenteditable])[data-focus-visible]'
+    )
+    expect(css).not.toContain('*')
+  })
+})
+
 describe('sizes', () => {
   const compileSize = (call: string) =>
     compile(`
@@ -310,7 +343,7 @@ describe('spread', () => {
 
   it('[spread] sets them side by side with the rule between on a wide one', () => {
     expect(css).toContain(
-      '@media(width >= 900px){.page .columns{gap:var(--space-2xl);grid-template-columns:1fr 1fr}'
+      '@media(width >= 56.25rem){.page .columns{gap:var(--space-2xl);grid-template-columns:1fr 1fr}'
     )
     expect(css).toContain('border-left:var(--hairline);border-top:0')
   })

@@ -12,7 +12,8 @@
 /// ```
 ///
 /// Lines are drawn in `--rule` and `--rule-strong`, the ring in `--focus`: the
-/// app's palette declares them. Until it does, a line is `currentColor` mixed
+/// app's palette declares them. The `--transition-*` durations are the ones
+/// `reduced-motion.css` collapses: an app's own duration is written over them. Until it does, a line is `currentColor` mixed
 /// toward transparent and the ring is `currentColor`, never invisible.
 @mixin defaults
   --stroke-hair: 1px
@@ -37,6 +38,11 @@
   --icon-s: 1rem
   --icon-m: 1.25rem
   --icon-l: 1.5rem
+
+  --transition-fast: 150ms
+  --transition-base: 250ms
+  --transition-slow: 400ms
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1)
 
   --target: 44px
   --control-height: max(var(--target), 2.75rem)

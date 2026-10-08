@@ -10,10 +10,13 @@ $ring-offset: 3px !default
 ///
 /// `$on` draws the ring on a descendant of the focused element — the track of
 /// a `Switch`, whose root takes the focus: `@include focus.ring('.track')`.
-@mixin ring($on: null)
+///
+/// `$offset` moves this one ring off the configured offset — closer around a
+/// dense control, never as a declaration after the include.
+@mixin ring($on: null, $offset: $ring-offset)
   @include _on-focus-visible($on)
     outline: $ring-width solid $ring-color
-    outline-offset: $ring-offset
+    outline-offset: $offset
 
 /// The ring drawn inside the box, for an element a clipping ancestor would cut.
 @mixin ring-inset($on: null)
@@ -23,10 +26,20 @@ $ring-offset: 3px !default
 
 /// The ring drawn on a box while the field inside it has focus — a
 /// `SearchField`'s `Group` around its input and its clear button.
-@mixin ring-within
+@mixin ring-within($offset: $ring-offset)
   &:has([data-focus-visible], :focus-visible)
     outline: $ring-width solid $ring-color
-    outline-offset: $ring-offset
+    outline-offset: $offset
+
+/// The ring every element that takes focus draws by default, at zero
+/// specificity so a component's own ring wins. Included once, at the root of
+/// the app's base layer. It matches what can take focus, never `*`: a `Group`
+/// or a `Select` root stamps `data-focus-visible` while the control inside
+/// holds the focus, and a ring on both draws two. A control built over a hidden
+/// input rings in its own stylesheet, through `$on`.
+@mixin ring-focusables
+  :where(a[href], button, input, select, textarea, summary, [tabindex], [contenteditable])
+    @include ring
 
 @mixin _on-focus-visible($on)
   &[data-focus-visible],

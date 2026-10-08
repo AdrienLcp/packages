@@ -13,7 +13,7 @@ pnpm add @adrienlcp/styles
 
 | File | Does |
 | --- | --- |
-| `reset.css` | Box sizing, zeroed margins and paddings, inherited fonts on controls, bare buttons that fire on the first tap (`touch-action: manipulation`), links in their parent's color with their underline kept, bare lists, balanced headings, pretty paragraphs, and `interpolate-size: allow-keywords` so a transition reaches `height: auto` (Chromium; elsewhere the size snaps as before), no tap highlight on mobile — every pressable then owes its own pressed style —, headings and paragraphs that break a long word rather than overflow, a textarea that resizes only vertically, and anchors that scroll to `--scroll-offset` below the top (the height of a sticky header, `0px` until set). Inside `@layer reset`, except `[hidden]`, kept hidden whatever `display` a component gives it |
+| `reset.css` | Box sizing, zeroed margins and paddings, inherited fonts on controls, bare buttons that fire on the first tap (`touch-action: manipulation`), links in their parent's color with their underline kept, bare lists, balanced headings, pretty paragraphs, and `interpolate-size: allow-keywords` so a transition reaches `height: auto` (Chromium; elsewhere the size snaps as before), no tap highlight on mobile — every pressable then owes its own pressed style —, headings and paragraphs that break a long word rather than overflow, a textarea that resizes only vertically, anchors that scroll to `--scroll-offset` below the top (the height of a sticky header, `0px` until set), and `#root` isolated so a `z-index` inside the app never climbs over an overlay portalled to `body`. It leaves out what an app decides: `scrollbar-gutter`, `font-synthesis`, `field-sizing` on a textarea, and smooth scrolling, which would also animate the router's scroll on every navigation. Inside `@layer reset`, except `[hidden]`, kept hidden whatever `display` a component gives it |
 | `reduced-motion.css` | Collapses `--transition-fast`, `--transition-base` and `--transition-slow` to `0ms` under `prefers-reduced-motion: reduce`, ends every keyframe animation at once, looping ones included, and stills view transitions, which React's `<ViewTransition>` starts whatever the preference. Unlayered, so it beats the tokens wherever they are defined |
 
 Import them once — from JavaScript, or from the global stylesheet in Sass:
@@ -76,9 +76,11 @@ shell, a sidebar that turns into a drawer, an overlay pinned to the viewport.
     grid-template-columns: 16rem 1fr
 ```
 
-`$wide-screen` is `900px`; `wide` is `width >= $wide-screen` and `narrow` its
-exact complement. Another value: `@use '@adrienlcp/styles/breakpoints' with
-($wide-screen: 1024px)`.
+`$wide-screen` is `56.25rem` — rem in a media query reads the browser's font
+size, so a user who raises it gets the narrow layout sooner. `wide` is
+`width >= $wide-screen` and `narrow` its exact complement. Another value:
+`@use '@adrienlcp/styles/breakpoints' with ($wide-screen: 64rem)`; a container
+threshold that follows the shell takes the same value.
 
 ### `fonts`
 
@@ -121,6 +123,8 @@ wins.
 | `--icon-s`, `--icon-m`, `--icon-l` | `1rem`, `1.25rem`, `1.5rem` |
 | `--target` | `44px`, the smallest touch target |
 | `--control-height` | a drawn control's height: `2.75rem`, never below `--target` |
+| `--transition-fast`, `--transition-base`, `--transition-slow` | `150ms`, `250ms`, `400ms` — what `reduced-motion.css` collapses |
+| `--ease-out` | `cubic-bezier(0.16, 1, 0.3, 1)` |
 | `--measure` | `65ch` |
 
 `--rule`, `--rule-strong` and `--focus` are the app's palette. Until it declares
@@ -146,8 +150,13 @@ them, a line is `currentColor` mixed toward transparent and the ring is
   in an ancestor that clips. Both take `$on`, a selector that draws the ring
   on a descendant of the focused element — `ring('.track')` for a switch whose
   root takes the focus. `ring-within` rings a box while a field inside it has
-  focus, a search box around its input. An app on `@adrienlcp/react-aria` has
-  the same set in its `focus` module.
+  focus, a search box around its input. `ring` and `ring-within` take
+  `$offset` for one ring closer than `--ring-offset`. An app on
+  `@adrienlcp/react-aria` has the same set in its `focus` module.
+- `ring-focusables`, included once at the root of the base layer, rings every
+  element that takes focus at zero specificity. It never matches `*`: a
+  wrapper that stamps `data-focus-visible` while a control inside holds the
+  focus — react-aria's `Group`, a `Select` root — would ring beside it.
 
 ### `sizes`
 
@@ -253,32 +262,59 @@ stylesheet:
 ```ts
 import { globSync, readFileSync } from 'node:fs'
 
-import { findTypeLiterals, findUnitFailures } from '@adrienlcp/styles/audit'
+import {
+  findTokenFailures,
+  findTypeLiterals,
+  findUnitFailures,
+  findUnnamedValues
+} from '@adrienlcp/styles/audit'
 import { describe, expect, it } from 'vitest'
 
 const STYLESHEETS = globSync('src/**/*.{sass,css}')
+const SOURCES = globSync('src/**/*.{sass,css,ts,tsx}').map((path) => readFileSync(path, 'utf8'))
 
 describe.each(STYLESHEETS)('%s', (path) => {
   const stylesheet = readFileSync(path, 'utf8')
 
-  it('sizes text and spacing in rem', () => {
+  it('sizes text, spacing and boxes in rem', () => {
     expect(findUnitFailures(stylesheet)).toEqual([])
   })
 
   it.skipIf(path.endsWith('_typography.sass'))('takes its text voice from the typography mixins', () => {
     expect(findTypeLiterals(stylesheet)).toEqual([])
   })
+
+  it('takes its radii and durations from tokens', () => {
+    expect(findUnnamedValues(stylesheet)).toEqual([])
+  })
+})
+
+it('reads only custom properties that exist, under their one shared name', () => {
+  expect(findTokenFailures(SOURCES)).toEqual([])
 })
 ```
 
-- `findUnitFailures` reads `font-size`, `font`, `--text-*`, `--space-*`,
-  `margin*`, `padding*`, `gap`, `row-gap`, `column-gap` and `text-indent`. A
-  failure is `pixels` — any `px` value there, `clamp()` bounds and `calc()`
-  terms included — or `viewport-without-rem`: a text size driven by `vw`, `vh`,
-  `vmin` or a container unit with no rem part, which zoom cannot enlarge.
-  Strokes, radii, shadows and the touch target stay in px and are not read. A
+- `findUnitFailures` reads `font-size`, `font`, `margin*`, `padding*`, the
+  gaps, `text-indent`, `width`, `height` and their logical, `min-` and `max-`
+  forms, `inset*`, `top`, `right`, `bottom`, `left`, `translate`, `flex-basis`
+  and every custom property. A failure is `pixels` — any `px` value there,
+  `clamp()` bounds and `calc()` terms included — or `viewport-without-rem`: a
+  text size driven by `vw`, `vh`, `vmin` or a container unit with no rem part,
+  which zoom cannot enlarge. Strokes, outlines, radii, shadows and the touch
+  target stay in px: their properties and their `--stroke-*`, `--outline-*`,
+  `--radius-*`, `--shadow-*` and `--target` tokens are not read. A
   surface sized on the viewport — a scoreboard on a TV — derives its sizes from
   a named unit token (`calc(var(--cu) * 4)`), which passes.
 - `findTypeLiterals` lists every `font-weight`, `line-height` and
   `letter-spacing` written as a number or a keyword: a text voice is declared
   once, in a mixin, and a component includes it. `inherit` and `var()` pass.
+- `findUnnamedValues` lists a radius (`radius`) or a transition or animation
+  duration or delay (`duration`) written as a literal: a radius is a
+  `--radius-*` token, a duration is written over `--transition-*`, which
+  `reduced-motion.css` collapses. `0` and `0s` pass.
+- `findTokenFailures` takes every source — stylesheets and the scripts that
+  set a property through `style` — and lists a name read through `var()` but
+  declared nowhere and not shared (`undeclared`: a rename without an alias),
+  or a second name in a family the shared set holds in one (`parallel`:
+  `--control-m` beside `--control-height`, `--outline-thin` beside
+  `--outline-thick`). `SHARED_TOKENS` lists the names that pass undeclared.

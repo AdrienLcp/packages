@@ -76,4 +76,31 @@ describe('focus', () => {
       '.search-box:has([data-focus-visible],:focus-visible){outline:2px solid currentColor;outline-offset:3px}'
     )
   })
+
+  it('[focus] moves one ring off the configured offset', () => {
+    const css = compile(`
+@use 'focus'
+.chip
+  @include focus.ring($offset: 1px)
+.search
+  @include focus.ring-within($offset: 0)
+`)
+    expect(css).toContain(
+      '.chip:focus-visible{outline:2px solid currentColor;outline-offset:1px}'
+    )
+    expect(css).toContain('outline-offset:0}')
+  })
+
+  it('[focus] rings what takes focus by default, never a wrapper that mirrors it', () => {
+    const css = compile(`
+@use 'focus'
+@layer base
+  @include focus.ring-focusables
+`)
+    expect(css).toContain(
+      ':where(a[href],button,input,select,textarea,summary,[tabindex],[contenteditable])[data-focus-visible]'
+    )
+    expect(css).not.toContain('*')
+    expect(css).not.toContain('role')
+  })
 })

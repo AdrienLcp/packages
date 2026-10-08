@@ -15,10 +15,13 @@
 ///
 /// `$on` draws the ring on a descendant of the focused element — the track of
 /// a switch whose root takes the focus: `@include accessibility.ring('.track')`.
-@mixin ring($on: null)
+///
+/// `$offset` moves this one ring off `--ring-offset` — closer around a dense
+/// control, never as a declaration after the include.
+@mixin ring($on: null, $offset: var(--ring-offset))
   @include _on-focus-visible($on)
     outline: var(--ring)
-    outline-offset: var(--ring-offset)
+    outline-offset: $offset
 
 /// The ring drawn inside the box, for a control that fills its row edge to edge
 /// or sits in an ancestor that clips.
@@ -29,10 +32,19 @@
 
 /// The ring drawn on a box while the field inside it has focus — a search box
 /// around its input and its clear button.
-@mixin ring-within
+@mixin ring-within($offset: var(--ring-offset))
   &:has([data-focus-visible], :focus-visible)
     outline: var(--ring)
-    outline-offset: var(--ring-offset)
+    outline-offset: $offset
+
+/// The ring every element that takes focus draws by default, at zero
+/// specificity so a component's own ring wins. Included once, at the root of
+/// the app's base layer. It matches what can take focus, never `*`: a wrapper
+/// that stamps `data-focus-visible` while the control inside holds the focus —
+/// react-aria's `Group`, a `Select` root — would ring beside it.
+@mixin ring-focusables
+  :where(a[href], button, input, select, textarea, summary, [tabindex], [contenteditable])
+    @include ring
 
 @mixin _on-focus-visible($on)
   &[data-focus-visible],

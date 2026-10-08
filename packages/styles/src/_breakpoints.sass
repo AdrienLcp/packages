@@ -1,9 +1,12 @@
-/// Where a screen stops being a phone's. A media query cannot read a custom
-/// property, so the breakpoint is a Sass value; override it with
-/// `@use '@adrienlcp/styles/breakpoints' with ($wide-screen: 1024px)`.
+/// Where a screen stops being a phone's, in rem: a media query reads rem off
+/// the browser's font size, so a user who raises it gets the narrow layout
+/// sooner. A media query cannot read a custom property, so the breakpoint is a
+/// Sass value; override it with
+/// `@use '@adrienlcp/styles/breakpoints' with ($wide-screen: 64rem)`, and
+/// forward the same value to a container threshold that follows the shell.
 /// Only for what depends on the device — the page shell, a fixed overlay; a
 /// component answers its container through `containers`.
-$wide-screen: 900px !default
+$wide-screen: 56.25rem !default
 
 /// `wide` and `narrow` are exact complements: every width is one or the other.
 @mixin wide

@@ -49,7 +49,12 @@ rings through the attribute, since the focused element is the invisible input.
 cut. Both take `$on`, a selector that draws the ring on a descendant of the
 focused element — `focus.ring('.track')` for a `Switch`, whose root takes the
 focus. `ring-within` rings a box while a field inside it has focus: a
-`SearchField`'s `Group` around its input and its clear button. Configure the ring once, in the app's own `_focus.sass`, and have
+`SearchField`'s `Group` around its input and its clear button. `ring` and
+`ring-within` take `$offset` for one ring closer than the configured one.
+`ring-focusables`, included once at the root of the base layer, rings every
+element that takes focus at zero specificity — never `*`, since a `Group` or a
+`Select` root stamps `data-focus-visible` while the control inside holds the
+focus, and would ring beside it. Configure the ring once, in the app's own `_focus.sass`, and have
 components `@use` that file:
 
 ```sass
