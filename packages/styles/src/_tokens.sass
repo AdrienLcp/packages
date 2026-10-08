@@ -8,7 +8,7 @@
 /// @layer tokens
 ///   \:root
 ///     @include tokens.defaults
-///     --measure: 62ch
+///     --gutter: var(--space-l)
 /// ```
 ///
 /// Lines are drawn in `--rule` and `--rule-strong`, the ring in `--focus`: the
@@ -21,6 +21,18 @@
 /// `0px` elsewhere, so `max(var(--space-m), var(--safe-area-bottom))` pads an
 /// edge on every device. The bottom reads Android's `safe-area-max-inset-bottom`
 /// first, the static ceiling of a bar that retracts on scroll.
+///
+/// `--gutter-left` and `--gutter-right` pad a page's sides by `--gutter`, or by
+/// the inset a landscape notch covers when it is wider. Set `--gutter` on
+/// `:root`: the pair is computed there, so a `--gutter` declared deeper does
+/// not reach it.
+///
+/// The ring is a whole number of pixels: Chromium draws an outline in whole
+/// device pixels, so a `2.5px` one is `2px` on a 1x screen.
+///
+/// `--measure` is in `em`, never `ch`: a `ch` is the width of the font's zero,
+/// which the fallback face and the web font draw differently even scaled to one
+/// another, so a column in `ch` rewraps when the web font replaces the fallback.
 @mixin defaults
   --stroke-hair: 1px
   --stroke-thin: 1.5px
@@ -53,7 +65,11 @@
   --target: 44px
   --control-height: max(var(--target), 2.75rem)
 
-  --measure: 65ch
+  --measure: 34em
+
+  --gutter: 1rem
+  --gutter-left: max(var(--gutter), var(--safe-area-left))
+  --gutter-right: max(var(--gutter), var(--safe-area-right))
 
   --safe-area-top: env(safe-area-inset-top, 0px)
   --safe-area-right: env(safe-area-inset-right, 0px)

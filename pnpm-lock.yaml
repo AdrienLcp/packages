@@ -424,6 +424,9 @@ importers:
       '@types/culori':
         specifier: ^4.0.1
         version: 4.0.1
+      lightningcss:
+        specifier: ^1.33.0
+        version: 1.33.0
       postcss:
         specifier: ^8.5.28
         version: 8.5.28

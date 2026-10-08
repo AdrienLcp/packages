@@ -4,12 +4,33 @@
  * fonts (Arimo, Cousine, Tinos) instead of the Microsoft ones, and Android
  * only Roboto, within 0.3 % of Arial once scaled: a fallback face that names
  * the Microsoft font alone fails to load there, text paints in an unscaled
- * system font and moves when the web font swaps in.
+ * system font and moves when the web font swaps in. A bold cut is named by its
+ * own full and PostScript names: `local()` matches one face of a family, never
+ * the family, so the bold cuts of the twins are listed under the bold one.
  */
 export const METRIC_TWINS: Readonly<Record<string, readonly string[]>> = {
   Arial: ['Arial', 'Liberation Sans', 'Arimo', 'Roboto'],
+  'Arial Bold': [
+    'Arial Bold',
+    'Arial-BoldMT',
+    'Liberation Sans Bold',
+    'Arimo Bold',
+    'Roboto Bold'
+  ],
   'Courier New': ['Courier New', 'Liberation Mono', 'Cousine'],
-  'Times New Roman': ['Times New Roman', 'Liberation Serif', 'Tinos']
+  'Courier New Bold': [
+    'Courier New Bold',
+    'CourierNewPS-BoldMT',
+    'Liberation Mono Bold',
+    'Cousine Bold'
+  ],
+  'Times New Roman': ['Times New Roman', 'Liberation Serif', 'Tinos'],
+  'Times New Roman Bold': [
+    'Times New Roman Bold',
+    'TimesNewRomanPS-BoldMT',
+    'Liberation Serif Bold',
+    'Tinos Bold'
+  ]
 }
 
 /** The fonts each one is widened to, keyed by the font a fallback face names. */

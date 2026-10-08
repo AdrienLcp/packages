@@ -62,7 +62,17 @@ describe('reduced motion', () => {
       'utf8'
     )
     expect(css).toMatch(
-      /\*,\s*::before,\s*::after \{\s*animation-duration: 0s;\s*animation-iteration-count: 1;/
+      /\*,\s*::before,\s*::after \{\s*animation-duration: var\(--reduced-motion-duration, 0s\);\s*animation-iteration-count: 1;/
+    )
+  })
+
+  it('[motion] lets one element keep its scroll-driven animation, never its descendants', () => {
+    const css = readFileSync(
+      new URL('reduced-motion.css', import.meta.url),
+      'utf8'
+    )
+    expect(css).toMatch(
+      /@property --reduced-motion-duration \{\s*syntax: "\*";\s*inherits: false;\s*\}/
     )
   })
 
@@ -152,6 +162,35 @@ describe('fonts', () => {
     expect(css).toContain('unicode-range:U+0000-00FF')
     expect(css).not.toContain('font-stretch')
   })
+
+  it('[fonts] scales a fallback face per weight band, in Arial Bold from the bold band', () => {
+    const css = compile(`
+@use 'fonts'
+@include fonts.fallback-faces('Sofia Sans', (ascent: 0.9, descent: 0.3, cap-height: 0.655), 0.964556, (300 449: 1.0094, 650 800: 1.0567))
+`)
+    expect(css).toContain(
+      'font-family:"Sofia Sans fallback";font-style:normal;font-weight:300 449;line-gap-override:0%;size-adjust:95.5573608084%;src:local("Arial")'
+    )
+    expect(css).toContain('font-weight:650 800')
+    expect(css).toContain('src:local("Arial Bold")')
+  })
+
+  it('[fonts] moves ascent and descent by the capital gap, their sum kept', () => {
+    const faces = (trimmed: boolean) =>
+      compile(`
+@use 'fonts'
+@include fonts.fallback-faces('Sofia Sans', (ascent: 0.9, descent: 0.3, cap-height: 0.655), 0.964556, (300 449: 1.0094), $trimmed-to-capitals: ${trimmed})
+`)
+    const overrides = (css: string) =>
+      ['ascent', 'descent'].map((edge) =>
+        Number.parseFloat(css.split(`${edge}-override:`)[1] ?? '')
+      )
+    const [ascent = 0, descent = 0] = overrides(faces(false))
+    const [trimmedAscent = 0, trimmedDescent = 0] = overrides(faces(true))
+
+    expect(trimmedAscent).not.toBeCloseTo(ascent, 2)
+    expect(trimmedAscent + trimmedDescent).toBeCloseTo(ascent + descent, 6)
+  })
 })
 
 describe('tokens', () => {
@@ -175,7 +214,10 @@ ${overrides}
     expect(css).toContain('--ring-inset: calc(-1 * var(--outline-thick))')
     expect(css).toContain('--target: 44px')
     expect(css).toContain('--control-height: max(var(--target), 2.75rem)')
-    expect(css).toContain('--measure: 65ch')
+    expect(css).toContain('--measure: 34em')
+    expect(css).toContain(
+      '--gutter-left: max(var(--gutter), var(--safe-area-left))'
+    )
     expect(css).toContain('--icon-m: 1.25rem')
     expect(css).toContain('--tracking-tight: -0.02em')
     expect(css).toContain('--underline-offset: 0.24em')
@@ -184,10 +226,10 @@ ${overrides}
   })
 
   it('[tokens] lets a value the app declares after them win', () => {
-    const css = compileTokens('  --measure: 62ch')
+    const css = compileTokens('  --measure: 30em')
 
-    expect(css.lastIndexOf('--measure: 62ch')).toBeGreaterThan(
-      css.indexOf('--measure: 65ch')
+    expect(css.lastIndexOf('--measure: 30em')).toBeGreaterThan(
+      css.indexOf('--measure: 34em')
     )
   })
 })

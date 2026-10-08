@@ -1,3 +1,9 @@
+/* Not inherited, so the opt-out reaches the element that declares it and none of its descendants. */
+@property --reduced-motion-duration {
+  syntax: "*";
+  inherits: false;
+}
+
 /* Unlayered, so it beats the token definitions whatever layer or file they sit in. */
 @media (prefers-reduced-motion: reduce) {
   :root {
@@ -6,11 +12,12 @@
     --transition-slow: 0ms;
   }
 
-  /* A keyframe animation no duration token reaches, a looping one above all: it ends at once, and the element keeps the look its rules give it. */
+  /* A keyframe animation no duration token reaches, a looping one above all: it ends at once, and the element keeps the look its rules give it.
+     A scroll-driven animation moves only as the reader scrolls, and a zero duration pins it to its last frame: its element declares --reduced-motion-duration: auto. */
   *,
   ::before,
   ::after {
-    animation-duration: 0s;
+    animation-duration: var(--reduced-motion-duration, 0s);
     animation-iteration-count: 1;
   }
 

@@ -14,7 +14,7 @@ pnpm add @adrienlcp/styles
 | File | Does |
 | --- | --- |
 | `reset.css` | Box sizing, zeroed margins and paddings, inherited fonts on controls, bare buttons that fire on the first tap (`touch-action: manipulation`), links in their parent's color with their underline kept, bare lists, balanced headings, pretty paragraphs, and `interpolate-size: allow-keywords` so a transition reaches `height: auto` (Chromium; elsewhere the size snaps as before), no tap highlight on mobile — every pressable then owes its own pressed style —, headings and paragraphs that break a long word rather than overflow, a textarea that resizes only vertically, anchors that scroll to `--scroll-offset` below the top (the height of a sticky header, `0px` until set), and `#root` isolated so a `z-index` inside the app never climbs over an overlay portalled to `body`. It leaves out what an app decides: `scrollbar-gutter`, `font-synthesis`, `field-sizing` on a textarea, and smooth scrolling, which would also animate the router's scroll on every navigation. Inside `@layer reset`, except `[hidden]`, kept hidden whatever `display` a component gives it |
-| `reduced-motion.css` | Collapses `--transition-fast`, `--transition-base` and `--transition-slow` to `0ms` under `prefers-reduced-motion: reduce`, ends every keyframe animation at once, looping ones included, and stills view transitions, which React's `<ViewTransition>` starts whatever the preference. Unlayered, so it beats the tokens wherever they are defined |
+| `reduced-motion.css` | Collapses `--transition-fast`, `--transition-base` and `--transition-slow` to `0ms` under `prefers-reduced-motion: reduce`, ends every keyframe animation at once, looping ones included, and stills view transitions, which React's `<ViewTransition>` starts whatever the preference. Unlayered, so it beats the tokens wherever they are defined. A scroll-driven animation moves only as the reader scrolls, and a zero duration pins it to its last frame: its element declares `--reduced-motion-duration: auto`, which reaches none of its descendants |
 
 Import them once — from JavaScript, or from the global stylesheet in Sass:
 
@@ -97,7 +97,33 @@ into; `font-face` declares one self-hosted `woff2` file.
 `$weight`, `$style` (`normal`), `$stretch` (left out) and `$display`
 (`optional`) are optional. `optional` keeps the fallback face for the page's
 whole life when the font misses the first ~100 ms, so the font never swaps in
-under a reader and moves a line; it is cached for the next page.
+under a reader and moves a line; it is cached for the next page. Its preload
+keeps the default priority: `fetchpriority="low"` makes it miss those 100 ms
+on purpose.
+
+`fallback-faces` writes a fallback face per weight band of a variable font,
+for the font fontaine scales poorly: fontaine writes one face for the whole
+font, measured at its default instance, so a heavier weight wraps later in
+Arial than in the web font.
+
+```sass
+@include fonts.fallback-faces('Sofia Sans', (ascent: 0.9, descent: 0.3, cap-height: 0.655), 0.964556, (300 449: 1.0094, 450 649: 1.0058, 650 800: 1.0567), $trimmed-to-capitals: true)
+```
+
+- `$metrics` is the web font's `ascent`, `descent` and `cap-height` in em, read
+  from its `hhea` and `OS/2` tables; `$size-adjust` the ratio fontaine computes
+  for the file.
+- Each `$widths` entry maps a weight range to Arial's width over the web
+  font's at that weight, measured over the app's own text (`measureText` on a
+  canvas, both fonts loaded).
+- A band from `$bold-from` (`650`) up is drawn in `Arial Bold`: a face that
+  declares its weights is never synthesised bolder.
+- `$trimmed-to-capitals` moves ascent and descent by the gap between the two
+  capital heights, their sum kept, so a title trimmed to its capitals starts at
+  the same height in both faces.
+- The faces are named `<family> fallback`, as fontaine names its own: skip the
+  family in fontaine's `skipFontFaceGeneration`, and list `metricTwins()`
+  after it for Linux and Android.
 
 ### `tokens`
 
@@ -111,7 +137,7 @@ wins.
 @layer tokens
   :root
     @include tokens.defaults
-    --measure: 62ch
+    --gutter: var(--space-l)
 ```
 
 | Token | Default |
@@ -119,7 +145,7 @@ wins.
 | `--stroke-hair`, `--stroke-thin`, `--stroke-bold` | `1px`, `1.5px`, `2px` |
 | `--hairline`, `--hairline-strong` | a `--stroke-hair` solid line in `--rule`, `--rule-strong` |
 | `--inset-hairline`, `--inset-hairline-strong` | the same line as an inset `box-shadow`, which takes no room |
-| `--outline-thick`, `--outline-offset` | `2px`, `3px` |
+| `--outline-thick`, `--outline-offset` | `2px`, `3px`. A whole number of pixels: Chromium draws an outline in whole device pixels, so a `2.5px` ring is `2px` on a 1x screen |
 | `--ring`, `--ring-offset`, `--ring-inset` | an `--outline-thick` solid outline in `--focus`, drawn `--outline-offset` outside the box or inside it |
 | `--underline-offset`, `--tracking-tight` | `0.24em`, `-0.02em` |
 | `--icon-s`, `--icon-m`, `--icon-l` | `1rem`, `1.25rem`, `1.5rem` |
@@ -127,7 +153,8 @@ wins.
 | `--control-height` | a drawn control's height: `2.75rem`, never below `--target` |
 | `--transition-fast`, `--transition-base`, `--transition-slow` | `150ms`, `250ms`, `400ms` — what `reduced-motion.css` collapses |
 | `--ease-out` | `cubic-bezier(0.16, 1, 0.3, 1)` |
-| `--measure` | `65ch` |
+| `--measure` | `34em`. Never `ch`: a `ch` is the width of the font's zero, which the fallback face and the web font draw differently, so a column in `ch` rewraps when the web font replaces the fallback |
+| `--gutter`, `--gutter-left`, `--gutter-right` | `1rem`; a page's sides padded by `--gutter`, or by the inset a landscape notch covers when it is wider. Set `--gutter` on `:root`, where the pair is computed |
 | `--safe-area-top`, `--safe-area-right`, `--safe-area-bottom`, `--safe-area-left` | what the notch, the corners and the home indicator cover under `viewport-fit=cover`, `0px` elsewhere; the bottom reads Android's `safe-area-max-inset-bottom` first. Pad an edge with `max(var(--space-m), var(--safe-area-bottom))` |
 
 `--rule`, `--rule-strong` and `--focus` are the app's palette. Until it declares
@@ -282,8 +309,14 @@ export default defineConfig({
 | A face naming | Also names |
 | --- | --- |
 | `Arial` | `Liberation Sans`, `Arimo`, `Roboto` |
+| `Arial Bold` | `Arial-BoldMT`, `Liberation Sans Bold`, `Arimo Bold`, `Roboto Bold` |
 | `Courier New` | `Liberation Mono`, `Cousine` |
+| `Courier New Bold` | `CourierNewPS-BoldMT`, `Liberation Mono Bold`, `Cousine Bold` |
 | `Times New Roman` | `Liberation Serif`, `Tinos` |
+| `Times New Roman Bold` | `TimesNewRomanPS-BoldMT`, `Liberation Serif Bold`, `Tinos Bold` |
+
+A bold cut is listed by its own names: `local()` matches one face, by its full
+or PostScript name, never a family.
 
 - Only a `src` that is one `local()` inside `@font-face` is rewritten, its name
   matched as a browser matches it, ignoring case; a downloaded file or a list
@@ -347,7 +380,11 @@ react-aria leaves the options out.
   failure is `pixels` — any non-zero `px` value there, `clamp()` bounds and
   `calc()` terms included — or `viewport-without-rem`: a
   text size driven by `vw`, `vh`, `vmin` or a container unit with no rem part,
-  which zoom cannot enlarge. Strokes, outlines, radii, shadows and the touch
+  which zoom cannot enlarge. It also lists `ch`, a size or a custom property
+  in `ch` — the width of the font's zero, which moves when the web font
+  replaces the fallback —, and `fractional-outline`, an `outline`,
+  `outline-width` or `--outline-*` width (the offset aside) that is not a
+  whole number of pixels. Strokes, outlines, radii, shadows and the touch
   target stay in px: their properties and their `--stroke-*`, `--outline-*`,
   `--radius-*`, `--shadow-*` and `--target` tokens are not read. A
   surface sized on the viewport — a scoreboard on a TV — derives its sizes from

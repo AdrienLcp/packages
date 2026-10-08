@@ -8,6 +8,7 @@
   "description": "A reset, a reduced-motion switch, default tokens, Sass mixins for self-hosted fonts, container queries, a breakpoint, focus rings, visually hidden text and a two-column spread, a fluid size in rem, a PostCSS plugin that lists Arial's metric twins in fontaine's fallback faces, and checks for WCAG contrast between colour tokens and for sizes the user's font size cannot reach",
   "devDependencies": {
     "@types/culori": "^4.0.1",
+    "lightningcss": "^1.33.0",
     "postcss": "^8.5.28",
     "sass": "^1.105.0"
   },

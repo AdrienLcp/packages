@@ -1,4 +1,8 @@
+import { fileURLToPath } from 'node:url'
+
+import { transform } from 'lightningcss'
 import postcss from 'postcss'
+import { compileString } from 'sass'
 import { describe, expect, it } from 'vitest'
 
 import { metricTwins, withMetricTwins } from './metric-twins.ts'
@@ -46,6 +50,12 @@ describe('withMetricTwins', () => {
     )
     expect(withMetricTwins('local("Times New Roman")')).toBe(
       'local("Times New Roman"), local("Liberation Serif"), local("Tinos")'
+    )
+  })
+
+  it('[metric-twins] widens Arial Bold to the bold cuts of its twins', () => {
+    expect(withMetricTwins("local('Arial Bold')")).toBe(
+      'local("Arial Bold"), local("Arial-BoldMT"), local("Liberation Sans Bold"), local("Arimo Bold"), local("Roboto Bold")'
     )
   })
 
@@ -101,5 +111,34 @@ describe('metricTwins', () => {
     )
 
     expect(css).toContain(ARIAL_AND_TWINS)
+  })
+})
+
+describe('fallback faces through a build', () => {
+  const FALLBACK_FACES = `
+@use 'fonts'
+@include fonts.fallback-faces('Sofia Sans', (ascent: 0.9, descent: 0.3, cap-height: 0.655), 0.964556, (300 449: 1.0094, 650 800: 1.0567))
+`
+
+  it('[metric-twins] keeps every twin of both Arial cuts once minified', async () => {
+    const compiled = compileString(FALLBACK_FACES, {
+      loadPaths: [fileURLToPath(new URL('.', import.meta.url))],
+      syntax: 'indented'
+    }).css
+    const minified = transform({
+      code: Buffer.from(await run(compiled)),
+      filename: 'fonts.css',
+      minify: true
+    }).code.toString()
+
+    for (const face of [
+      'Liberation Sans',
+      'Arimo',
+      'Roboto',
+      'Liberation Sans Bold',
+      'Arimo Bold',
+      'Roboto Bold'
+    ])
+      expect(minified.replaceAll('"', '')).toContain(`local(${face})`)
   })
 })

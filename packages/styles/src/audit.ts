@@ -7,7 +7,9 @@ export type StyleFailure<Kind extends string> = {
   line: number
 }
 
-export type UnitFailure = StyleFailure<'pixels' | 'viewport-without-rem'>
+export type UnitFailure = StyleFailure<
+  'pixels' | 'viewport-without-rem' | 'ch' | 'fractional-outline'
+>
 export type TypeLiteral = StyleFailure<'type-literal'>
 export type UnnamedValue = StyleFailure<'radius' | 'duration' | 'text-size'>
 
@@ -30,6 +32,9 @@ export type TokenAuditOptions = {
 export const SHARED_TOKEN_DEFAULTS = {
   '--control-height': 'max(var(--target), 2.75rem)',
   '--ease-out': 'cubic-bezier(0.16, 1, 0.3, 1)',
+  '--gutter': '1rem',
+  '--gutter-left': 'max(var(--gutter), var(--safe-area-left))',
+  '--gutter-right': 'max(var(--gutter), var(--safe-area-right))',
   '--hairline':
     'var(--stroke-hair) solid var(--rule, color-mix(in oklab, currentColor 25%, transparent))',
   '--hairline-strong':
@@ -41,7 +46,7 @@ export const SHARED_TOKEN_DEFAULTS = {
     'inset 0 0 0 var(--stroke-hair) var(--rule, color-mix(in oklab, currentColor 25%, transparent))',
   '--inset-hairline-strong':
     'inset 0 0 0 var(--stroke-hair) var(--rule-strong, color-mix(in oklab, currentColor 55%, transparent))',
-  '--measure': '65ch',
+  '--measure': '34em',
   '--outline-offset': '3px',
   '--outline-thick': '2px',
   '--ring': 'var(--outline-thick) solid var(--focus, currentColor)',
@@ -95,6 +100,9 @@ const RADIUS_PROPERTY = /^border(-[\w-]+)?-radius$/
 const MOTION_PROPERTY = /^(transition|animation)(-duration|-delay)?$/
 const DECLARATION = /^\s*([\w-]+)\s*:\s*(.+?)\s*;?\s*$/
 const PIXELS = /(^|[^\w.])-?(\d*\.?\d+)px\b/g
+const CH = /(^|[^\w.-])(\d*\.?\d+)ch\b/g
+const FRACTIONAL_PIXELS = /(^|[^\w.])\d*\.\d*[1-9]\d*px\b/
+const OUTLINE_WIDTH = /^(outline|outline-width|--outline-(?!offset\b)[\w-]+)$/
 const TRANSLATE_FUNCTION = /\btranslate(?:X|Y|Z|3d)?\(/g
 const VIEWPORT =
   /\d(vw|vh|vi|vb|vmin|vmax|svw|svh|lvw|lvh|dvw|dvh|cqi|cqb|cqw|cqh|cqmin|cqmax)\b/
@@ -161,6 +169,13 @@ const unitFailureKind = (
   if (translatesInPixels(property, value)) return 'pixels'
   if (TEXT_PROPERTY.test(property) && VIEWPORT.test(value) && !REM.test(value))
     return 'viewport-without-rem'
+  if (
+    (SIZED_PROPERTY.test(property) || CUSTOM_PROPERTY.test(property)) &&
+    hasNonZero(value, CH)
+  )
+    return 'ch'
+  if (OUTLINE_WIDTH.test(property) && FRACTIONAL_PIXELS.test(value))
+    return 'fractional-outline'
   return undefined
 }
 
@@ -187,7 +202,13 @@ const unnamedValueKind = (
  * `px` text size, spacing, box size, offset or translation — a `transform`'s
  * `translate*()` included —, a `px` custom property outside the families
  * drawn in pixels (`--stroke-*`, `--outline-*`, `--radius-*`, `--shadow-*`,
- * `--target`), or a text size driven by the viewport with no rem part. Reads
+ * `--target`), a text size driven by the viewport with no rem part (each
+ * `pixels` or `viewport-without-rem`), a size or a custom property in `ch`
+ * (`ch`) — the width of the font's zero, which the fallback face and the web
+ * font draw differently, so the box changes when one replaces the other —, or
+ * an outline width that is not a whole number of pixels (`fractional-outline`)
+ * — Chromium draws an outline in whole device pixels, so a `2.5px` ring is
+ * `2px` on a 1x screen. Reads
  * one declaration per line, as Sass and plain CSS are written; comments are
  * not read. A zero passes in any unit, and so does a size derived from a named
  * unit token (`calc(var(--cu) * 4)`): that is how a viewport-sized surface

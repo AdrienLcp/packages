@@ -98,6 +98,39 @@ describe('findUnitFailures', () => {
     ])
   })
 
+  it('[audit] flags a size or a custom property measured in the font’s zero', () => {
+    expect(
+      kinds(`:root
+  --measure: 65ch
+  --measure-title: 28ch
+  --measure-lead: 34em
+.digits
+  inline-size: calc(4ch + var(--space-s))
+  max-width: 0ch
+  letter-spacing: 0.1ch`)
+    ).toEqual([
+      { kind: 'ch', line: 2 },
+      { kind: 'ch', line: 3 },
+      { kind: 'ch', line: 6 }
+    ])
+  })
+
+  it('[audit] flags an outline width that is not a whole number of pixels', () => {
+    expect(
+      kinds(`:root
+  --outline-thick: 2.5px
+  --outline-offset: 2.5px
+  --outline-thin: 1px
+.card
+  outline: 1.5px solid var(--focus)
+  outline-width: 2.0px
+  outline-offset: 0.5px`)
+    ).toEqual([
+      { kind: 'fractional-outline', line: 2 },
+      { kind: 'fractional-outline', line: 6 }
+    ])
+  })
+
   it('[audit] flags a px inside a transform translate function', () => {
     expect(
       kinds(`.knob

@@ -1,7 +1,15 @@
+@use 'sass:list'
+@use 'sass:map'
+@use 'sass:math'
+
 /// The two subsets Google Fonts cuts a Latin face into: a page in English or
 /// French downloads the first file only.
 $latin: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD
 $latin-ext: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF
+
+/// Arial's capital height, from its OS/2 table: 1467 of 2048 units, 1466 in
+/// its bold cut.
+$arial-cap-height: math.div(1467, 2048)
 
 /// One self-hosted `woff2` file. `$weight` and `$stretch` take a range for a
 /// variable face.
@@ -14,3 +22,41 @@ $latin-ext: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0
     font-weight: $weight
     src: url($url) format('woff2')
     unicode-range: $unicode-range
+
+/// A fallback face per weight band of a variable web font, Arial scaled to the
+/// font's width at that band's weight, named `<family> fallback` as fontaine
+/// names its own. fontaine writes one face for the whole variable font,
+/// measured at its default instance: a heavier weight sets wider while one
+/// Arial cut does not, so the text wraps later in the fallback and moves when
+/// the web font replaces it.
+///
+/// `$metrics` is the web font's `ascent`, `descent` and `cap-height`, in em.
+/// `$size-adjust` is the ratio fontaine computes for the file. Each `$widths`
+/// entry maps a weight range to Arial's width over the web font's at that
+/// weight, measured over the app's own text. A band from `$bold-from` up is
+/// drawn in Arial Bold: a face that declares its weights is never synthesised
+/// bolder, so a heavy title would otherwise paint in thin regular strokes.
+///
+/// With `$trimmed-to-capitals`, ascent and descent move by the gap between
+/// the two capital heights, their sum kept: a title trimmed to its capitals
+/// starts at the same height in both faces instead of growing when the web
+/// font arrives.
+@mixin fallback-faces($family, $metrics, $size-adjust, $widths, $bold-from: 650, $trimmed-to-capitals: false)
+  @each $weights, $width-ratio in $widths
+    $scale: math.div($size-adjust, $width-ratio)
+    $gap: 0
+    @if $trimmed-to-capitals
+      $gap: map.get($metrics, cap-height) - $arial-cap-height * $scale
+    $arial: 'Arial'
+    @if list.nth($weights, 1) >= $bold-from
+      $arial: 'Arial Bold'
+
+    @font-face
+      ascent-override: math.percentage(math.div(map.get($metrics, ascent) - $gap, $scale))
+      descent-override: math.percentage(math.div(map.get($metrics, descent) + $gap, $scale))
+      font-family: '#{$family} fallback'
+      font-style: normal
+      font-weight: $weights
+      line-gap-override: 0%
+      size-adjust: math.percentage($scale)
+      src: local($arial)
