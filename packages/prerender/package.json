@@ -1,0 +1,53 @@
+{
+  "author": "Adrien Lacourpaille",
+  "bugs": "https://github.com/AdrienLcp/packages/issues",
+  "description": "Build-time helpers that turn a Vite app's shell into one prerendered document per page: the rendered head moved where it belongs, language alternates, the page's stylesheets inlined without Vite linking them again, its fonts preloaded",
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "linkedom": "^0.18.13",
+    "vite": "8.3.1"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json",
+    "./vite": "./dist/vite/shell-head-plugin.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "homepage": "https://adrienlcp.com/en/projects/packages#package-prerender",
+  "keywords": [
+    "hreflang",
+    "linkedom",
+    "prerender",
+    "ssg",
+    "static-site-generation",
+    "typescript",
+    "vite"
+  ],
+  "license": "MIT",
+  "name": "@adrienlcp/prerender",
+  "peerDependencies": {
+    "linkedom": ">=0.18",
+    "vite": ">=7"
+  },
+  "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "directory": "packages/prerender",
+    "type": "git",
+    "url": "git+https://github.com/AdrienLcp/packages.git"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "pnpm build",
+    "test": "vitest run",
+    "test:watch": "vitest --watch"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "version": "0.0.0"
+}

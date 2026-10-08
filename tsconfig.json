@@ -2,6 +2,7 @@
   "exclude": [
     "**/dist",
     "packages/browser",
+    "packages/prerender",
     "packages/react",
     "packages/react-aria",
     "packages/react-router",

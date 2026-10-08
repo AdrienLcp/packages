@@ -28,7 +28,7 @@
     "spell": "git ls-files --cached --others --exclude-standard | cspell --no-progress --file-list stdin",
     "test": "pnpm -r test",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p packages/browser && tsc --noEmit -p packages/react && tsc --noEmit -p packages/react-aria && tsc --noEmit -p packages/react-router && tsc --noEmit -p packages/safe-storage && tsc --noEmit -p packages/theme-preference",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p packages/browser && tsc --noEmit -p packages/prerender && tsc --noEmit -p packages/react && tsc --noEmit -p packages/react-aria && tsc --noEmit -p packages/react-router && tsc --noEmit -p packages/safe-storage && tsc --noEmit -p packages/theme-preference",
     "validate": "pnpm build && pnpm typecheck && pnpm lint:ci && pnpm spell && pnpm test"
   },
   "type": "module",
