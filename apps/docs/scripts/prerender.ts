@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url'
 import { z } from 'zod'
 
 import type { PrerenderedPage } from '../src/entry-server.tsx'
+import { REGIONAL_LOCALES } from '../src/presentation/i18n/regional-locales.ts'
 import { robotsTxt, sitemapXml } from './crawler-files.ts'
 import {
   createLink,
@@ -207,6 +208,72 @@ const setContent = ({
   onlyElement({ document, selector }).setAttribute('content', value)
 }
 
+/** `fr` → `fr_FR`: Open Graph writes a locale with an underscore. */
+const openGraphLocaleOf = (locale: PrerenderedPage['locale']): string =>
+  REGIONAL_LOCALES[locale].replace('-', '_')
+
+const alternateLink = ({
+  document,
+  hreflang,
+  path
+}: {
+  document: Document
+  hreflang: string
+  path: string
+}): HTMLLinkElement =>
+  createLink({
+    attributes: { href: `${SITE_ORIGIN}${path}`, hreflang, rel: 'alternate' },
+    document
+  })
+
+/** Each translation of the page, itself included, and the path that negotiates the locale. */
+const hreflangLinksFor = ({
+  document,
+  page
+}: {
+  document: Document
+  page: PrerenderedPage
+}): HTMLLinkElement[] => [
+  ...page.translations.map(({ locale, path }) =>
+    alternateLink({ document, hreflang: locale, path })
+  ),
+  ...(page.xDefaultPath === null
+    ? []
+    : [
+        alternateLink({
+          document,
+          hreflang: 'x-default',
+          path: page.xDefaultPath
+        })
+      ])
+]
+
+const openGraphLocaleAlternatesFor = ({
+  document,
+  page
+}: {
+  document: Document
+  page: PrerenderedPage
+}): HTMLMetaElement[] =>
+  page.translations
+    .filter(({ locale }) => locale !== page.locale)
+    .map(({ locale }) => {
+      const meta = document.createElement('meta')
+
+      meta.setAttribute('content', openGraphLocaleOf(locale))
+      meta.setAttribute('property', 'og:locale:alternate')
+
+      return meta
+    })
+
+/** Every `<` escaped, so no string in the data can close the script. */
+const jsonLdOf = ({ page, url }: { page: PrerenderedPage; url: string }) =>
+  JSON.stringify({
+    '@context': 'https://schema.org',
+    ...page.structuredData,
+    url
+  }).replaceAll('<', String.raw`\u003c`)
+
 const documentFor = ({
   page,
   rendered
@@ -239,7 +306,18 @@ const documentFor = ({
     value: page.description
   })
   setContent({ document, selector: 'meta[property="og:url"]', value: url })
+  setContent({
+    document,
+    selector: 'meta[property="og:locale"]',
+    value: openGraphLocaleOf(page.locale)
+  })
+  onlyElement({
+    document,
+    selector: 'script[type="application/ld+json"]'
+  }).textContent = jsonLdOf({ page, url })
   appendToHead(document, [
+    ...hreflangLinksFor({ document, page }),
+    ...openGraphLocaleAlternatesFor({ document, page }),
     ...pageResourcesFor({ document, modules: page.modules }),
     ...headTags.map((tag) => document.importNode(tag, true))
   ])

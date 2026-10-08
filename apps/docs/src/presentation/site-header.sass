@@ -1,6 +1,5 @@
 @use '@adrienlcp/styles/accessibility'
 
-@use './styles/focus'
 @use './styles/layout'
 @use './styles/typography'
 
@@ -20,7 +19,6 @@
     z-index: 20
 
   .site-brand
-    @include focus.ring
     @include typography.brand
 
     align-items: center

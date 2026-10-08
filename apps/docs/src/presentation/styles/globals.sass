@@ -11,20 +11,23 @@
   html
     background: var(--ground)
     scrollbar-color: var(--rule-strong) var(--ground)
+    scrollbar-gutter: stable
 
   body
     @include layout.container
     @include typography.body
 
     background: var(--ground)
-    caret-color: var(--accent)
+    caret-color: var(--focus)
     color: var(--ink)
-    overflow-x: clip
+    font-synthesis: none
 
   #root
     display: flex
     flex-direction: column
-    min-height: 100dvh
+    min-block-size: 100dvh
+    overflow-x: clip
+    padding: var(--safe-area-top) var(--safe-area-right) var(--safe-area-bottom) var(--safe-area-left)
 
   a
     text-decoration: none
@@ -35,7 +38,7 @@
     font-family: var(--font-code)
 
   code
-    font-size: 0.88em
+    font-size: var(--text-code)
 
   svg
     flex: none

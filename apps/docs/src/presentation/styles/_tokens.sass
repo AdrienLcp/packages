@@ -1,11 +1,6 @@
 @use '@adrienlcp/styles/sizes'
 @use '@adrienlcp/styles/tokens'
-
-@mixin dark-marks
-  --mark-lightness: 0.56
-  --kind-lightness: 0.34
-  --kind-chroma: 0.03
-  --kind-glyph-lightness: 0.85
+@use '@adrienlcp/theme-preference/scheme'
 
 @layer tokens
   \:root
@@ -40,7 +35,9 @@
     --kind-chroma: 0.022
     --kind-glyph-lightness: 0.44
 
-    --shadow-ply: light-dark(0 1px 2px oklch(0.3 0.02 255 / 0.08), 0 1px 2px oklch(0 0 0 / 0.35)), light-dark(0 4px 14px -6px oklch(0.3 0.02 255 / 0.14), 0 6px 16px -8px oklch(0 0 0 / 0.5))
+    --shadow-contact-ink: light-dark(oklch(0.3 0.02 255 / 0.08), oklch(0 0 0 / 0.35))
+    --shadow-lift-ink: light-dark(oklch(0.3 0.02 255 / 0.14), oklch(0 0 0 / 0.5))
+    --shadow-ply: 0 1px 2px var(--shadow-contact-ink), 0 4px 14px -6px var(--shadow-lift-ink)
 
     // Read by the code blocks shiki renders at build time.
     --code-foreground: var(--ink)
@@ -69,6 +66,7 @@
     --text-3xl: 1.3125rem
     --text-title: #{sizes.fluid(1.75rem, 2.25rem, $to: 66rem)}
     --text-package-title: #{sizes.fluid(1.75rem, 2.375rem, $to: 66rem)}
+    --text-code: 0.9em
 
     --space-4xs: 0.125rem
     --space-3xs: 0.25rem
@@ -90,7 +88,6 @@
     --measure-lead: 44rem
     --measure-note: 62ch
 
-
     --square-s: 1.75rem
     --square-m: 1.875rem
     --square-l: 2.5rem
@@ -111,9 +108,9 @@
     --transition-slow: 320ms
     --press-scale: 0.97
 
-  @media (prefers-color-scheme: dark)
-    \:root:not([data-theme='light'])
-      @include dark-marks
-
-  \:root[data-theme='dark']
-    @include dark-marks
+  @include scheme.dark
+    --mark-lightness: 0.56
+    --kind-lightness: 0.34
+    --kind-chroma: 0.03
+    --kind-glyph-lightness: 0.85
+    --shadow-ply: 0 1px 2px var(--shadow-contact-ink), 0 6px 16px -8px var(--shadow-lift-ink)

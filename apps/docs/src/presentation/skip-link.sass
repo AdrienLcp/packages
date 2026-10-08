@@ -1,9 +1,7 @@
-@use './styles/focus'
 @use './styles/typography'
 
 @layer components
   .skip-link
-    @include focus.ring
     @include typography.action
 
     align-items: center
@@ -11,11 +9,11 @@
     border-radius: var(--radius-control)
     color: var(--plane)
     display: inline-flex
-    left: var(--gutter)
+    left: max(var(--gutter), var(--safe-area-left))
     min-height: var(--control-height)
     padding: 0 var(--space-s)
     position: fixed
-    top: var(--space-2xs)
+    top: max(var(--space-2xs), var(--safe-area-top))
     transition: translate var(--transition-base, 0s) var(--ease-out), scale var(--transition-fast, 0s) var(--ease-out)
     translate: 0 calc(-100% - var(--space-m))
     z-index: 30

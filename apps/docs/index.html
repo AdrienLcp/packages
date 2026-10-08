@@ -2,11 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport" />
     <meta content="#eff1f4" data-scheme="light" data-token="--ground" media="(prefers-color-scheme: light)" name="theme-color" />
     <meta content="#181a1c" data-scheme="dark" data-token="--ground" media="(prefers-color-scheme: dark)" name="theme-color" />
-    <link as="font" crossorigin href="/fonts/onest-latin.woff2" rel="preload" type="font/woff2" />
-    <link as="font" crossorigin href="/fonts/jetbrains-mono-latin.woff2" rel="preload" type="font/woff2" />
+    <link as="font" crossorigin fetchpriority="low" href="/fonts/onest-latin.woff2" rel="preload" type="font/woff2" />
+    <link as="font" crossorigin fetchpriority="low" href="/fonts/jetbrains-mono-latin.woff2" rel="preload" type="font/woff2" />
     <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
     <link href="/apple-touch-icon.png" rel="apple-touch-icon" />
     <title>@adrienlcp packages</title>
@@ -16,6 +16,8 @@
     <meta content="@adrienlcp packages" property="og:title" />
     <meta content="Documentation and release history of the @adrienlcp packages: small, typed, dependency-free TypeScript packages." property="og:description" />
     <meta content="https://packages.adrienlcp.com/en" property="og:url" />
+    <meta content="en_US" property="og:locale" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"@adrienlcp packages","url":"https://packages.adrienlcp.com/"}</script>
     <!--
       A layer's position is fixed where its name first appears, and Vite injects
       stylesheets in module-graph order: declared here, the order cannot depend

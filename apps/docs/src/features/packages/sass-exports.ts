@@ -5,6 +5,8 @@ import type { DeclaredExport } from './module-exports.ts'
 
 const PRIVATE_PREFIX = /^[-_]/
 const SASSDOC_LINE_MARK = /^\/ ?/
+/** sass-parser ends a `///` comment at a CRLF: each line becomes its own comment. */
+const WINDOWS_LINE_END = /\r\n/g
 
 /** The name a consumer writes for a member at the module's top level, or `null` for anything else. */
 const memberNameOf = (node: ChildNode): string | null => {
@@ -51,7 +53,10 @@ const parseStylesheet = ({
 }: {
   path: string
   source: string
-}): Root => (path.endsWith('.scss') ? scss : sass).parse(source)
+}): Root =>
+  (path.endsWith('.scss') ? scss : sass).parse(
+    source.replaceAll(WINDOWS_LINE_END, '\n')
+  )
 
 /**
  * The mixins, functions and variables a Sass module offers at its top level,

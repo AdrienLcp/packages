@@ -81,4 +81,14 @@ describe('sassExportsOf', () => {
       }).map(({ name, summary }) => [name, summary])
     ).toEqual([['gap', 'Gap.']])
   })
+
+  it('[sass-exports] reads a multi-line doc saved with Windows line endings', () => {
+    expect(
+      sassExportsOf({
+        path: 'src/_module.sass',
+        source:
+          '/// Spaces things\r\n/// out. Twice.\r\n@mixin gap\r\n  margin: 0\r\n'
+      }).map(({ name, summary }) => [name, summary])
+    ).toEqual([['gap', 'Spaces things out.']])
+  })
 })
