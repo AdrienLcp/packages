@@ -1,5 +1,6 @@
 import { resolve } from 'node:path'
 
+import { metricTwins } from '@adrienlcp/styles/metric-twins'
 import { themePreferencePlugin } from '@adrienlcp/theme-preference/vite'
 import optimizeLocales from '@react-aria/optimize-locales-plugin'
 import react from '@vitejs/plugin-react'
@@ -22,7 +23,8 @@ export default defineConfig({
           fallbacks: {},
           resolvePath: (path) =>
             resolve(import.meta.dirname, 'public', `.${path}`)
-        })
+        }),
+        metricTwins()
       ]
     }
   },

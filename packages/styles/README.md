@@ -257,6 +257,41 @@ it('every ink reads on every surface, in both themes', () => {
 - A translucent foreground is measured over its background. An `oklch()`
   outside sRGB is clipped, as an sRGB screen draws it.
 
+### `metric-twins`
+
+[fontaine](https://github.com/unjs/fontaine) scales a fallback face to the web
+font with `size-adjust` and the `*-override` descriptors, but names one local
+font in its `src`: `local("Arial")`. Linux has no Arial and Android only
+Roboto, so there the face fails to load, text paints in an unscaled system font
+and moves when the web font swaps in. `metricTwins()`, listed after fontaine,
+names the fonts drawn on the same metrics too:
+
+```ts
+import { metricTwins } from '@adrienlcp/styles/metric-twins'
+import fontaine from 'fontaine/postcss'
+
+export default defineConfig({
+  css: {
+    postcss: { plugins: [fontaine({ fallbacks: ['Arial'] }), metricTwins()] }
+  }
+})
+```
+
+| A face naming | Also names |
+| --- | --- |
+| `Arial` | `Liberation Sans`, `Arimo`, `Roboto` |
+| `Courier New` | `Liberation Mono`, `Cousine` |
+| `Times New Roman` | `Liberation Serif`, `Tinos` |
+
+- Only a `src` that is one `local()` inside `@font-face` is rewritten, its name
+  matched as a browser matches it, ignoring case; a downloaded file or a list
+  stays as written, so the plugin never widens a face twice.
+- `metricTwins({ twins: { Helvetica: ['Helvetica', 'Arial'] } })` adds a font
+  or replaces a default one. `METRIC_TWINS` is the default map;
+  `withMetricTwins(src)` is the rewrite on one value.
+- The plugin is typed on what it reads, so an app needs no `postcss`
+  dependency of its own: Vite brings it.
+
 ### `audit`
 
 The rules nobody should have to remember, checked in a test that reads every
