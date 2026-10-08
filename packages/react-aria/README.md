@@ -46,7 +46,10 @@ rings through the attribute, since the focused element is the invisible input.
 ```
 
 `ring-inset` draws inside the box, for an element a clipping ancestor would
-cut. Configure the ring once, in the app's own `_focus.sass`, and have
+cut. Both take `$on`, a selector that draws the ring on a descendant of the
+focused element — `focus.ring('.track')` for a `Switch`, whose root takes the
+focus. `ring-within` rings a box while a field inside it has focus: a
+`SearchField`'s `Group` around its input and its clear button. Configure the ring once, in the app's own `_focus.sass`, and have
 components `@use` that file:
 
 ```sass

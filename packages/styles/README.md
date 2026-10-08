@@ -119,7 +119,8 @@ wins.
 | `--ring`, `--ring-offset`, `--ring-inset` | an `--outline-thick` solid outline in `--focus`, drawn `--outline-offset` outside the box or inside it |
 | `--underline-offset`, `--tracking-tight` | `0.24em`, `-0.02em` |
 | `--icon-s`, `--icon-m`, `--icon-l` | `1rem`, `1.25rem`, `1.5rem` |
-| `--target`, `--control-touch` | `44px`, the smallest touch target |
+| `--target` | `44px`, the smallest touch target |
+| `--control-height` | a drawn control's height: `2.75rem`, never below `--target` |
 | `--measure` | `65ch` |
 
 `--rule`, `--rule-strong` and `--focus` are the app's palette. Until it declares
@@ -142,8 +143,11 @@ them, a line is `currentColor` mixed toward transparent and the ring is
 - `ring` draws `--ring` on keyboard focus only: `:focus-visible` for a native
   element, `[data-focus-visible]` for one react-aria marks. `ring-inset` draws
   it inside the box, for a row that fills its container edge to edge or sits
-  in an ancestor that clips. An app on `@adrienlcp/react-aria` has the same
-  pair in its `focus` module.
+  in an ancestor that clips. Both take `$on`, a selector that draws the ring
+  on a descendant of the focused element — `ring('.track')` for a switch whose
+  root takes the focus. `ring-within` rings a box while a field inside it has
+  focus, a search box around its input. An app on `@adrienlcp/react-aria` has
+  the same set in its `focus` module.
 
 ### `sizes`
 
@@ -158,7 +162,6 @@ with the screen without leaving rem:
   :root
     --text-display: #{sizes.fluid(2rem, 3.5rem)}
     --space-section: #{sizes.fluid(3rem, 6rem)}
-    --text-caption: #{sizes.rem(13px)}
 ```
 
 - `fluid($min, $max, $from: 20rem, $to: 80rem)` returns
@@ -167,8 +170,6 @@ with the screen without leaving rem:
   `$max` stays within 2.5 times `$min` — past that, a 200 % zoom on a wide
   screen no longer doubles the size (WCAG 1.4.4). Anything else is a compile
   error.
-- `rem($pixels)` turns a size read off a design file into rem, at 16px to the
-  rem.
 
 ### `text-box`
 

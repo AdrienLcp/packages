@@ -1,15 +1,4 @@
 @use 'sass:math'
-@use 'sass:meta'
-
-/// The pixel size a `rem` stands for when the user has not changed it. Only
-/// used to turn a size read off a design file into rem.
-$root-pixels: 16px
-
-/// A size handed over in pixels, written in rem: `rem(14px)` → `0.875rem`.
-@function rem($pixels)
-  @if math.unit($pixels) != 'px'
-    @error 'rem() takes a size in px, got #{$pixels}.'
-  @return math.div($pixels, $root-pixels) * 1rem
 
 /// A size that grows with the viewport from `$min` at `$from` to `$max` at
 /// `$to`, and holds still outside:

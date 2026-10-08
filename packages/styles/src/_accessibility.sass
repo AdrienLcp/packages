@@ -11,17 +11,34 @@
 /// The focus ring from the `--ring` tokens, drawn on keyboard focus only.
 /// `data-focus-visible` is react-aria's mark of the same moment, on the element
 /// it styles; `:focus-visible` covers a native element. An app on
-/// `@adrienlcp/react-aria` has the same pair in its `focus` module.
-@mixin ring
-  &[data-focus-visible],
-  &:focus-visible
+/// `@adrienlcp/react-aria` has the same set in its `focus` module.
+///
+/// `$on` draws the ring on a descendant of the focused element — the track of
+/// a switch whose root takes the focus: `@include accessibility.ring('.track')`.
+@mixin ring($on: null)
+  @include _on-focus-visible($on)
     outline: var(--ring)
     outline-offset: var(--ring-offset)
 
 /// The ring drawn inside the box, for a control that fills its row edge to edge
 /// or sits in an ancestor that clips.
-@mixin ring-inset
-  &[data-focus-visible],
-  &:focus-visible
+@mixin ring-inset($on: null)
+  @include _on-focus-visible($on)
     outline: var(--ring)
     outline-offset: var(--ring-inset)
+
+/// The ring drawn on a box while the field inside it has focus — a search box
+/// around its input and its clear button.
+@mixin ring-within
+  &:has([data-focus-visible], :focus-visible)
+    outline: var(--ring)
+    outline-offset: var(--ring-offset)
+
+@mixin _on-focus-visible($on)
+  &[data-focus-visible],
+  &:focus-visible
+    @if $on
+      #{$on}
+        @content
+    @else
+      @content

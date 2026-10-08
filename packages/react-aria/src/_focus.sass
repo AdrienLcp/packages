@@ -7,15 +7,32 @@ $ring-offset: 3px !default
 /// react-aria stamps `data-focus-visible` on keyboard focus only, and on the
 /// element it styles: a control built over a hidden input rings through it
 /// alone. The `:focus-visible` twin covers a native element.
-@mixin ring
-  &[data-focus-visible],
-  &:focus-visible
+///
+/// `$on` draws the ring on a descendant of the focused element — the track of
+/// a `Switch`, whose root takes the focus: `@include focus.ring('.track')`.
+@mixin ring($on: null)
+  @include _on-focus-visible($on)
     outline: $ring-width solid $ring-color
     outline-offset: $ring-offset
 
 /// The ring drawn inside the box, for an element a clipping ancestor would cut.
-@mixin ring-inset
-  &[data-focus-visible],
-  &:focus-visible
+@mixin ring-inset($on: null)
+  @include _on-focus-visible($on)
     outline: $ring-width solid $ring-color
     outline-offset: calc(-1 * $ring-width)
+
+/// The ring drawn on a box while the field inside it has focus — a
+/// `SearchField`'s `Group` around its input and its clear button.
+@mixin ring-within
+  &:has([data-focus-visible], :focus-visible)
+    outline: $ring-width solid $ring-color
+    outline-offset: $ring-offset
+
+@mixin _on-focus-visible($on)
+  &[data-focus-visible],
+  &:focus-visible
+    @if $on
+      #{$on}
+        @content
+    @else
+      @content

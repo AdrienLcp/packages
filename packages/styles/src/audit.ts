@@ -17,7 +17,6 @@ const PIXELS = /(^|[^\w.])-?\d*\.?\d+px\b/
 const VIEWPORT =
   /\d(vw|vh|vi|vb|vmin|vmax|svw|svh|lvw|lvh|dvw|dvh|cqi|cqb|cqw|cqh|cqmin|cqmax)\b/
 const REM = /\drem\b|var\(--(text|space)-/
-const REM_CONVERSION = /\b(?:[\w-]+\.)?rem\([^)]*\)/g
 const LITERAL = /^(-?\.?\d|bold|bolder|lighter|normal)/
 
 const readDeclarations = (stylesheet: string) =>
@@ -33,7 +32,7 @@ const unitFailureKind = (
   value: string
 ): UnitFailure['kind'] | undefined => {
   if (!SIZED_PROPERTY.test(property)) return undefined
-  if (PIXELS.test(value.replace(REM_CONVERSION, '1rem'))) return 'pixels'
+  if (PIXELS.test(value)) return 'pixels'
   if (TEXT_PROPERTY.test(property) && VIEWPORT.test(value) && !REM.test(value))
     return 'viewport-without-rem'
   return undefined

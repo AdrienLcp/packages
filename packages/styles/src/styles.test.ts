@@ -166,7 +166,7 @@ ${overrides}
     )
     expect(css).toContain('--ring-inset: calc(-1 * var(--outline-thick))')
     expect(css).toContain('--target: 44px')
-    expect(css).toContain('--control-touch: var(--target)')
+    expect(css).toContain('--control-height: max(var(--target), 2.75rem)')
     expect(css).toContain('--measure: 65ch')
     expect(css).toContain('--icon-m: 1.25rem')
     expect(css).toContain('--tracking-tight: -0.02em')
@@ -217,6 +217,30 @@ describe('accessibility', () => {
 
     expect(css).toContain('outline-offset:var(--ring-inset)')
   })
+
+  it('[a11y] rings a descendant of the focused element', () => {
+    const css = compile(`
+@use 'accessibility'
+.switch
+  @include accessibility.ring('.track')
+`)
+
+    expect(css).toBe(
+      '.switch[data-focus-visible] .track,.switch:focus-visible .track{outline:var(--ring);outline-offset:var(--ring-offset)}'
+    )
+  })
+
+  it('[a11y] rings a box while a field inside it has focus', () => {
+    const css = compile(`
+@use 'accessibility'
+.search-box
+  @include accessibility.ring-within
+`)
+
+    expect(css).toBe(
+      '.search-box:has([data-focus-visible],:focus-visible){outline:var(--ring);outline-offset:var(--ring-offset)}'
+    )
+  })
 })
 
 describe('sizes', () => {
@@ -239,15 +263,10 @@ describe('sizes', () => {
     )
   })
 
-  it('[sizes] converts pixels at 16px to the rem', () => {
-    expect(compileSize('sizes.rem(14px)')).toBe('.a{font-size:.875rem}')
-  })
-
   it.each([
     ['a px bound', 'sizes.fluid(14px, 2rem)'],
     ['a max past 2.5 times the min', 'sizes.fluid(1rem, 3rem)'],
-    ['a max below the min', 'sizes.fluid(2rem, 1rem)'],
-    ['rem() given rem', 'sizes.rem(1rem)']
+    ['a max below the min', 'sizes.fluid(2rem, 1rem)']
   ])('[sizes] refuses %s', (_, call) => {
     expect(() => compileSize(call)).toThrow()
   })
