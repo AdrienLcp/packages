@@ -1,5 +1,11 @@
 # @adrienlcp/i18n
 
+## 0.5.2
+
+### Patch Changes
+
+- 9e6aae9: Document loading a dictionary before the first render, for a page prerendered in a locale that is loaded on demand: a first frame in the default locale would fail to hydrate.
+
 ## 0.5.1
 
 ### Patch Changes
