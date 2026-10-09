@@ -682,6 +682,29 @@ describe('findFallbackBandFailures', () => {
       ])
     ).toEqual([])
   })
+
+  it('[fonts] reads widths passed by name after the default size-adjust, beside figures and a stretch', () => {
+    expect(
+      findFallbackBandFailures([
+        `@use '@adrienlcp/styles/fonts'
+
+@include fonts.font-face('Archivo', '/fonts/archivo.woff2', fonts.$latin, $weight: 400 900)
+@include fonts.fallback-faces('Archivo', $metrics, $widths: (400 649: 1.2, 650 900: 1.33), $figures: 1.1, $figure-separators: true, $stretch: 62% 70%)`,
+        TOKENS,
+        `.title
+  font-weight: 700
+.lead
+  font-weight: 300`
+      ])
+    ).toEqual([
+      {
+        declaration: 'font-weight: 300',
+        family: 'archivo',
+        kind: 'uncovered-weight',
+        weight: 300
+      }
+    ])
+  })
 })
 
 describe('findFontAttributeFailures', () => {

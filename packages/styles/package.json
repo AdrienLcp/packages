@@ -1,18 +1,11 @@
 {
   "author": "Adrien Lacourpaille",
-  "bin": {
-    "measure-font": "./dist/measure-font.js"
-  },
   "bugs": "https://github.com/AdrienLcp/packages/issues",
   "dependencies": {
     "@adrienlcp/result": "workspace:^",
-    "@capsizecss/unpack": "^4.0.1",
-    "@types/fontkit": "^2.0.9",
-    "culori": "^4.0.2",
-    "fontkit": "^2.0.4",
-    "wawoff2": "^2.0.1"
+    "culori": "^4.0.2"
   },
-  "description": "A reset, a reduced-motion switch, default tokens, Sass mixins for self-hosted fonts, container queries, a breakpoint, focus rings, visually hidden text and a two-column spread, a fluid size in rem, a PostCSS plugin that lists Arial's metric twins in fontaine's fallback faces, a measure-font bin that sizes fallback faces and converts a ch to em, and checks for WCAG contrast between colour tokens and for sizes the user's font size cannot reach font tokens that skip their fallback face, fallback bands that miss a weight and SVG text that names a family",
+  "description": "A reset, a reduced-motion switch, default tokens, Sass mixins for self-hosted fonts, container queries, a breakpoint, focus rings, visually hidden text and a two-column spread, a fluid size in rem, a PostCSS plugin that lists Arial's metric twins in fontaine's fallback faces, and checks for WCAG contrast between colour tokens, for sizes the user's font size cannot reach, for font tokens that skip their fallback face, for fallback bands that miss a weight and for SVG text that names a family",
   "devDependencies": {
     "@types/culori": "^4.0.1",
     "lightningcss": "^1.33.0",
@@ -31,7 +24,6 @@
       "sass": "./src/_containers.sass"
     },
     "./contrast": "./dist/contrast.js",
-    "./font-metrics": "./dist/font-metrics.js",
     "./fonts": {
       "sass": "./src/_fonts.sass"
     },
@@ -63,7 +55,6 @@
     "css",
     "font-face",
     "font-fallback",
-    "font-metrics",
     "fontaine",
     "postcss",
     "reset",

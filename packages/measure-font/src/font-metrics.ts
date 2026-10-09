@@ -3,18 +3,32 @@ import { fromBuffer } from '@capsizecss/unpack'
 import { create, type Font } from 'fontkit'
 import wawoff2 from 'wawoff2'
 
+/** One axis of a variable font. */
+export type VariationAxis = { min: number; default: number; max: number }
+
 /** A font file opened for measuring, decompressed when it came as `woff2`. */
 export type OpenedFont = {
   /** The file as fontkit reads it at its default instance. */
   font: Font
   /** The decompressed `ttf`/`otf` bytes: what capsize, and so fontaine, measure. */
   bytes: Uint8Array
-  /** The `wght` axis of a variable font; `null` for a static file. */
-  weightAxis: { min: number; default: number; max: number } | null
+  /** Every axis of a variable font, keyed by its tag (`wght`, `wdth`); empty for a static file. */
+  axes: Readonly<Record<string, VariationAxis>>
+  /** The `wght` axis of a variable font; `null` when the file has none. */
+  weightAxis: VariationAxis | null
   /** The weight a static file declares in its `OS/2` table, or the axis default. */
   weight: number
   italic: boolean
 }
+
+/** Where a variable font is read: its `wght`, and any other axis by tag (`{ wdth: 70 }`). */
+export type Variation = {
+  weight?: number
+  axes?: Readonly<Record<string, number>>
+}
+
+/** A variation and the OpenType features the text is set with (`['tnum', 'lnum']`). */
+export type TextStyle = Variation & { features?: readonly string[] }
 
 /** A font's vertical metrics in em, as `fonts.fallback-faces` takes them. */
 export type VerticalMetrics = {
@@ -27,11 +41,18 @@ export type VerticalMetrics = {
    * 2, which is when fontaine's `readMetrics` returns `capHeight: null`.
    */
   capHeightFrom: 'OS/2' | 'H'
+  /**
+   * The `OS/2` typographic ascent and descent when the font sets
+   * `USE_TYPO_METRICS` and they differ from `hhea`'s: a browser that honours
+   * the flag draws the line box from these. `null` otherwise.
+   */
+  typo: { ascent: number; descent: number } | null
 }
 
 export type FontFailure = 'unreadable' | 'collection'
 
 const WOFF2_SIGNATURE = 'wOF2'
+const WEIGHT_AXIS = 'wght'
 const ZERO = 0x30
 const CAPITAL_H = 0x48
 const FIRST_OS2_VERSION_WITH_CAP_HEIGHT = 2
@@ -64,6 +85,15 @@ const decompressed = async (bytes: Uint8Array) =>
 const isFont = (opened: ReturnType<typeof create>): opened is Font =>
   opened.type !== 'TTC' && opened.type !== 'DFont'
 
+const axesOf = (font: Font): Record<string, VariationAxis> =>
+  Object.fromEntries(
+    Object.entries(font.variationAxes).flatMap(([tag, axis]) =>
+      axis === undefined
+        ? []
+        : [[tag, { default: axis.default, max: axis.max, min: axis.min }]]
+    )
+  )
+
 /** Opens a `woff2`, `woff`, `ttf` or `otf` file; a collection is refused. */
 export const openFont = async (
   file: Uint8Array
@@ -72,8 +102,10 @@ export const openFont = async (
     const bytes = await decompressed(file)
     const font = create(Buffer.from(bytes))
     if (!isFont(font)) return Result.failure('collection')
-    const weightAxis = font.variationAxes.wght ?? null
+    const axes = axesOf(font)
+    const weightAxis = axes[WEIGHT_AXIS] ?? null
     return Result.success({
+      axes,
       bytes,
       font,
       italic: font['OS/2'].fsSelection.italic || font.italicAngle !== 0,
@@ -85,37 +117,87 @@ export const openFont = async (
   }
 }
 
-const atWeight = (opened: OpenedFont, weight: number) =>
-  opened.weightAxis === null
-    ? opened.font
-    : opened.font.getVariation({ wght: weight })
+const instances = new WeakMap<Font, Map<string, Font>>()
+
+const settingsFor = (opened: OpenedFont, { axes = {}, weight }: Variation) =>
+  Object.fromEntries(
+    Object.entries({ ...axes, [WEIGHT_AXIS]: weight }).flatMap(
+      ([tag, value]) =>
+        value === undefined || opened.axes[tag] === undefined
+          ? []
+          : [[tag, value]]
+    )
+  )
+
+const cachedInstancesOf = (font: Font) => {
+  const cached = instances.get(font) ?? new Map<string, Font>()
+  instances.set(font, cached)
+  return cached
+}
 
 /**
- * The width of `text` in em, shaped and kerned as a browser sets it, at
- * `weight` on a variable font's `wght` axis, with the OpenType `features` the
- * stylesheet turns on — `tnum` and `lnum` for `tabular-nums lining-nums`. A
- * static file is measured as it is: its weight is the file's own.
+ * The font read at `variation`, on the axes it has: a static file, or an axis
+ * the file lacks, is read as it is. Instances are kept, since a text split
+ * across subsets reads the same one run after run.
+ */
+export const atVariation = (
+  opened: OpenedFont,
+  variation: Variation = {}
+): Font => {
+  const settings = settingsFor(opened, variation)
+  if (Object.keys(settings).length === 0) return opened.font
+  const key = JSON.stringify(Object.entries(settings).toSorted())
+  const cached = cachedInstancesOf(opened.font)
+  const instance = cached.get(key) ?? opened.font.getVariation(settings)
+  cached.set(key, instance)
+  return instance
+}
+
+/**
+ * The width of `text` in em, shaped and kerned as a browser sets it, at the
+ * variation and with the OpenType features of `style` — `tnum` and `lnum` for
+ * `tabular-nums lining-nums`. A static file is measured as it is: its weight
+ * is the file's own.
  */
 export const textWidth = (
   opened: OpenedFont,
   text: string,
-  weight = opened.weight,
-  features: readonly string[] = []
+  { features = [], ...variation }: TextStyle = {}
 ): number => {
-  const font = atWeight(opened, weight)
+  const font = atVariation(opened, variation)
   return font.layout(text, [...features]).advanceWidth / font.unitsPerEm
 }
 
 /**
- * The advance of the zero in em — what one `ch` is in this font at `weight`,
- * so `n ch` converts to `n × zeroWidth` em.
+ * The advance of the zero in em — what one `ch` is in this font at
+ * `variation`, so `n ch` converts to `n × zeroWidth` em.
  */
 export const zeroWidth = (
   opened: OpenedFont,
-  weight = opened.weight
+  variation: Variation = {}
 ): number => {
-  const font = atWeight(opened, weight)
+  const font = atVariation(opened, variation)
   return font.glyphForCodePoint(ZERO).advanceWidth / font.unitsPerEm
+}
+
+/** The OpenType features of `features` the file holds no lookup for. */
+export const missingFeatures = (
+  { font }: OpenedFont,
+  features: readonly string[]
+): string[] =>
+  features.filter((feature) => !font.availableFeatures.includes(feature))
+
+const typoMetricsOf = (font: Font) => {
+  const os2 = font['OS/2']
+  const differsFromHhea =
+    os2.typoAscender !== font.ascent ||
+    Math.abs(os2.typoDescender) !== Math.abs(font.descent)
+  return os2.fsSelection.useTypoMetrics && differsFromHhea
+    ? {
+        ascent: os2.typoAscender / font.unitsPerEm,
+        descent: Math.abs(os2.typoDescender) / font.unitsPerEm
+      }
+    : null
 }
 
 /** Ascent and descent from `hhea`, as fontaine reads them, and the capital height. */
@@ -130,7 +212,8 @@ export const verticalMetrics = ({ font }: OpenedFont): VerticalMetrics => {
     ascent: font.ascent / font.unitsPerEm,
     capHeight: capHeight / font.unitsPerEm,
     capHeightFrom: fromTable ? 'OS/2' : 'H',
-    descent: Math.abs(font.descent) / font.unitsPerEm
+    descent: Math.abs(font.descent) / font.unitsPerEm,
+    typo: typoMetricsOf(font)
   }
 }
 
@@ -152,36 +235,3 @@ export const fontaineSizeAdjust = async (
   fallback: OpenedFont
 ): Promise<number> =>
   (await averageWidth(font)) / (await averageWidth(fallback))
-
-/** What `widthRatio` compares, at one weight. */
-export type WidthRatioInput = {
-  /** The web font. */
-  font: OpenedFont
-  /** The local font the fallback face draws at this weight — Arial, or Arial Bold from `$bold-from`. */
-  fallback: OpenedFont
-  /** The `size-adjust` passed to `fonts.fallback-faces`. */
-  sizeAdjust: number
-  /** The app's own text, the more the better. */
-  text: string
-  /** The weight on the web font's axis; a static file is measured as it is. */
-  weight?: number
-  /** The OpenType features the text is set with, in both fonts. */
-  features?: readonly string[]
-}
-
-/**
- * One `$widths` entry of `fonts.fallback-faces`: the fallback font's width,
- * scaled by `sizeAdjust`, over the web font's width at `weight`, both over
- * the same text. The mixin divides `size-adjust` by it, so the face it writes
- * sets that text exactly as wide as the web font does.
- */
-export const widthRatio = ({
-  fallback,
-  features,
-  font,
-  sizeAdjust,
-  text,
-  weight
-}: WidthRatioInput): number =>
-  (textWidth(fallback, text, fallback.weight, features) * sizeAdjust) /
-  textWidth(font, text, weight, features)

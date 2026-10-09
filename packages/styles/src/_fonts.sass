@@ -1,6 +1,7 @@
 @use 'sass:list'
 @use 'sass:map'
 @use 'sass:math'
+@use 'sass:meta'
 
 /// The two subsets Google Fonts cuts a Latin face into: a page in English or
 /// French downloads the first file only.
@@ -16,6 +17,10 @@ $arial-cuts: (normal: (false: 'Arial', true: 'Arial Bold'), italic: (false: 'Ari
 
 /// The digits, which a figures face draws alone.
 $digits: U+0030-0039
+
+/// The digits and what separates a number's parts — `,`, `.` and the clock's
+/// `:` —, which a figures face draws under `$figure-separators`.
+$figures-and-separators: U+002C, U+002E, U+0030-003A
 
 /// One self-hosted `woff2` file. `$weight` and `$stretch` take a range for a
 /// variable face.
@@ -37,13 +42,16 @@ $digits: U+0030-0039
 /// the web font replaces it.
 ///
 /// `$metrics` is the web font's `ascent`, `descent` and `cap-height`, in em.
-/// `$size-adjust` is the ratio fontaine computes for the file. Each `$widths`
-/// entry maps a weight range to a width ratio: the band's Arial cut, scaled by
-/// `$size-adjust`, over the web font at the weight that band's text is set in,
-/// both measured over the app's own text — what the `measure-font` bin prints.
-/// The face is scaled by `$size-adjust` over that ratio. A band from `$bold-from` up is
-/// drawn in Arial Bold: a face that declares its weights is never synthesised
-/// bolder, so a heavy title would otherwise paint in thin regular strokes.
+/// `$size-adjust` is the ratio fontaine computes for the file, `1` when left
+/// out — then pass `$widths` by name. Each `$widths` entry maps a weight range
+/// to a width ratio: the band's Arial cut, scaled by `$size-adjust`, over the
+/// web font at the weight that band's text is set in, both measured over the
+/// app's own text — what the `measure-font` bin of `@adrienlcp/measure-font`
+/// prints. The face is scaled by `$size-adjust` over that ratio, so
+/// `$size-adjust` only sets the scale the ratios are read on. A band from
+/// `$bold-from` up is drawn in Arial Bold: a face that declares its weights is
+/// never synthesised bolder, so a heavy title would otherwise paint in thin
+/// regular strokes.
 ///
 /// With `$trimmed-to-capitals`, ascent and descent move by the gap between
 /// the two capital heights, their sum kept: a title trimmed to its capitals
@@ -56,35 +64,63 @@ $digits: U+0030-0039
 /// `font-synthesis: none` — at upright widths.
 ///
 /// `$figures` maps the same weight ranges as `$widths` to the digits' own
-/// ratio — `measure-font --figures`, with `--figure-feature tnum` for tabular
-/// figures. Each band then gets a second face for U+0030-0039 alone, written
-/// after the first so it wins for the digits. One ratio cannot cover both
-/// when the font's digits stand to Arial's otherwise than its letters do —
-/// tabular figures most often.
-@mixin fallback-faces($family, $metrics, $size-adjust, $widths, $bold-from: 650, $trimmed-to-capitals: false, $style: normal, $figures: null)
+/// ratio, or is one ratio for every band — `measure-font --figures`, with
+/// `--figure-feature tnum` for tabular figures. Each band then gets a second
+/// face for U+0030-0039 alone, written after the first so it wins for the
+/// digits, on the same ascent and descent as the band's letters. One ratio
+/// cannot cover both when the font's digits stand to Arial's otherwise than
+/// its letters do — tabular figures most often. `$figure-separators` widens
+/// that face to `,`, `.` and `:`, so a clock or a decimal sets as wide as the
+/// web font draws it.
+///
+/// `$stretch` declares the faces' `font-stretch` — `70%`, or a range — for a
+/// font with a width axis: one call per width band, its ratios measured with
+/// `measure-font --axis wdth=70`. Arial has no width axis, so a condensed
+/// title otherwise falls back to full-width Arial and wraps.
+@mixin fallback-faces($family, $metrics, $size-adjust: 1, $widths: null, $bold-from: 650, $trimmed-to-capitals: false, $style: normal, $figures: null, $figure-separators: false, $stretch: null)
+  @if not $widths
+    @error 'fallback-faces: $widths is required, a ratio per weight band.'
   @if not map.has-key($arial-cuts, $style)
     @error 'fallback-faces: $style is normal or italic, not #{$style}.'
+  @if $figure-separators and not $figures
+    @error 'fallback-faces: $figure-separators widens the figures face: pass $figures.'
+  $figures-range: $digits
+  @if $figure-separators
+    $figures-range: $figures-and-separators
   @each $weights, $width-ratio in $widths
-    @if $figures and not map.has-key($figures, $weights)
-      @error 'fallback-faces: $figures has no ratio for the weights #{$weights}.'
+    $figures-ratio: -figures-ratio($figures, $weights)
     $bold: list.nth($weights, 1) >= $bold-from
     $arial: map.get($arial-cuts, $style, $bold)
-    @include -fallback-face($family, $metrics, math.div($size-adjust, $width-ratio), $weights, $style, $arial, $trimmed-to-capitals)
-    @if $figures
-      @include -fallback-face($family, $metrics, math.div($size-adjust, map.get($figures, $weights)), $weights, $style, $arial, $trimmed-to-capitals, $digits)
+    $scale: math.div($size-adjust, $width-ratio)
+    $gap: -capital-gap($metrics, $scale, $trimmed-to-capitals)
+    $face: (family: $family, weights: $weights, style: $style, stretch: $stretch, arial: $arial)
+    @include -fallback-face($face, $metrics, $scale, $gap)
+    @if $figures-ratio
+      @include -fallback-face($face, $metrics, math.div($size-adjust, $figures-ratio), $gap, $figures-range)
 
-@mixin -fallback-face($family, $metrics, $scale, $weights, $style, $arial, $trimmed-to-capitals, $unicode-range: null)
-  $gap: 0
-  @if $trimmed-to-capitals
-    $gap: map.get($metrics, cap-height) - $arial-cap-height * $scale
+@function -figures-ratio($figures, $weights)
+  @if not $figures or meta.type-of($figures) == number
+    @return $figures
+  @if not map.has-key($figures, $weights)
+    @error 'fallback-faces: $figures has no ratio for the weights #{$weights}.'
+  @return map.get($figures, $weights)
 
+@function -capital-gap($metrics, $scale, $trimmed-to-capitals)
+  @if not $trimmed-to-capitals
+    @return 0
+  @return map.get($metrics, cap-height) - $arial-cap-height * $scale
+
+/// The overrides are divided by the face's own scale, which the browser
+/// multiplies them by: every face of a band draws the line box of its letters.
+@mixin -fallback-face($face, $metrics, $scale, $gap, $unicode-range: null)
   @font-face
     ascent-override: math.percentage(math.div(map.get($metrics, ascent) - $gap, $scale))
     descent-override: math.percentage(math.div(map.get($metrics, descent) + $gap, $scale))
-    font-family: '#{$family} fallback'
-    font-style: $style
-    font-weight: $weights
+    font-family: '#{map.get($face, family)} fallback'
+    font-stretch: map.get($face, stretch)
+    font-style: map.get($face, style)
+    font-weight: map.get($face, weights)
     line-gap-override: 0%
     size-adjust: math.percentage($scale)
-    src: local($arial)
+    src: local(map.get($face, arial))
     unicode-range: $unicode-range

@@ -80,7 +80,10 @@ const FALLBACK_FACES_PARAMETERS = [
   'widths',
   'bold-from',
   'trimmed-to-capitals',
-  'style'
+  'style',
+  'figures',
+  'figure-separators',
+  'stretch'
 ]
 const KEYWORD_WEIGHTS: Readonly<Record<string, number>> = {
   bold: 700,
