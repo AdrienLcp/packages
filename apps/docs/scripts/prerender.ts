@@ -52,6 +52,7 @@ const documentFor = async ({
     metaContents: {
       'name="description"': page.description,
       'property="og:description"': page.description,
+      'property="og:image:alt"': page.shareImageAlt,
       'property="og:title"': title,
       'property="og:url"': url
     }

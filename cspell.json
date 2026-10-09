@@ -69,6 +69,7 @@
     "Français",
     "hhea",
     "hreflang",
+    "IHDR",
     "japanese",
     "Kiritimati",
     "Lacourpaille",
@@ -107,6 +108,7 @@
     "vitest",
     "vmax",
     "vmin",
-    "wcag"
+    "wcag",
+    "wordmark"
   ]
 }

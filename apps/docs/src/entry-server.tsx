@@ -23,6 +23,8 @@ export type PrerenderedPage = {
   modules: string[]
   /** Where the document is served, from the site root: `/fr/i18n`. */
   path: string
+  /** What the share card shows, in the page's locale, for readers who cannot see it. */
+  shareImageAlt: string
   /** The schema.org object the page is, written as JSON-LD; the prerender adds its `url`. */
   structuredData: StructuredData
   /** The same page in every locale, itself included, for the `hreflang` alternates. */
@@ -57,6 +59,7 @@ const homeFor = (locale: Locale): PrerenderedPage => {
       loaderModuleFor(localizedPaths.home)
     ],
     path: homePathFor(locale),
+    shareImageAlt: translate('app.shareImageAlt'),
     structuredData: {
       '@type': 'WebSite',
       description: translate('app.description'),
@@ -68,8 +71,10 @@ const homeFor = (locale: Locale): PrerenderedPage => {
   }
 }
 
-const packagePagesFor = (locale: Locale): PrerenderedPage[] =>
-  CATALOGUE.map((housePackage) => ({
+const packagePagesFor = (locale: Locale): PrerenderedPage[] => {
+  const translate = i18n.translator(locale)
+
+  return CATALOGUE.map((housePackage) => ({
     description: housePackage.description,
     locale,
     modules: [
@@ -77,6 +82,7 @@ const packagePagesFor = (locale: Locale): PrerenderedPage[] =>
       loaderModuleFor(localizedPaths.package)
     ],
     path: packagePathFor({ locale, packageName: housePackage.name }),
+    shareImageAlt: translate('app.shareImageAlt'),
     structuredData: {
       '@type': 'SoftwareSourceCode',
       codeRepository: packageFolderUrlOf(housePackage.name),
@@ -90,6 +96,7 @@ const packagePagesFor = (locale: Locale): PrerenderedPage[] =>
     ),
     xDefaultPath: null
   }))
+}
 
 /** Read off the catalogue, so a package added there gets its own documents. */
 export const prerenderedPages: PrerenderedPage[] = LOCALES.flatMap((locale) => [
