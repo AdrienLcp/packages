@@ -65,6 +65,28 @@ describe('measureFontCommand', () => {
     )
   })
 
+  it('[measure-font] refuses a text of spaces alone', async () => {
+    expect(await run([ONEST, ...FALLBACKS, '--text', ' \n '])).toMatchObject({
+      code: 1,
+      stderr: 'No text to measure: the text is empty.\n'
+    })
+  })
+
+  it('[measure-font] measures the digits with their features for a figures face', async () => {
+    const { code, stdout } = await run([
+      BARLOW_BOLD,
+      ...FALLBACKS,
+      '--figures',
+      '--figure-feature',
+      'tnum',
+      '--figure-feature',
+      'lnum'
+    ])
+    expect(code).toBe(0)
+    expect(stdout).toMatch(/figures ratio [\d.]+ over/)
+    expect(stdout).toMatch(/, \$figures: \(700: [\d.]+\)\)\n$/)
+  })
+
   it('[measure-font] measures each static file at its own weight, over the bold cut from --bold-from', async () => {
     const { code, stdout } = await run([
       BARLOW_BOLD,

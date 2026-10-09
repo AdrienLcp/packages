@@ -25,6 +25,11 @@ export type FallbackMeasureInput = {
   boldFrom: number
   /** The `size-adjust` in the built CSS; fontaine's own computation from the first file when left out. */
   sizeAdjust?: number
+  /**
+   * Measures the digits apart, set with these OpenType features — `tnum` and
+   * `lnum` for `tabular-nums lining-nums` — for a figures face of their own.
+   */
+  figures?: { features: readonly string[] }
 }
 
 /** One weight of one file. */
@@ -35,6 +40,8 @@ export type WeightMeasure = {
   zero: number
   /** The `$widths` entry for this weight. */
   ratio: number
+  /** The `$figures` entry for this weight, when the digits were measured. */
+  figures: number | null
   /** The full name of the Arial cut the ratio is over. */
   fallback: string
 }
@@ -45,6 +52,16 @@ export type FallbackMeasure = {
   sizeAdjust: number
   sizeAdjustFrom: 'given' | 'first-file'
 }
+
+const DIGITS = '0123456789'
+
+/**
+ * The text as a browser lays it out under `white-space: normal`: every run of
+ * spaces, tabs and newlines one space, none at either end. A newline measured
+ * raw is a glyph of its own and widens every ratio.
+ */
+export const collapseWhiteSpace = (text: string): string =>
+  text.replace(/\s+/g, ' ').trim()
 
 const weightsOf = (font: OpenedFont, weights: readonly number[]) =>
   font.weightAxis === null || weights.length === 0 ? [font.weight] : weights
@@ -59,6 +76,7 @@ const weightsOf = (font: OpenedFont, weights: readonly number[]) =>
 export const measureFallbackFaces = async ({
   bold,
   boldFrom,
+  figures,
   files,
   regular,
   sizeAdjust: givenSizeAdjust,
@@ -66,7 +84,8 @@ export const measureFallbackFaces = async ({
   weights
 }: FallbackMeasureInput): Promise<FallbackMeasure | null> => {
   const [first] = files
-  if (first === undefined) return null
+  const measured = collapseWhiteSpace(text)
+  if (first === undefined || measured === '') return null
   const sizeAdjust =
     givenSizeAdjust ?? (await fontaineSizeAdjust(first.font, regular))
   return {
@@ -78,8 +97,25 @@ export const measureFallbackFaces = async ({
         const fallback = weight >= boldFrom ? bold : regular
         return {
           fallback: fallback.font.fullName,
+          figures:
+            figures === undefined
+              ? null
+              : widthRatio({
+                  fallback,
+                  features: figures.features,
+                  font,
+                  sizeAdjust,
+                  text: DIGITS,
+                  weight
+                }),
           file: name,
-          ratio: widthRatio({ fallback, font, sizeAdjust, text, weight }),
+          ratio: widthRatio({
+            fallback,
+            font,
+            sizeAdjust,
+            text: measured,
+            weight
+          }),
           weight,
           zero: zeroWidth(font, weight)
         }
@@ -107,8 +143,15 @@ export const fallbackFacesInclude = (
   const widths = weights
     .map(({ ratio, weight }) => `${weight}: ${rounded(ratio)}`)
     .join(', ')
+  const figureEntries = weights.flatMap(({ figures, weight }) =>
+    figures === null ? [] : [`${weight}: ${rounded(figures)}`]
+  )
+  const figures =
+    figureEntries.length === 0
+      ? ''
+      : `, $figures: (${figureEntries.join(', ')})`
   const style = italic ? ', $style: italic' : ''
-  return `@include fonts.fallback-faces('${family}', ${metricsMap}, ${rounded(sizeAdjust, SIZE_ADJUST_DECIMALS)}, (${widths})${style})`
+  return `@include fonts.fallback-faces('${family}', ${metricsMap}, ${rounded(sizeAdjust, SIZE_ADJUST_DECIMALS)}, (${widths})${figures}${style})`
 }
 
 /** The measure as lines to read: one per weight, then where each number came from. */
@@ -119,8 +162,8 @@ export const measureReport = ({
   weights
 }: FallbackMeasure): string[] => [
   ...weights.map(
-    ({ fallback, file, ratio, weight, zero }) =>
-      `${file} at ${weight}: zero ${rounded(zero)}em, width ratio ${rounded(ratio)} over ${fallback}`
+    ({ fallback, figures, file, ratio, weight, zero }) =>
+      `${file} at ${weight}: zero ${rounded(zero)}em, width ratio ${rounded(ratio)}${figures === null ? '' : `, figures ratio ${rounded(figures)}`} over ${fallback}`
   ),
   `cap height from ${metrics.capHeightFrom === 'H' ? 'the H outline (the OS/2 table has none)' : 'the OS/2 table'}`,
   `size-adjust ${rounded(sizeAdjust, SIZE_ADJUST_DECIMALS)}, ${sizeAdjustFrom === 'given' ? 'as given' : "fontaine's, computed from the first file"}`
