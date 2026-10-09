@@ -15,7 +15,7 @@
     position: fixed
     top: max(var(--space-2xs), var(--safe-area-top))
     transition: translate var(--transition-base, 0s) var(--ease-out), scale var(--transition-fast, 0s) var(--ease-out)
-    translate: 0 calc(-100% - var(--space-m))
+    translate: 0 calc(-100% - var(--space-m) - var(--safe-area-top))
     z-index: 30
 
     // Parked above the viewport, yet a view transition's picture of the page

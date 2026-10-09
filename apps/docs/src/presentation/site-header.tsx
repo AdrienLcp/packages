@@ -16,26 +16,33 @@ type SiteHeaderProps = {
   context?: React.ReactNode
 }
 
-/** The bar every screen keeps on top: the site's name back home, and the settings. */
+/**
+ * The bar every screen keeps on top: the site's name back home, and the
+ * settings. The skip link sits before it, not inside: the bar's backdrop filter
+ * would hold the link's fixed position to the bar, which starts below the
+ * notch, so parked above the bar it would show in the notch.
+ */
 export const SiteHeader: React.FC<SiteHeaderProps> = ({ context }) => {
   const { locale } = useI18n()
 
   return (
-    <header className='site-header'>
+    <>
       <SkipLink />
-      <Link className='site-brand' href={homePathFor(locale)}>
-        <IconSquare size='m' tone='neutral'>
-          <PackageIcon />
-        </IconSquare>
-        <span className='site-brand-name'>
-          @adrienlcp<span className='site-brand-scope'>/packages</span>
-        </span>
-      </Link>
-      {context}
-      <div className='site-settings'>
-        <LocaleSwitch />
-        <ThemeSwitch />
-      </div>
-    </header>
+      <header className='site-header'>
+        <Link className='site-brand' href={homePathFor(locale)}>
+          <IconSquare size='m' tone='neutral'>
+            <PackageIcon />
+          </IconSquare>
+          <span className='site-brand-name'>
+            @adrienlcp<span className='site-brand-scope'>/packages</span>
+          </span>
+        </Link>
+        {context}
+        <div className='site-settings'>
+          <LocaleSwitch />
+          <ThemeSwitch />
+        </div>
+      </header>
+    </>
   )
 }
