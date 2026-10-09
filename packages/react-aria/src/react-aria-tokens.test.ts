@@ -19,7 +19,12 @@ const MODULES = [
 )
 const CUSTOM_PROPERTY_LITERAL = /['"](--[a-z][\w-]*)['"]\s*[:,)]/g
 
-it('[tokens] lists every custom property react-aria sets at runtime', () => {
+/** Reading every react-aria module takes under a second, and nine on a machine busy with another build. */
+const READ_EVERY_MODULE_TIMEOUT_MS = 30_000
+
+it('[tokens] lists every custom property react-aria sets at runtime', {
+  timeout: READ_EVERY_MODULE_TIMEOUT_MS
+}, () => {
   const found = new Set(
     MODULES.flatMap((path) =>
       [...readFileSync(path, 'utf8').matchAll(CUSTOM_PROPERTY_LITERAL)].map(
