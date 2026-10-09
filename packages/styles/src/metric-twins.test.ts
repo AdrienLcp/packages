@@ -59,6 +59,15 @@ describe('withMetricTwins', () => {
     )
   })
 
+  it('[metric-twins] widens the italic cuts of Arial to the italic cuts of its twins', () => {
+    expect(withMetricTwins('local("Arial Italic")')).toBe(
+      'local("Arial Italic"), local("Arial-ItalicMT"), local("Liberation Sans Italic"), local("Arimo Italic"), local("Roboto Italic")'
+    )
+    expect(withMetricTwins('local("Arial Bold Italic")')).toBe(
+      'local("Arial Bold Italic"), local("Arial-BoldItalicMT"), local("Liberation Sans Bold Italic"), local("Arimo Bold Italic"), local("Roboto Bold Italic")'
+    )
+  })
+
   it.each([
     'local("Segoe UI")',
     'url("/fonts/a.woff2") format("woff2")',

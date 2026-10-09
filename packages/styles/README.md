@@ -113,17 +113,91 @@ Arial than in the web font.
 - `$metrics` is the web font's `ascent`, `descent` and `cap-height` in em, read
   from its `hhea` and `OS/2` tables; `$size-adjust` the ratio fontaine computes
   for the file.
-- Each `$widths` entry maps a weight range to Arial's width over the web
-  font's at that weight, measured over the app's own text (`measureText` on a
-  canvas, both fonts loaded).
-- A band from `$bold-from` (`650`) up is drawn in `Arial Bold`: a face that
-  declares its weights is never synthesised bolder.
+- Each `$widths` entry maps a weight range to a **width ratio**: the band's
+  Arial cut scaled by `$size-adjust`, over the web font at the weight that
+  band's text is set in, both measured over the app's own text —
+  `(arial × size-adjust) / web font`. The face is scaled by `$size-adjust`
+  divided by that ratio, so it sets the text exactly as wide as the web font.
+  A ratio above 1 means scaled Arial is still too wide. `measure-font` prints
+  them.
+- A band from `$bold-from` (`650`) up is drawn in `Arial Bold`, and its ratio
+  is measured over Arial Bold: a face that declares its weights is never
+  synthesised bolder.
+- `$style: italic` writes the faces for the italic files, drawn in
+  `Arial Italic` and `Arial Bold Italic` and measured over them. Without
+  them italic text in the fallback takes the upright face — slanted by
+  synthesis at best, upright under `font-synthesis: none` — at upright
+  widths. Any other style is a compile error.
 - `$trimmed-to-capitals` moves ascent and descent by the gap between the two
   capital heights, their sum kept, so a title trimmed to its capitals starts at
   the same height in both faces.
 - The faces are named `<family> fallback`, as fontaine names its own: skip the
   family in fontaine's `skipFontFaceGeneration`, and list `metricTwins()`
   after it for Linux and Android.
+
+**A font token names the fallback face itself.** fontaine appends
+`'<family> fallback'` to a `font-family` declaration it reads, never to a
+custom property: a token keeps the family alone, and the metric-matched face
+is never used. Write it in:
+
+```sass
+--font-display: 'Bricolage Grotesque', 'Bricolage Grotesque fallback', sans-serif
+```
+
+`findFallbackFailures` in the `audit` lists a token that skips it.
+
+**Static files, one per weight.** fontaine writes one fallback face per
+`@font-face`, copying its weight and style, but sizes every one from the same
+metrics — the family's entry in capsize's metrics collection, the regular cut,
+for any Google font, else the file it reads — and draws every one in regular
+Arial. The 600 and 700 faces carry the regular cut's `size-adjust` over
+regular Arial, and a bold line wraps at another width than the font's. Skip the
+family in `skipFontFaceGeneration` and write `fallback-faces` with one band per
+file: `measure-font` measures each file at its own weight against that one
+`size-adjust`, and Arial Bold from `$bold-from` — lower it to `600` when a 600
+file measures closer to Arial Bold.
+
+#### `measure-font`
+
+A bin that measures what `fallback-faces` takes and what converting a `ch`
+needs, from the font files the app serves — shaped and kerned as Chromium sets
+them, a variable file at any weight of its axis:
+
+```bash
+pnpm exec measure-font public/fonts/onest-latin.woff2 --weight 400 --weight 700
+```
+
+```text
+onest-latin.woff2 at 400: zero 0.665em, width ratio 1.023 over Arial
+onest-latin.woff2 at 700: zero 0.6602em, width ratio 1.0497 over Arial Bold
+cap height from the OS/2 table
+size-adjust 1.052039, fontaine's, computed from the first file
+
+@include fonts.fallback-faces('Onest', (ascent: 0.97, descent: 0.305, cap-height: 0.707), 1.052039, (400: 1.023, 700: 1.0497))
+```
+
+- List the family's files in the order of its `@font-face` rules, the
+  regular first: fontaine measures that one. A static file is measured at its
+  own weight; `--weight` (repeated) picks the weights of a variable one.
+- Widen each weight of the include to the band it stands for:
+  `(300 449: …, 650 800: …)`.
+- `--size-adjust` takes the value fontaine wrote in the built CSS. Without it,
+  the bin computes fontaine's formula from the first file; fontaine reads a
+  Google font from capsize's collection instead, so the two can differ in the
+  fourth decimal.
+- `--text` or `--text-file` is the app's own text, the more the better; a
+  pangram in English and French otherwise. `--italic` measures italic files
+  over the italic cuts of Arial and writes `$style: italic`; `--bold-from`
+  and `--family` match the include. Arial is found where Windows, macOS and
+  Linux keep it — Liberation Sans, drawn on Arial's widths, will do —, or
+  passed with `--fallback` and `--fallback-bold`.
+- **The zero is a `ch`**: a measure given as `46ch` is `46 × zero` em. Read it
+  at the weight of the elements that read the measure — a prose column at the
+  body weight, not at the heading's.
+- **Cap height**: the bin reads it from the `OS/2` table, and from the top of
+  the `H` outline when the table has none — an `OS/2` table older than version
+  2, where fontaine's `readMetrics` returns `capHeight: null`. That value is
+  the one `$trimmed-to-capitals` needs.
 
 ### `tokens`
 
@@ -310,13 +384,15 @@ export default defineConfig({
 | --- | --- |
 | `Arial` | `Liberation Sans`, `Arimo`, `Roboto` |
 | `Arial Bold` | `Arial-BoldMT`, `Liberation Sans Bold`, `Arimo Bold`, `Roboto Bold` |
+| `Arial Italic` | `Arial-ItalicMT`, `Liberation Sans Italic`, `Arimo Italic`, `Roboto Italic` |
+| `Arial Bold Italic` | `Arial-BoldItalicMT`, `Liberation Sans Bold Italic`, `Arimo Bold Italic`, `Roboto Bold Italic` |
 | `Courier New` | `Liberation Mono`, `Cousine` |
 | `Courier New Bold` | `CourierNewPS-BoldMT`, `Liberation Mono Bold`, `Cousine Bold` |
 | `Times New Roman` | `Liberation Serif`, `Tinos` |
 | `Times New Roman Bold` | `TimesNewRomanPS-BoldMT`, `Liberation Serif Bold`, `Tinos Bold` |
 
-A bold cut is listed by its own names: `local()` matches one face, by its full
-or PostScript name, never a family.
+A bold or italic cut is listed by its own names: `local()` matches one face,
+by its full or PostScript name, never a family.
 
 - Only a `src` that is one `local()` inside `@font-face` is rewritten, its name
   matched as a browser matches it, ignoring case; a downloaded file or a list
@@ -326,6 +402,31 @@ or PostScript name, never a family.
   `withMetricTwins(src)` is the rewrite on one value.
 - The plugin is typed on what it reads, so an app needs no `postcss`
   dependency of its own: Vite brings it.
+
+### `font-metrics`
+
+What `measure-font` runs on, for a script or a test of the app's own:
+
+```ts
+import { readFileSync } from 'node:fs'
+
+import { openFont, zeroWidth } from '@adrienlcp/styles/font-metrics'
+
+const font = await openFont(readFileSync('public/fonts/onest-latin.woff2'))
+if (font.status === 'success') console.log(`46ch is ${46 * zeroWidth(font.data, 400)}em`)
+```
+
+- `openFont(bytes)` reads a `woff2`, `woff`, `ttf` or `otf` file, a `woff2`
+  decompressed first, and fails `unreadable` or `collection`.
+- `zeroWidth(font, weight?)` is the zero's advance in em; `textWidth(font,
+  text, weight?)` the width of a text, shaped and kerned. A variable file is
+  read at `weight` on its `wght` axis, a static file at its own.
+- `verticalMetrics(font)` is the ascent and descent from `hhea` and the
+  capital height, with `capHeightFrom`: `'OS/2'`, or `'H'` when the table has
+  none.
+- `fontaineSizeAdjust(font, fallback)` is fontaine's `size-adjust` formula;
+  `widthRatio({ font, fallback, sizeAdjust, text, weight })` one `$widths`
+  entry.
 
 ### `audit`
 
@@ -337,15 +438,18 @@ import { globSync, readFileSync } from 'node:fs'
 
 import { REACT_ARIA_TOKENS } from '@adrienlcp/react-aria'
 import {
+  findFallbackFailures,
   findTokenFailures,
   findTypeLiterals,
   findUnitFailures,
-  findUnnamedValues
+  findUnnamedValues,
+  webFontFamilies
 } from '@adrienlcp/styles/audit'
 import { describe, expect, it } from 'vitest'
 
 const STYLESHEETS = globSync('src/**/*.{sass,css}')
 const SOURCES = globSync('src/**/*.{sass,css,ts,tsx}').map((path) => readFileSync(path, 'utf8'))
+const WEB_FONTS = webFontFamilies(STYLESHEETS.map((path) => readFileSync(path, 'utf8')))
 
 describe.each(STYLESHEETS)('%s', (path) => {
   const stylesheet = readFileSync(path, 'utf8')
@@ -360,6 +464,10 @@ describe.each(STYLESHEETS)('%s', (path) => {
 
   it('takes its radii and durations from tokens', () => {
     expect(findUnnamedValues(stylesheet)).toEqual([])
+  })
+
+  it('names the fallback face after every web font in a font token', () => {
+    expect(findFallbackFailures(stylesheet, WEB_FONTS)).toEqual([])
   })
 })
 
@@ -400,6 +508,16 @@ react-aria leaves the options out.
   `var()` — a fitted floor `max(var(--text-s), 7cqi)`, a unit token
   `calc(var(--cu) * 4)` —, keeps the parent's size (`1em`, `100%`) or is a
   keyword.
+- `webFontFamilies` reads the families the stylesheets self-host: every
+  `fonts.font-face` include and every `@font-face` with a `url()` source. A
+  family loaded elsewhere — a `@fontsource` import — is added by hand.
+- `findFallbackFailures` lists a custom property whose font stack names one of
+  those web fonts without `'<family> fallback'` right after it
+  (`missing-fallback`, with the `family`): fontaine appends its fallback face
+  to a `font-family` declaration, never inside a custom property, so the
+  token paints in an unscaled system font until the font arrives — for good
+  under `font-display: optional` when it misses. A web font listed after a
+  fallback face is a glyph backup the fallback always shadows, and passes.
 - `findTokenFailures` takes every source — stylesheets and the scripts that
   set a property through `style` — and lists a name read through `var()` but
   declared nowhere, not shared and not `provided` (`undeclared`: a rename

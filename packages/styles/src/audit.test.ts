@@ -3,12 +3,14 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import {
+  findFallbackFailures,
   findTokenFailures,
   findTypeLiterals,
   findUnitFailures,
   findUnnamedValues,
   SHARED_TOKEN_DEFAULTS,
-  SHARED_TOKENS
+  SHARED_TOKENS,
+  webFontFamilies
 } from './audit.ts'
 import { withoutComments } from './source-comments.ts'
 
@@ -412,5 +414,82 @@ const href = 'https://example.com'`
     )
     expect(SHARED_TOKEN_DEFAULTS).toEqual(declared)
     expect(SHARED_TOKENS).toEqual(expect.arrayContaining(Object.keys(declared)))
+  })
+})
+
+describe('webFontFamilies', () => {
+  it('[audit] reads the families self-hosted by the mixin and by a face with a url source', () => {
+    expect(
+      webFontFamilies([
+        `
+@use '@adrienlcp/styles/fonts'
+
+@layer base
+  @include fonts.font-face('Atkinson Hyperlegible', '/fonts/atkinson-latin.woff2', fonts.$latin)
+  @font-face
+    font-display: swap
+    font-family: 'Shrikhand'
+    src: url('/fonts/shrikhand-latin.woff2') format('woff2')
+  @font-face
+    font-family: 'Shrikhand fallback'
+    src: local('Arial')
+`,
+        '@font-face { font-family: "Gochi Hand"; src: url(/fonts/gochi.woff2) format("woff2") }',
+        `
+// @include fonts.font-face('Commented Out', '/fonts/no.woff2', fonts.$latin)
+@mixin face($family)
+  @font-face
+    font-family: $family
+    src: url('/fonts/#{$family}.woff2')
+`
+      ])
+    ).toEqual(['Atkinson Hyperlegible', 'Shrikhand', 'Gochi Hand'])
+  })
+})
+
+describe('findFallbackFailures', () => {
+  const WEB_FONTS = ['Bricolage Grotesque', 'Barlow', 'Barlow Condensed']
+
+  it('[audit] lists a font token naming a web font without its fallback face', () => {
+    expect(
+      findFallbackFailures(
+        `
+:root
+  --font-display: 'Bricolage Grotesque', sans-serif
+  --font-text: "Barlow", system-ui, 'Barlow fallback', sans-serif
+`,
+        WEB_FONTS
+      )
+    ).toEqual([
+      {
+        declaration: "--font-display: 'Bricolage Grotesque', sans-serif",
+        family: 'Bricolage Grotesque',
+        kind: 'missing-fallback',
+        line: 3
+      },
+      {
+        declaration: `--font-text: "Barlow", system-ui, 'Barlow fallback', sans-serif`,
+        family: 'Barlow',
+        kind: 'missing-fallback',
+        line: 4
+      }
+    ])
+  })
+
+  it('[audit] passes a web font followed by its fallback, a glyph backup after a fallback, and system stacks', () => {
+    expect(
+      findFallbackFailures(
+        `
+:root
+  --font-display: 'Bricolage Grotesque', 'bricolage grotesque Fallback', sans-serif
+  --font-figure: 'Barlow Condensed', 'Barlow Condensed fallback', 'Barlow', 'Arial Narrow', sans-serif
+  --font-code: ui-monospace, 'Cascadia Code', Consolas, monospace
+  // --font-old: 'Barlow', sans-serif
+.title
+  font-family: 'Barlow', sans-serif
+`,
+        WEB_FONTS
+      )
+    ).toEqual([])
   })
 })

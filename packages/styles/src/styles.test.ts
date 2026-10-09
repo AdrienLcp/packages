@@ -175,6 +175,28 @@ describe('fonts', () => {
     expect(css).toContain('src:local("Arial Bold")')
   })
 
+  it('[fonts] writes italic fallback faces in the italic cuts of Arial', () => {
+    const css = compile(`
+@use 'fonts'
+@include fonts.fallback-faces('Bitter', (ascent: 0.935, descent: 0.265, cap-height: 0.692), 1.0617, (400 649: 0.98, 650 800: 1.01), $style: italic)
+`)
+    expect(css).not.toContain('font-style:normal')
+    expect(css).toContain(
+      'font-family:"Bitter fallback";font-style:italic;font-weight:400 649'
+    )
+    expect(css).toContain('src:local("Arial Italic")')
+    expect(css).toContain('src:local("Arial Bold Italic")')
+  })
+
+  it('[fonts] refuses a fallback style it has no Arial cut for', () => {
+    expect(() =>
+      compile(`
+@use 'fonts'
+@include fonts.fallback-faces('Bitter', (ascent: 0.935, descent: 0.265), 1.0617, (400: 1), $style: oblique)
+`)
+    ).toThrow('$style is normal or italic')
+  })
+
   it('[fonts] moves ascent and descent by the capital gap, their sum kept', () => {
     const faces = (trimmed: boolean) =>
       compile(`

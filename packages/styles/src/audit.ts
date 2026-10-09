@@ -12,6 +12,10 @@ export type UnitFailure = StyleFailure<
 >
 export type TypeLiteral = StyleFailure<'type-literal'>
 export type UnnamedValue = StyleFailure<'radius' | 'duration' | 'text-size'>
+/** A font token naming a web font that fontaine's fallback face never follows. */
+export type FallbackFailure = StyleFailure<'missing-fallback'> & {
+  family: string
+}
 
 /** A custom property read or declared under a name that breaks the shared set. */
 export type TokenFailure = {
@@ -121,6 +125,13 @@ const DECLARED_TOKEN = new RegExp(
 )
 const TOKEN_DECLARATION = /^\s*(--[\w-]+)\s*:\s*(.+?)\s*;?\s*$/gm
 const DISTINCTIVE_VALUE = /[\s(,]/
+const FONT_FACE_INCLUDE = /(?<![@\w-])font-face\(\s*(['"])(.+?)\1/g
+const FONT_FACE_RULE = /@font-face\b/g
+const FONT_FACE_FAMILY =
+  /(?:^|[;{\s])font-family\s*:\s*(['"]?)([^'";\n}]+?)\1\s*(?:;|\}|$)/m
+const URL_SOURCE = /\bsrc\s*:[^;}]*\burl\(/
+const INTERPOLATED = /[#$]\{|^\$/
+const FALLBACK_SUFFIX = ' fallback'
 
 const readDeclarations = (stylesheet: string) => {
   const lines = stylesheet.split('\n')
@@ -340,5 +351,110 @@ export const findTokenFailures = (
   const alias = [...aliases].map((name) => ({ kind: 'alias' as const, name }))
   return [...undeclared, ...parallel, ...alias].sort(
     (a, b) => a.name.localeCompare(b.name) || a.kind.localeCompare(b.kind)
+  )
+}
+
+const indentOf = (line: string) => line.length - line.trimStart().length
+
+/** The body of the `@font-face` at `start`: braces in CSS, deeper lines in indented Sass. */
+const fontFaceBody = (source: string, start: number) => {
+  const lineStart = source.lastIndexOf('\n', start) + 1
+  const headerEnd = source.indexOf('\n', start)
+  const header = source.slice(start, headerEnd === -1 ? undefined : headerEnd)
+  if (header.includes('{')) {
+    const open = source.indexOf('{', start)
+    return source.slice(open + 1, source.indexOf('}', open))
+  }
+  if (headerEnd === -1) return ''
+  const indent = indentOf(source.slice(lineStart, start + 1))
+  const body: string[] = []
+  for (const line of source.slice(headerEnd + 1).split('\n')) {
+    if (line.trim() !== '' && indentOf(line) <= indent) break
+    body.push(line)
+  }
+  return body.join('\n')
+}
+
+const selfHostedFamily = (body: string) => {
+  const family = FONT_FACE_FAMILY.exec(body)?.[2]?.trim()
+  if (family === undefined || !URL_SOURCE.test(body)) return undefined
+  return family
+}
+
+const fontFaceFamilies = (source: string) => [
+  ...[...source.matchAll(FONT_FACE_INCLUDE)].map(([, , family = '']) => family),
+  ...[...source.matchAll(FONT_FACE_RULE)].flatMap(({ index }) => {
+    const family = selfHostedFamily(fontFaceBody(source, index))
+    return family === undefined ? [] : [family]
+  })
+]
+
+/**
+ * The families a project self-hosts, read from its stylesheets: every
+ * `fonts.font-face` include and every `@font-face` with a `url()` source. A
+ * family named through a variable or `#{…}` is not read, nor a face fontaine
+ * wrote itself (`<family> fallback`, which has a `local()` source).
+ */
+export const webFontFamilies = (sources: readonly string[]): string[] => [
+  ...new Set(
+    sources
+      .map(withoutComments)
+      .flatMap(fontFaceFamilies)
+      .filter((family) => !INTERPOLATED.test(family))
+  )
+]
+
+const unquoted = (family: string) =>
+  family.trim().replace(/^(['"])(.*)\1$/, '$2')
+
+const isFallbackName = (family: string) =>
+  family.toLowerCase().endsWith(FALLBACK_SUFFIX)
+
+const fallbackOf = (family: string) =>
+  `${family}${FALLBACK_SUFFIX}`.toLowerCase()
+
+/** The web fonts a stack names before any fallback face, each without its own right after it. */
+const unfollowedWebFonts = (
+  stack: readonly string[],
+  webFonts: ReadonlySet<string>
+) => {
+  const firstFallback = stack.findIndex(isFallbackName)
+  const beforeFallbacks =
+    firstFallback === -1 ? stack : stack.slice(0, firstFallback)
+  return beforeFallbacks.filter(
+    (family, index) =>
+      webFonts.has(family.toLowerCase()) &&
+      stack[index + 1]?.toLowerCase() !== fallbackOf(family)
+  )
+}
+
+/**
+ * Lists every custom property whose font stack names a web font without
+ * `'<family> fallback'` right after it (`missing-fallback`). fontaine adds
+ * its fallback face after a family it reads in a `font-family` declaration,
+ * never inside a custom property: `--font-display: 'Bricolage Grotesque',
+ * sans-serif` paints in an unscaled `sans-serif` until the font arrives, and
+ * for good under `font-display: optional` when it misses. Pass the families
+ * `webFontFamilies` reads from every stylesheet, plus any loaded elsewhere.
+ * A web font listed after a fallback face is a glyph backup the fallback
+ * always shadows, and passes.
+ */
+export const findFallbackFailures = (
+  stylesheet: string,
+  webFonts: readonly string[]
+): FallbackFailure[] => {
+  const known = new Set(webFonts.map((family) => family.toLowerCase()))
+  return readDeclarations(stylesheet).flatMap(
+    ({ line, property, text, value }) =>
+      CUSTOM_PROPERTY.test(property)
+        ? unfollowedWebFonts(value.split(',').map(unquoted), known).map(
+            (family) => ({
+              declaration: text,
+              family,
+              kind: 'missing-fallback' as const,
+              line
+            })
+          )
+        : []
   )
 }

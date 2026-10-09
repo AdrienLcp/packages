@@ -11,6 +11,9 @@ $latin-ext: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0
 /// its bold cut.
 $arial-cap-height: math.div(1467, 2048)
 
+/// The local Arial each band draws, by style and by whether the band is bold.
+$arial-cuts: (normal: (false: 'Arial', true: 'Arial Bold'), italic: (false: 'Arial Italic', true: 'Arial Bold Italic'))
+
 /// One self-hosted `woff2` file. `$weight` and `$stretch` take a range for a
 /// variable face.
 @mixin font-face($family, $url, $unicode-range, $weight: 400, $style: normal, $stretch: null, $display: optional)
@@ -32,8 +35,10 @@ $arial-cap-height: math.div(1467, 2048)
 ///
 /// `$metrics` is the web font's `ascent`, `descent` and `cap-height`, in em.
 /// `$size-adjust` is the ratio fontaine computes for the file. Each `$widths`
-/// entry maps a weight range to Arial's width over the web font's at that
-/// weight, measured over the app's own text. A band from `$bold-from` up is
+/// entry maps a weight range to a width ratio: the band's Arial cut, scaled by
+/// `$size-adjust`, over the web font at the weight that band's text is set in,
+/// both measured over the app's own text — what the `measure-font` bin prints.
+/// The face is scaled by `$size-adjust` over that ratio. A band from `$bold-from` up is
 /// drawn in Arial Bold: a face that declares its weights is never synthesised
 /// bolder, so a heavy title would otherwise paint in thin regular strokes.
 ///
@@ -41,21 +46,27 @@ $arial-cap-height: math.div(1467, 2048)
 /// the two capital heights, their sum kept: a title trimmed to its capitals
 /// starts at the same height in both faces instead of growing when the web
 /// font arrives.
-@mixin fallback-faces($family, $metrics, $size-adjust, $widths, $bold-from: 650, $trimmed-to-capitals: false)
+///
+/// `$style: italic` writes the faces for the italic files, drawn in Arial
+/// Italic and Arial Bold Italic. Without them italic text in the fallback takes
+/// the upright face — slanted by synthesis at best, upright under
+/// `font-synthesis: none` — at upright widths.
+@mixin fallback-faces($family, $metrics, $size-adjust, $widths, $bold-from: 650, $trimmed-to-capitals: false, $style: normal)
+  @if not map.has-key($arial-cuts, $style)
+    @error 'fallback-faces: $style is normal or italic, not #{$style}.'
   @each $weights, $width-ratio in $widths
     $scale: math.div($size-adjust, $width-ratio)
     $gap: 0
     @if $trimmed-to-capitals
       $gap: map.get($metrics, cap-height) - $arial-cap-height * $scale
-    $arial: 'Arial'
-    @if list.nth($weights, 1) >= $bold-from
-      $arial: 'Arial Bold'
+    $bold: list.nth($weights, 1) >= $bold-from
+    $arial: map.get($arial-cuts, $style, $bold)
 
     @font-face
       ascent-override: math.percentage(math.div(map.get($metrics, ascent) - $gap, $scale))
       descent-override: math.percentage(math.div(map.get($metrics, descent) + $gap, $scale))
       font-family: '#{$family} fallback'
-      font-style: normal
+      font-style: $style
       font-weight: $weights
       line-gap-override: 0%
       size-adjust: math.percentage($scale)

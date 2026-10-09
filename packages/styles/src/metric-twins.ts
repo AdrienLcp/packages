@@ -17,6 +17,20 @@ export const METRIC_TWINS: Readonly<Record<string, readonly string[]>> = {
     'Arimo Bold',
     'Roboto Bold'
   ],
+  'Arial Bold Italic': [
+    'Arial Bold Italic',
+    'Arial-BoldItalicMT',
+    'Liberation Sans Bold Italic',
+    'Arimo Bold Italic',
+    'Roboto Bold Italic'
+  ],
+  'Arial Italic': [
+    'Arial Italic',
+    'Arial-ItalicMT',
+    'Liberation Sans Italic',
+    'Arimo Italic',
+    'Roboto Italic'
+  ],
   'Courier New': ['Courier New', 'Liberation Mono', 'Cousine'],
   'Courier New Bold': [
     'Courier New Bold',
