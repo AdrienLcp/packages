@@ -30,21 +30,18 @@ const pluralFormsOf = (forms: unknown) =>
       )
     : []
 
-const alternativesOf = (options: unknown): string[] =>
-  isRecord(options)
-    ? [
-        ...Object.values(
-          isRecord(options.plural) ? options.plural : {}
-        ).flatMap(pluralFormsOf),
-        ...Object.values(isRecord(options.enum) ? options.enum : {}).flatMap(
-          stringsOf
-        )
-      ]
-    : []
+const alternativesOf = (options: Record<string, unknown>): string[] => [
+  ...Object.values(isRecord(options.plural) ? options.plural : {}).flatMap(
+    pluralFormsOf
+  ),
+  ...Object.values(isRecord(options.enum) ? options.enum : {}).flatMap(
+    stringsOf
+  )
+]
 
 const isDefinedTranslation = (
   value: readonly unknown[]
-): value is readonly [string, unknown] =>
+): value is readonly [string, Record<string, unknown>] =>
   value.length === 2 && typeof value[0] === 'string' && isRecord(value[1])
 
 /**

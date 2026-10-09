@@ -94,8 +94,8 @@ const lineAt = (code: string, index: number) =>
   code.slice(0, index).split('\n').length
 
 const quotedOrBare = (text: string) => {
-  const quoted = QUOTED.exec(text.trim())
-  return quoted ? (quoted[2] ?? '') : text.trim()
+  const [, , unquoted = text.trim()] = QUOTED.exec(text.trim()) ?? []
+  return unquoted
 }
 
 /** The text between the parenthesis at `open` and its match, split on top-level commas. */
@@ -130,9 +130,9 @@ const readArguments = (code: string, open: number): ArgumentList => {
   const named = new Map<string, string>()
   const positional: string[] = []
   for (const part of splitArguments(code, open)) {
-    const match = NAMED_ARGUMENT.exec(part)
-    if (match) named.set(match[1] ?? '', (match[2] ?? '').trim())
-    else positional.push(part)
+    const [, name, value = ''] = NAMED_ARGUMENT.exec(part) ?? []
+    if (name === undefined) positional.push(part)
+    else named.set(name, value.trim())
   }
   return { named, positional }
 }
@@ -153,7 +153,7 @@ const readVariables = (code: string) => {
   return new Map(
     [...values]
       .filter(([, seen]) => seen.size === 1)
-      .map(([name, seen]) => [name, [...seen][0] ?? ''])
+      .map(([name, [value = '']]) => [name, value])
   )
 }
 
@@ -163,9 +163,9 @@ const resolve = (
   variables: ReadonlyMap<string, string>
 ): string | undefined => {
   const text = expression.trim()
-  const variable = /^\$([\w-]+)$/.exec(text)
-  if (variable) {
-    const value = variables.get(variable[1] ?? '')
+  const [, variable] = /^\$([\w-]+)$/.exec(text) ?? []
+  if (variable !== undefined) {
+    const value = variables.get(variable)
     return value === undefined || value.trim().startsWith('$')
       ? undefined
       : resolve(value, variables)
@@ -192,11 +192,12 @@ const enclosingMixin = (
 ): Mixin | undefined => {
   let block = context.blocks[lineIndex] ?? -1
   while (block >= 0) {
-    const header = MIXIN_HEADER.exec(context.lines[block] ?? '')
-    if (header)
+    const [, name, parameters = ''] =
+      MIXIN_HEADER.exec(context.lines[block] ?? '') ?? []
+    if (name !== undefined)
       return {
-        name: header[1] ?? '',
-        parameters: (header[2] ?? '')
+        name,
+        parameters: parameters
           .split(',')
           .map((parameter) => /\$([\w-]+)/.exec(parameter)?.[1] ?? '')
       }

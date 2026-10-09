@@ -237,6 +237,26 @@ b /* var(--gone)
 const link = 'https://example.com'`
     expect(withoutComments(source)).toBe(source)
   })
+
+  it('[audit] keeps a // after an escaped quote, and in a template string over several lines', () => {
+    const source = `content: "say \\" // still a string"
+const html = \`<a>
+// still a template\``
+    expect(withoutComments(source)).toBe(source)
+  })
+
+  it('[audit] ends an unclosed string at its line, and an unclosed block comment at the end', () => {
+    const stripped = withoutComments(`content: 'unclosed
+a // gone
+b /* gone
+gone`)
+    expect(stripped.split('\n').map((line) => line.trimEnd())).toEqual([
+      "content: 'unclosed",
+      'a',
+      'b',
+      ''
+    ])
+  })
 })
 
 describe('findTypeLiterals', () => {
@@ -397,6 +417,18 @@ describe('findTokenFailures', () => {
     expect(
       findTokenFailures(sources, { provided: ['--visual-viewport-height'] })
     ).toEqual([])
+  })
+
+  it('[tokens] lists both failures of a name that is a parallel and an alias, the alias first', () => {
+    expect(
+      findTokenFailures([
+        `:root
+  --ring-thick: var(--outline-thick) solid var(--focus, currentColor)`
+      ])
+    ).toEqual([
+      { kind: 'alias', name: '--ring-thick' },
+      { kind: 'parallel', name: '--ring-thick' }
+    ])
   })
 
   it('[tokens] does not read a name in a comment, in a stylesheet or a script', () => {
@@ -703,6 +735,23 @@ describe('findFallbackBandFailures', () => {
         kind: 'uncovered-weight',
         weight: 300
       }
+    ])
+  })
+
+  it('[fonts] reads a token’s fallback weight, skips a weight it cannot read and names a one-weight band alone', () => {
+    expect(
+      findFallbackBandFailures([
+        `@use '@adrienlcp/styles/fonts'
+
+@include fonts.font-face('Onest', '/fonts/onest.woff2', fonts.$latin, $weight: 300 900)
+@include fonts.fallback-faces('Onest', $metrics, 0.9, (300 649: 1, 650 800: 1.02, 900: 1.1))`,
+        `font-weight: var(--weight-unset, 700)
+.lead
+  font-weight: var(--weight-unset)
+  font-weight: inherit`
+      ])
+    ).toEqual([
+      { family: 'onest', kind: 'unused-band', style: 'normal', weights: '900' }
     ])
   })
 })

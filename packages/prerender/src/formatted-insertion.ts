@@ -56,16 +56,10 @@ export const replaceFormatted = ({
   nodes,
   reference
 }: {
-  nodes: readonly Node[]
+  nodes: readonly [Node, ...Node[]]
   reference: ChildNode
 }): void => {
   const [first, ...rest] = nodes
-
-  if (first === undefined) {
-    reference.remove()
-
-    return
-  }
 
   placeAfter({ nodes: rest, reference })
   reference.replaceWith(first)

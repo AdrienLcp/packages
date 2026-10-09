@@ -49,6 +49,15 @@ describe('dictionaryMessages', () => {
       'Two'
     ])
   })
+
+  it('[dictionary-text] reads no alternative from a plural or an enum entry that is not a map', () => {
+    expect(
+      dictionaryMessages([
+        'Score {count:plural}',
+        { enum: { side: 'Left' }, plural: { count: 'points' } }
+      ])
+    ).toEqual(['Score '])
+  })
 })
 
 describe('readDictionaryText', () => {

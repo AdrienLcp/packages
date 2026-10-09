@@ -1,3 +1,6 @@
+import { mkdtempSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { describe, expect, it } from 'vitest'
@@ -47,6 +50,15 @@ describe('gatherText', () => {
     expect(
       await gatherText({ dictionaries: [fixture('pages/index.html')] })
     ).toMatchObject({ error: { reason: 'unsupported-dictionary' } })
+    const notJson = join(
+      mkdtempSync(join(tmpdir(), 'measure-font-')),
+      'broken.json'
+    )
+    writeFileSync(notJson, '{ "title": ')
+    expect(await gatherText({ dictionaries: [notJson] })).toEqual({
+      error: { path: notJson, reason: 'unreadable-dictionary' },
+      status: 'failure'
+    })
     expect(
       await gatherText({ dictionaries: [fixture('pages')] })
     ).toMatchObject({ error: { reason: 'unsupported-dictionary' } })

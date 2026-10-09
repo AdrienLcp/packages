@@ -117,6 +117,10 @@ describe('plural', () => {
     expect(inFrench('score', { count: 2 })).toBe('2 points')
   })
 
+  it('[plural] falls back to the other form for a category the dictionary leaves out', () => {
+    expect(inFrench('score', { count: 1_000_000 })).toBe('1 000 000 points')
+  })
+
   it('[plural] takes a declared zero form over the category the locale would pick', () => {
     expect(inEnglish('waiting', { count: 0 })).toBe('Nobody yet')
     expect(inFrench('waiting', { count: 0 })).toBe('Personne pour l’instant')
@@ -625,10 +629,21 @@ const FORMATS = defineDictionary({
     date: { at: { dateStyle: 'long' } }
   }),
   distance: '{km:number} km',
+  fuel: defineTranslation('{litres:number} left', {
+    number: { litres: { style: 'unit', unit: 'liter', unitDisplay: 'long' } }
+  }),
   posted: defineTranslation('Posted {when:relative}', {
     relative: { when: { numeric: 'auto', unit: 'day' } }
   }),
+  price: defineTranslation('Costs {amount:number}', {
+    number: {
+      amount: { currency: 'EUR', currencyDisplay: 'name', style: 'currency' }
+    }
+  }),
   seen: 'Seen {at:date}',
+  speed: defineTranslation('At {speed:number}', {
+    number: { speed: { style: 'unit', unit: 'kilometer-per-hour' } }
+  }),
   twelveHours: defineTranslation('At {at:date}', {
     date: { at: { dateStyle: 'medium', hourCycle: 'h12', timeStyle: 'short' } }
   }),
@@ -709,6 +724,21 @@ describe('a format locale apart from the language', () => {
   it('[format] spells a number out in the sentence’s language', () => {
     expect(englishSentences('fr')('crowd', { count: 3000 })).toBe(
       '3 thousand fans'
+    )
+  })
+
+  it('[format] spells a long unit and a currency name in the sentence’s language', () => {
+    expect(englishSentences('de')('fuel', { litres: 1.5 })).toBe(
+      '1.5 liters left'
+    )
+    expect(englishSentences('de')('price', { amount: 1234.5 })).toBe(
+      'Costs 1,234.50 euros'
+    )
+  })
+
+  it('[format] writes a unit symbol with the format locale’s separators', () => {
+    expect(englishSentences('de')('speed', { speed: 1234.5 })).toBe(
+      'At 1.234,5 km/h'
     )
   })
 

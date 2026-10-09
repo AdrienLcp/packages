@@ -230,6 +230,16 @@ describe('measureFontCommand', () => {
     expect(malformed.stderr).toContain(
       'not a JSON array of { text, box, fontSize, weight?, letterSpacing? }'
     )
+    const unreadable = await run([
+      ONEST,
+      ...FALLBACKS,
+      '--lines',
+      'nowhere.json'
+    ])
+    expect(unreadable).toMatchObject({
+      code: 1,
+      stderr: 'nowhere.json: unreadable\n'
+    })
   })
 
   it('[measure-font] takes ascent and descent by hand', async () => {

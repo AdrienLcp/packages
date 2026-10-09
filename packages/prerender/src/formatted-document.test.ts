@@ -84,4 +84,14 @@ describe('formatted insertion', () => {
     <script>void 0</script>
   </body>`)
   })
+
+  it('[prerender] appends to an empty head with no indentation to copy', () => {
+    const document = parseShell(
+      '<!DOCTYPE html><html><head></head><body><div id="root"></div></body></html>'
+    )
+
+    noindexShell(document)
+
+    expect(headOf(document)).toBe('<meta name="robots" content="noindex">')
+  })
 })

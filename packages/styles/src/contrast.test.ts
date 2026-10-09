@@ -210,4 +210,12 @@ describe('findContrastFailures', () => {
       { error: 'translucent-background', kind: 'unreadable', token: '--veil' }
     ])
   })
+
+  it('[contrast] reads a token declared twice with one value, and skips an empty declaration', () => {
+    const tokens =
+      ':root { --ink: #000; --ground:; } .card { --ink: #000; --ground: #fff; }'
+    expect(findContrastFailures(tokens, [pair('--ink', '--ground')])).toEqual(
+      []
+    )
+  })
 })

@@ -63,6 +63,26 @@ describe('prerendered text', () => {
       rendered: 'Light'
     })
   })
+
+  it('[prerender] names a text node the first render dropped', () => {
+    const root = rootOf('<p>Ada</p><p>Light</p>')
+    const prerendered = capturePrerenderedText(root)
+
+    root.innerHTML = '<p>Ada</p>'
+
+    expect(prerendered.findMismatch()).toEqual({
+      index: 1,
+      prerendered: 'Light',
+      rendered: null
+    })
+  })
+
+  it('[prerender] leaves out an empty text node a client render keeps', () => {
+    const root = rootOf('<p>Ada</p>')
+    root.querySelector('p')?.append(root.ownerDocument.createTextNode(''))
+
+    expect(textNodesOf(root)).toEqual(['Ada'])
+  })
 })
 
 type Visibility = 'hidden' | 'visible'
@@ -85,18 +105,21 @@ const stubPage = (visibilityState: Visibility) => {
     frames.push(frame)
   })
 
+  const changeVisibility = (state: Visibility) => {
+    page.visibilityState = state
+    for (const listener of listeners) {
+      listener()
+    }
+  }
+
   return {
-    hide: () => {
-      page.visibilityState = 'hidden'
-      for (const listener of listeners) {
-        listener()
-      }
-    },
+    hide: () => changeVisibility('hidden'),
     paint: () => {
       for (const frame of frames.splice(0)) {
         frame()
       }
-    }
+    },
+    show: () => changeVisibility('visible')
   }
 }
 
@@ -140,6 +163,20 @@ describe('startAppAfterFirstPaint', () => {
     page.paint()
     vi.runAllTimers()
 
+    expect(start).toHaveBeenCalledOnce()
+  })
+
+  it('[prerender] waits for the frame when the tab turns visible again', () => {
+    vi.useFakeTimers()
+    const page = stubPage('visible')
+    const start = vi.fn()
+
+    startAppAfterFirstPaint(start)
+    page.show()
+    expect(start).not.toHaveBeenCalled()
+
+    page.paint()
+    vi.runAllTimers()
     expect(start).toHaveBeenCalledOnce()
   })
 })

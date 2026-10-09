@@ -90,4 +90,16 @@ describe('sassValues', () => {
   ])('[sass-values] refuses %s', (_, values, message) => {
     expect(() => sassValues({ sizes: values })).toThrow(message)
   })
+
+  it('[sass-values] refuses a module name that is not kebab case', () => {
+    expect(() => sassValues({ screenSizes: SCREEN_SIZES })).toThrow(
+      'screenSizes is not a kebab-case module name'
+    )
+  })
+
+  it('[sass-values] loads nothing for a canonical url it does not serve', () => {
+    expect(
+      sassValues({ 'screen-sizes': SCREEN_SIZES }).load(new URL('values:sizes'))
+    ).toBeNull()
+  })
 })

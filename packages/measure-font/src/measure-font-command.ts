@@ -132,16 +132,8 @@ const openArial = (
   return Promise.resolve(null)
 }
 
-const numberOption = (
-  name: string,
-  value: string | undefined
-): Result<number | null, string> => {
-  if (value === undefined) return Result.success(null)
-  const parsed = Number(value)
-  return Number.isFinite(parsed)
-    ? Result.success(parsed)
-    : Result.failure(`--${name} ${value}: not a number`)
-}
+const numberOf = (value: string | undefined) =>
+  value === undefined ? undefined : Number(value)
 
 const axesOption = (
   settings: readonly string[]
@@ -165,30 +157,27 @@ type NumberOptions = {
 }
 
 const numberOptions = (values: Values): Result<NumberOptions, string> => {
-  const read = {
-    ascent: numberOption('ascent', values.ascent),
-    boldFrom: numberOption('bold-from', values['bold-from']),
-    descent: numberOption('descent', values.descent),
-    sizeAdjust: numberOption('size-adjust', values['size-adjust'])
-  }
-  const weights = (values.weight ?? []).map((weight) =>
-    numberOption('weight', weight)
+  const given: [name: string, value: string | undefined][] = [
+    ['ascent', values.ascent],
+    ['bold-from', values['bold-from']],
+    ['descent', values.descent],
+    ['size-adjust', values['size-adjust']],
+    ...(values.weight ?? []).map((weight): [string, string] => [
+      'weight',
+      weight
+    ])
+  ]
+  const notANumber = given.find(
+    ([, value]) => value !== undefined && !Number.isFinite(Number(value))
   )
-  const failed = [...Object.values(read), ...weights].find(
-    (option) => option.status === 'failure'
-  )
-  if (failed?.status === 'failure') return failed
-  const presentValue = (option: Result<number | null, string>) =>
-    option.status === 'success' ? (option.data ?? undefined) : undefined
+  if (notANumber !== undefined)
+    return Result.failure(`--${notANumber[0]} ${notANumber[1]}: not a number`)
   return Result.success({
-    ascent: presentValue(read.ascent),
-    boldFrom: presentValue(read.boldFrom),
-    descent: presentValue(read.descent),
-    sizeAdjust: presentValue(read.sizeAdjust),
-    weights: weights.flatMap((weight) => {
-      const value = presentValue(weight)
-      return value === undefined ? [] : [value]
-    })
+    ascent: numberOf(values.ascent),
+    boldFrom: numberOf(values['bold-from']),
+    descent: numberOf(values.descent),
+    sizeAdjust: numberOf(values['size-adjust']),
+    weights: (values.weight ?? []).map(Number)
   })
 }
 
