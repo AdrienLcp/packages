@@ -119,7 +119,7 @@ export const FR_DICTIONARY = defineDictionary({
     }),
     kinds: 'Filtrer par nature',
     label: 'Trouver un export',
-    placeholder: 'Trouver un export : copyText, plural, ring…'
+    placeholder: 'Un export : copyText, ring…'
   },
   sidebar: {
     all: 'Tous les exports',

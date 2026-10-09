@@ -118,7 +118,7 @@ export const EN_DICTIONARY = defineDictionary({
     }),
     kinds: 'Filter by kind',
     label: 'Find an export',
-    placeholder: 'Find an export: copyText, plural, ring…'
+    placeholder: 'An export: copyText, ring…'
   },
   sidebar: {
     all: 'Every export',
