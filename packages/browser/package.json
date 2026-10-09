@@ -4,7 +4,7 @@
   "dependencies": {
     "@adrienlcp/result": "workspace:^"
   },
-  "description": "Browser calls that hide a trap: a clipboard copy that works over plain HTTP, a wake lock that survives the tab going away, the reduced-motion preference",
+  "description": "Browser calls that hide a trap: a clipboard copy that works over plain HTTP, a wake lock that survives the tab going away, the reduced-motion preference, a duration token read in seconds, the first landing a page entrance plays on",
   "devDependencies": {
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",

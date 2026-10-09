@@ -1,4 +1,5 @@
-import { createElement, insertIntoHead } from './html-document.ts'
+import { placeBefore } from './formatted-insertion.ts'
+import { createElement, ENTRY_SCRIPT, onlyElement } from './html-document.ts'
 
 const FONT_FACE_RULES = /@font-face\s*\{[^}]*\}/g
 
@@ -36,14 +37,43 @@ const fontTypeOf = (url: string): string => {
   return type
 }
 
+/** Which faces to preload: a pattern of their URLs, several in the order to ask for them, or `'none'`. */
+export type FontPreloadSelection = RegExp | readonly RegExp[] | 'none'
+
+const ANOTHER_PRELOAD = 'head > link[rel="preload"]'
+
+/** The URLs each pattern picks, pattern after pattern, each once. */
+const selectedUrls = ({
+  include,
+  urls
+}: {
+  include: FontPreloadSelection
+  urls: readonly string[]
+}): string[] => {
+  if (include === 'none') {
+    return []
+  }
+
+  const patterns = include instanceof RegExp ? [include] : include
+
+  return [
+    ...new Set(
+      patterns.flatMap((pattern) => urls.filter((url) => pattern.test(url)))
+    )
+  ]
+}
+
 /**
  * Preloads the faces the page's inlined CSS declares whose URL `include`
- * matches, ahead of the entry script. At the default priority: Chrome holds
- * the first paint a moment for a preloaded `font-display: optional` face,
- * which is what lets a first visit get it; at low priority the face queues
- * behind the app's modules and misses that paint. Only a prerendered page
- * should carry them: the bare shell paints nothing before the app runs, so a
- * preload there sits unused while the browser warns about it.
+ * matches. At the default priority: Chrome holds the first paint a moment for
+ * a preloaded `font-display: optional` face, which is what lets a first visit
+ * get it; at low priority the face queues behind the app's modules and misses
+ * that paint. The preloads go ahead of any other the head holds — an image
+ * the page asked for — and ahead of the entry script, in `include`'s order
+ * when it lists several patterns: the face most of the page is set in first.
+ * Only a prerendered page should carry them: the bare shell paints nothing
+ * before the app runs, so a preload there sits unused while the browser warns
+ * about it. `'none'` adds nothing, for a page set in system faces alone.
  */
 export const addFontPreloads = ({
   css,
@@ -54,24 +84,24 @@ export const addFontPreloads = ({
   css: string
   document: Document
   /** The face URLs to preload; the latin `.woff2` files by default. */
-  include?: RegExp
+  include?: FontPreloadSelection
 }): void => {
-  insertIntoHead({
-    document,
-    elements: fontFaceUrlsIn(css)
-      .filter((url) => include.test(url))
-      .map((url) =>
-        createElement({
-          attributes: {
-            as: 'font',
-            crossorigin: true,
-            href: url,
-            rel: 'preload',
-            type: fontTypeOf(url)
-          },
-          document,
-          tagName: 'link'
-        })
-      )
+  placeBefore({
+    nodes: selectedUrls({ include, urls: fontFaceUrlsIn(css) }).map((url) =>
+      createElement({
+        attributes: {
+          as: 'font',
+          crossorigin: true,
+          href: url,
+          rel: 'preload',
+          type: fontTypeOf(url)
+        },
+        document,
+        tagName: 'link'
+      })
+    ),
+    reference:
+      document.querySelector(ANOTHER_PRELOAD) ??
+      onlyElement({ document, selector: ENTRY_SCRIPT })
   })
 }

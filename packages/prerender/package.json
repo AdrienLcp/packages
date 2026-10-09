@@ -1,7 +1,7 @@
 {
   "author": "Adrien Lacourpaille",
   "bugs": "https://github.com/AdrienLcp/packages/issues",
-  "description": "Build-time helpers that turn a Vite app's shell into one prerendered document per page: the rendered head moved where it belongs, language alternates, the page's stylesheets inlined without Vite linking them again, its fonts preloaded",
+  "description": "Build-time helpers that turn a Vite app's shell into one prerendered document per page: the rendered head moved where it belongs, language alternates, the page's stylesheets inlined without Vite linking them again, its fonts and modules preloaded as chosen; and the browser side that starts the app after the first paint and checks its first render kept the prerendered text",
   "devDependencies": {
     "@types/node": "^26.6.3",
     "linkedom": "^0.18.13",
@@ -9,6 +9,7 @@
   },
   "exports": {
     ".": "./dist/index.js",
+    "./client": "./dist/client/index.js",
     "./package.json": "./package.json",
     "./vite": "./dist/vite/shell-head-plugin.js"
   },

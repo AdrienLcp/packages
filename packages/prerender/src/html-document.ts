@@ -1,5 +1,7 @@
 import { parseHTML } from 'linkedom'
 
+import { placeBefore } from './formatted-insertion.ts'
+
 /** `html` parsed into a DOM, to edit through elements rather than with patterns over its text. */
 export const parseDocument = (html: string): Document =>
   parseHTML(html).document
@@ -79,5 +81,8 @@ export const insertIntoHead = ({
   document: Document
   elements: readonly Element[]
 }): void => {
-  onlyElement({ document, selector: ENTRY_SCRIPT }).before(...elements)
+  placeBefore({
+    nodes: elements,
+    reference: onlyElement({ document, selector: ENTRY_SCRIPT })
+  })
 }

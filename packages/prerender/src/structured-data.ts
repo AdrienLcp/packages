@@ -1,3 +1,5 @@
+import { appendFormatted } from './formatted-insertion.ts'
+
 /**
  * A `<` in the JSON, inside a string, would let `</script>` close the tag it
  * sits in. `<` reads back as the same character.
@@ -17,5 +19,5 @@ export const appendStructuredData = ({
 
   script.setAttribute('type', 'application/ld+json')
   script.textContent = withoutScriptClosingTags(JSON.stringify(data))
-  document.head.append(script)
+  appendFormatted({ nodes: [script], parent: document.head })
 }

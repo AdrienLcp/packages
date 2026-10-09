@@ -82,6 +82,26 @@ size, so a user who raises it gets the narrow layout sooner. `wide` is
 `@use '@adrienlcp/styles/breakpoints' with ($wide-screen: 64rem)`; a container
 threshold that follows the shell takes the same value.
 
+#### One source for a breakpoint scripts read too
+
+A breakpoint that `matchMedia` answers to as well lives in TypeScript, and
+`sassValues` (below, under TypeScript) hands it to Sass: one line in
+`vite.config.ts`, one `@use` in the layout module.
+
+```ts
+// src/presentation/styles/screen-sizes.ts
+export const SCREEN_SIZES = { shortScreen: '30rem', wideScreen: '40rem' } as const
+
+// vite.config.ts
+css: { preprocessorOptions: { sass: { importers: [sassValues({ 'screen-sizes': SCREEN_SIZES })] } } }
+```
+
+```sass
+// _layout.sass
+@use 'values:screen-sizes'
+@forward '@adrienlcp/styles/breakpoints' with ($wide-screen: screen-sizes.$wide-screen)
+```
+
 ### `fonts`
 
 `$latin` and `$latin-ext` are the unicode ranges Google Fonts cuts a Latin face
@@ -247,6 +267,60 @@ them, a line is `currentColor` mixed toward transparent and the ring is
   skips what react-aria's `VisuallyHidden` clips — the input of a `Switch`, a
   `Checkbox`, a `Radio` — since the visible control rings instead.
 
+#### The skip link
+
+```sass
+@use '@adrienlcp/styles/accessibility'
+
+.skip-link
+  @include accessibility.skip-link
+  background: var(--ink)
+  color: var(--paper)
+  padding: 0 var(--space-s)
+```
+
+`skip-link($top: var(--space-2xs), $left: var(--gutter-left), $z-index: 30)`
+parks the link above the viewport, `position: fixed`, and slides it in on
+`:focus-visible`, so only the keyboard sees it. It shows at
+`max($top, var(--safe-area-top))`, below a notch, and is parked past the top
+by that offset too, or its bottom would show under the notch. While a view
+transition runs it is hidden: the transition's picture of the page would show
+it parked. It writes `transition: translate`; a link that also scales on press
+writes the whole list itself. The look — background, colour, type, padding,
+radius — is the app's.
+
+### `motion`
+
+A page's entrance on the visitor's first landing, and there only: a page
+reached through the app appears at once.
+
+```sass
+@use '@adrienlcp/styles/motion'
+
+@layer base
+  @include motion.keyframes
+
+.page
+  @include motion.arriving
+```
+
+- `arriving($duration: var(--transition-base), $easing: var(--ease-out), $delay: 0s)`
+  fades the element in from `$rise` (`0.5rem`) below, under
+  `:root[data-landing]` and `prefers-reduced-motion: no-preference`. It
+  animates `opacity` and `translate`, never `transform`, which stays the
+  element's own.
+- `keyframes` writes the `arriving` keyframes; include it once.
+- The shell writes the mark: `<html lang="en" data-landing>`.
+  `@adrienlcp/browser`'s `endLanding()` takes it off on the router's first
+  navigation, and before a `createRoot` replaces prerendered markup, which
+  would otherwise play the entrance twice over the same page.
+- `$landing: false` (`@use '@adrienlcp/styles/motion' with ($landing: false)`)
+  plays it wherever the element appears, every navigation included.
+- It starts at opacity 0, which Chrome does not count as a paint: on a
+  prerendered page the largest paint waits for it to end. Keep it on
+  `--transition-base`, and off the element that paints the page's largest
+  image or block of text.
+
 ### `sizes`
 
 Every text size and every spacing is rem, so it follows the font size the user
@@ -385,6 +459,38 @@ by its full or PostScript name, never a family.
   `withMetricTwins(src)` is the rewrite on one value.
 - The plugin is typed on what it reads, so an app needs no `postcss`
   dependency of its own: Vite brings it.
+
+### `sass-values`
+
+A value a script and a stylesheet both read — a breakpoint a media query and
+`matchMedia` answer to — is written once, in TypeScript, and served to Sass as
+a module of variables:
+
+```ts
+import { sassValues } from '@adrienlcp/styles/sass-values'
+
+export default defineConfig({
+  css: { preprocessorOptions: { sass: { importers: [sassValues({ 'screen-sizes': SCREEN_SIZES })] } } }
+})
+```
+
+```sass
+@use 'values:screen-sizes'
+
+.sidebar
+  @media (width >= screen-sizes.$wide-screen)
+    display: block
+```
+
+- `sassValues(modules, { scheme: 'values' })` serves each module at
+  `<scheme>:<name>`; a name is kebab case. A camelCase key becomes a kebab-case
+  variable: `wideScreen` is `$wide-screen`.
+- A number is written as a number; a string as it is, so `'40rem'` is a length
+  and `'"Inter"'` a quoted string. A key Sass cannot take, or a string that is
+  not one CSS value, throws when the importer is built.
+- A module it does not serve, under its scheme, fails the build naming the
+  ones it does. Any other URL goes on to the next importer.
+- `sass` types the importer; the package lists it as an optional peer.
 
 ### `audit`
 

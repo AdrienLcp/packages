@@ -60,6 +60,47 @@ element.scrollIntoView({ behavior: prefersReducedMotion() ? 'instant' : 'smooth'
 `subscribeToReducedMotion(listener)` follows a change and returns the
 unsubscribe function.
 
+## Reading a duration token
+
+```ts
+import { readDurationSeconds } from '@adrienlcp/browser'
+
+const turn = readDurationSeconds(figure, '--turn') // 0.25
+figure.animate(keyframes, { duration: turn * 1000 })
+```
+
+A script that times a motion reads the token the stylesheet holds instead of
+a copy of it. Register the property as a `<time>`:
+
+```sass
+@property --turn
+  syntax: '<time>'
+  inherits: true
+  initial-value: 0s
+```
+
+Registered, the browser computes it to one duration whatever `calc()` or
+`var()` wrote it, so a token `reduced-motion.css` collapses to `0ms` reaches
+the script as `0`. Unregistered, `getComputedStyle` hands back the text as
+written. An unset property, or one that does not read as a duration, is `0`.
+
+## The first landing
+
+```ts
+import { endLanding } from '@adrienlcp/browser'
+
+router.subscribe(({ navigation }) => {
+  if (navigation.state !== 'idle') endLanding()
+})
+```
+
+The shell's `<html data-landing>` lets `@adrienlcp/styles/motion`'s
+`arriving` play its entrance on the page the visitor lands on, and on that
+page only. `endLanding()` removes the attribute: call it on the router's first
+navigation, and right before a `createRoot` that replaces prerendered markup,
+which would otherwise play the entrance a second time over the same page.
+`LANDING_ATTRIBUTE` is the attribute's name.
+
 ## Reloading the page
 
 ```tsx

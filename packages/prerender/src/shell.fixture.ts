@@ -26,3 +26,20 @@ export const headTags = (document: Document): string[] =>
         .toSorted()
     ].join(' ')
   )
+
+/** The same shell as Vite prints it, one tag per line, indented. */
+export const INDENTED_SHELL_HTML = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Shell</title>
+    <meta property="og:locale" content="en_GB">
+    <link rel="canonical" href="https://example.com/">
+    <link rel="stylesheet" href="/assets/index.css">
+    <script type="module" crossorigin src="/assets/index.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor.js">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>`
