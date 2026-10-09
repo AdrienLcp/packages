@@ -15,6 +15,9 @@
     padding-left: var(--gutter-left)
     padding-right: var(--gutter-right)
 
+    &:first-child
+      padding-block-start: var(--page-padding-block-start)
+
     @include layout.wide
       align-items: start
       grid-template-columns: var(--sidebar-width) minmax(0, 1fr)
@@ -23,7 +26,7 @@
     display: flex
     flex-direction: column
     min-width: 0
-    padding-block-end: var(--space-3xl)
+    padding-block-end: var(--page-padding-block-end)
 
     > main
       flex: 1

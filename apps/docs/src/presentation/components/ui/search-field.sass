@@ -24,7 +24,7 @@
       font: inherit
       font-size: var(--text-l)
       min-height: var(--control-height)
-      padding: 0 var(--control-height) 0 2.5625rem
+      padding: 0 var(--space-s) 0 2.5625rem
       width: 100%
 
       &::placeholder
@@ -38,6 +38,7 @@
       background: var(--track)
       border-radius: var(--radius-inline)
       color: var(--ink-soft)
+      display: none
       font-size: var(--text-2xs)
       padding: 0.0625rem 0.4375rem
       position: absolute
@@ -45,12 +46,13 @@
       top: 50%
       translate: 0 -50%
 
-    &[data-empty] .search-field-shortcut
-      opacity: 1
+  // A key to press shows only where a keyboard is likely: beside a fine
+  // pointer, on a wide screen, before anything is typed.
+  @media (any-pointer: fine)
+    @include layout.container-wide(45rem)
+      .search-field[data-empty]
+        .search-field-shortcut
+          display: block
 
-    &:not([data-empty]) .search-field-shortcut
-      opacity: 0
-
-  @include layout.container-narrow(45rem)
-    .search-field .search-field-shortcut
-      display: none
+        .search-field-input
+          padding-inline-end: var(--control-height)

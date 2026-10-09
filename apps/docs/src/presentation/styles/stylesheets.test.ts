@@ -4,10 +4,12 @@ import { fileURLToPath } from 'node:url'
 
 import { REACT_ARIA_TOKENS } from '@adrienlcp/react-aria'
 import {
+  findFallbackFailures,
   findTokenFailures,
   findTypeLiterals,
   findUnitFailures,
-  findUnnamedValues
+  findUnnamedValues,
+  webFontFamilies
 } from '@adrienlcp/styles/audit'
 import { describe, expect, it } from 'vitest'
 
@@ -16,6 +18,9 @@ const STYLESHEETS = globSync('**/*.{sass,css}', { cwd: SOURCE_DIRECTORY })
 const SOURCES = globSync('**/*.{sass,css,ts,tsx}', {
   cwd: SOURCE_DIRECTORY
 }).map((path) => readFileSync(join(SOURCE_DIRECTORY, path), 'utf8'))
+const WEB_FONTS = webFontFamilies(
+  STYLESHEETS.map((path) => readFileSync(join(SOURCE_DIRECTORY, path), 'utf8'))
+)
 
 describe.each(STYLESHEETS)('%s', (path) => {
   const stylesheet = readFileSync(join(SOURCE_DIRECTORY, path), 'utf8')
@@ -33,6 +38,10 @@ describe.each(STYLESHEETS)('%s', (path) => {
 
   it('[tokens] takes its radii and durations from tokens', () => {
     expect(findUnnamedValues(stylesheet)).toEqual([])
+  })
+
+  it('[fonts] names the fallback face after every web font in a font token', () => {
+    expect(findFallbackFailures(stylesheet, WEB_FONTS)).toEqual([])
   })
 })
 

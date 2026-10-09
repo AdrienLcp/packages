@@ -81,7 +81,12 @@
     --space-3xl: 3rem
     --gutter: #{sizes.fluid(1rem, 2.5rem, $to: 75rem)}
     --topbar-height: 4rem
-    --scroll-offset: calc(var(--topbar-height) + var(--space-s))
+    // The page's top is the header, which reaches under the notch and keeps
+    // its whole bar below it.
+    --page-padding-block-start: var(--safe-area-top)
+    --page-padding-block-end: max(var(--space-3xl), var(--safe-area-bottom))
+    --header-height: calc(var(--topbar-height) + var(--page-padding-block-start))
+    --scroll-offset: calc(var(--header-height) + var(--space-s))
     --sidebar-width: 17.5rem
     --side-column-width: 20.5rem
     --measure: 45.22em
