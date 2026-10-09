@@ -6,7 +6,7 @@ export const EN_DICTIONARY = defineDictionary({
       'Documentation and release history of the @adrienlcp packages: small, typed, dependency-free TypeScript packages.',
     name: '@adrienlcp packages',
     shareImageAlt:
-      'The @adrienlcp/packages wordmark beside its logo of stacked blocks, drawn large.'
+      'The @adrienlcp/packages logo of stacked blocks above its wordmark, on a dark background.'
   },
   docs: {
     how: 'The README and the documents beside it, as written in the repository.',
