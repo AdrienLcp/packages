@@ -1,5 +1,6 @@
-import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+
+import { readInputJson } from './input-file.ts'
 
 /** What Vite emitted for one source module: its file, its stylesheets, the chunks it imports statically. */
 export type BuildChunk = {
@@ -58,7 +59,10 @@ export const readBuildManifest = async (
   clientDir: string
 ): Promise<BuildManifest> => {
   const path = join(clientDir, MANIFEST_FILE)
-  const manifest: unknown = JSON.parse(await readFile(path, 'utf8'))
+  const manifest = await readInputJson({
+    path,
+    writtenBy: 'vite build with build.manifest: true'
+  })
 
   if (!isRecord(manifest)) {
     throw new Error(`prerender: ${path} is not an object of chunks`)

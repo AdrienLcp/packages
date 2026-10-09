@@ -1,3 +1,4 @@
+import { placeAfter } from './formatted-insertion.ts'
 import { setMeta } from './head-tags.ts'
 import { createElement, onlyElement } from './html-document.ts'
 
@@ -47,8 +48,8 @@ export const writeLanguageVersions = ({
   })
 
   canonical.setAttribute('href', current)
-  canonical.after(
-    ...[
+  placeAfter({
+    nodes: [
       ...versions.map(({ href, hreflang }) => ({ href, hreflang })),
       ...(xDefault === undefined
         ? []
@@ -59,8 +60,9 @@ export const writeLanguageVersions = ({
         document,
         tagName: 'link'
       })
-    )
-  )
+    ),
+    reference: canonical
+  })
 
   if (document.querySelector(OPEN_GRAPH_LOCALE) === null) {
     return
@@ -71,8 +73,8 @@ export const writeLanguageVersions = ({
     meta: 'property="og:locale"',
     value: page.openGraphLocale
   })
-  onlyElement({ document, selector: OPEN_GRAPH_LOCALE }).after(
-    ...versions
+  placeAfter({
+    nodes: versions
       .filter((version) => version !== page)
       .map((version) =>
         createElement({
@@ -83,6 +85,7 @@ export const writeLanguageVersions = ({
           document,
           tagName: 'meta'
         })
-      )
-  )
+      ),
+    reference: onlyElement({ document, selector: OPEN_GRAPH_LOCALE })
+  })
 }

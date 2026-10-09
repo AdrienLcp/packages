@@ -1,4 +1,5 @@
-import { createElement, onlyElement } from './html-document.ts'
+import { appendFormatted } from './formatted-insertion.ts'
+import { createElement, insertIntoHead, onlyElement } from './html-document.ts'
 
 export const setTitle = ({
   document,
@@ -42,14 +43,64 @@ export const setMetaContents = ({
   }
 }
 
+const CANONICAL = 'head > link[rel="canonical"]'
+
+const OPEN_GRAPH_URL = 'property="og:url"'
+
 /** The canonical link is the one place a host is written down. */
 export const originOfCanonical = (document: Document): string =>
   new URL(
-    onlyElement({
-      document,
-      selector: 'head > link[rel="canonical"]'
-    }).getAttribute('href') ?? ''
+    onlyElement({ document, selector: CANONICAL }).getAttribute('href') ?? ''
   ).origin
+
+/**
+ * Adds the canonical link, pointing at `url`, to a shell written without one:
+ * a shell the host also answers every client-rendered path with must not
+ * claim each of them is its own page. Sets the shell's `og:url` to the same
+ * URL, or adds one beside the link when the shell has none. A shell that
+ * already holds a canonical link throws: `writeLanguageVersions` rewrites it.
+ */
+export const addCanonical = ({
+  document,
+  url
+}: {
+  document: Document
+  /** The page's absolute URL. */
+  url: string
+}): void => {
+  if (document.querySelector(CANONICAL) !== null) {
+    throw new Error(
+      'prerender: the shell already holds a canonical link; writeLanguageVersions points it at the page'
+    )
+  }
+
+  const hasOpenGraphUrl =
+    document.querySelector(`head > meta[${OPEN_GRAPH_URL}]`) !== null
+
+  if (hasOpenGraphUrl) {
+    setMeta({ document, meta: OPEN_GRAPH_URL, value: url })
+  }
+
+  insertIntoHead({
+    document,
+    elements: [
+      createElement({
+        attributes: { href: url, rel: 'canonical' },
+        document,
+        tagName: 'link'
+      }),
+      ...(hasOpenGraphUrl
+        ? []
+        : [
+            createElement({
+              attributes: { content: url, property: 'og:url' },
+              document,
+              tagName: 'meta'
+            })
+          ])
+    ]
+  })
+}
 
 /**
  * The shell served, with a 404 status, on a path no page was built for. It
@@ -57,11 +108,14 @@ export const originOfCanonical = (document: Document): string =>
  * which no build can know, so the app renders it.
  */
 export const noindexShell = (shell: Document): void => {
-  shell.head.append(
-    createElement({
-      attributes: { content: 'noindex', name: 'robots' },
-      document: shell,
-      tagName: 'meta'
-    })
-  )
+  appendFormatted({
+    nodes: [
+      createElement({
+        attributes: { content: 'noindex', name: 'robots' },
+        document: shell,
+        tagName: 'meta'
+      })
+    ],
+    parent: shell.head
+  })
 }
