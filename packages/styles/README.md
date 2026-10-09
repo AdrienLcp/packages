@@ -118,8 +118,12 @@ Arial than in the web font.
   band's text is set in, both measured over the app's own text —
   `(arial × size-adjust) / web font`. The face is scaled by `$size-adjust`
   divided by that ratio, so it sets the text exactly as wide as the web font.
-  A ratio above 1 means scaled Arial is still too wide. `measure-font` prints
-  them.
+  A ratio above 1 means scaled Arial is still too wide. The `measure-font` bin
+  of [`@adrienlcp/measure-font`](../measure-font) prints them.
+- `$size-adjust` only sets the scale the ratios are read on — it cancels out
+  of every face. It defaults to `1`: pass `$widths` by name then,
+  `fallback-faces('Onest', $metrics, $widths: (400: 0.9505))`, with ratios
+  measured by `measure-font --size-adjust 1`.
 - A band from `$bold-from` (`650`) up is drawn in `Arial Bold`, and its ratio
   is measured over Arial Bold: a face that declares its weights is never
   synthesised bolder.
@@ -128,15 +132,27 @@ Arial than in the web font.
   them italic text in the fallback takes the upright face — slanted by
   synthesis at best, upright under `font-synthesis: none` — at upright
   widths. Any other style is a compile error.
-- `$figures` maps the same ranges to the **digits' own ratio**, measured over
-  `0123456789` with the features they are set with — `measure-font --figures
-  --figure-feature tnum --figure-feature lnum` for `tabular-nums lining-nums`.
-  Each band gets a second face for `U+0030-0039` alone, written after it so it
-  wins for the digits. One ratio cannot cover both when the font's digits
-  stand to Arial's otherwise than its letters do: Barlow Condensed's tabular
-  figures set ~14 % narrower in a face scaled on its letters, and a score
-  jumps when the web font lands. A range missing from `$figures` is a compile
-  error.
+- `$figures` maps the same ranges to the **digits' own ratio**, or is one
+  ratio for every band — `measure-font --figures --figure-feature tnum
+  --figure-feature lnum` for `tabular-nums lining-nums` prints it once when
+  every weight gives the same. Each band gets a second face for
+  `U+0030-0039` alone, written after it so it wins for the digits, on the
+  ascent and descent of the band's letters. One ratio cannot cover both when
+  the font's digits stand to Arial's otherwise than its letters do: tabular
+  figures scaled on the letters can set **15 to 25 % off** — Barlow
+  Condensed's 14 % narrower, arbor's 24 % — and a score jumps when the web
+  font lands. A
+  range missing from `$figures` is a compile error. `$figure-separators: true`
+  widens that face to `,`, `.` and `:` (`$figures-and-separators`), so a clock
+  such as `0:02` sets as wide as the web font draws it.
+- **`$figures` is a `fallback-faces` argument only.** A family left to
+  fontaine gets one face, scaled on its letters: move it to `fallback-faces`
+  to give its digits their own. A monospace family needs none — its digits
+  are as wide as its letters.
+- `$stretch` declares the faces' `font-stretch` — `70%`, or a range like
+  `62% 70%` — for a font with a width axis. Arial has none, so a condensed
+  title otherwise falls back to full-width Arial and wraps: write one call per
+  width band the app sets, each measured with `measure-font --axis wdth=70`.
 - `$trimmed-to-capitals` moves ascent and descent by the gap between the two
   capital heights, their sum kept, so a title trimmed to its capitals starts at
   the same height in both faces.
@@ -165,53 +181,6 @@ family in `skipFontFaceGeneration` and write `fallback-faces` with one band per
 file: `measure-font` measures each file at its own weight against that one
 `size-adjust`, and Arial Bold from `$bold-from` — lower it to `600` when a 600
 file measures closer to Arial Bold.
-
-#### `measure-font`
-
-A bin that measures what `fallback-faces` takes and what converting a `ch`
-needs, from the font files the app serves — shaped and kerned as Chromium sets
-them, a variable file at any weight of its axis:
-
-```bash
-pnpm exec measure-font public/fonts/onest-latin.woff2 --weight 400 --weight 700
-```
-
-```text
-onest-latin.woff2 at 400: zero 0.665em, width ratio 1.023 over Arial
-onest-latin.woff2 at 700: zero 0.6602em, width ratio 1.0497 over Arial Bold
-cap height from the OS/2 table
-size-adjust 1.052039, fontaine's, computed from the first file
-
-@include fonts.fallback-faces('Onest', (ascent: 0.97, descent: 0.305, cap-height: 0.707), 1.052039, (400: 1.023, 700: 1.0497))
-```
-
-- List the family's files in the order of its `@font-face` rules, the
-  regular first: fontaine measures that one. A static file is measured at its
-  own weight; `--weight` (repeated) picks the weights of a variable one.
-- Widen each weight of the include to the band it stands for:
-  `(300 449: …, 650 800: …)`.
-- `--size-adjust` takes the value fontaine wrote in the built CSS. Without it,
-  the bin computes fontaine's formula from the first file; fontaine reads a
-  Google font from capsize's collection instead, so the two can differ in the
-  fourth decimal.
-- `--text` or `--text-file` is the app's own text, the more the better; a
-  pangram in English and French otherwise. Spaces, tabs and newlines collapse
-  to one space as a browser lays them out — a newline measured raw is a glyph
-  and widens every ratio —, and a text that is spaces alone is refused.
-  Measure it as it shows: uppercase where `text-transform` raises it.
-- `--figures` also measures the digits alone and writes `$figures`;
-  `--figure-feature` (repeated) names the OpenType features they are set with. `--italic` measures italic files
-  over the italic cuts of Arial and writes `$style: italic`; `--bold-from`
-  and `--family` match the include. Arial is found where Windows, macOS and
-  Linux keep it — Liberation Sans, drawn on Arial's widths, will do —, or
-  passed with `--fallback` and `--fallback-bold`.
-- **The zero is a `ch`**: a measure given as `46ch` is `46 × zero` em. Read it
-  at the weight of the elements that read the measure — a prose column at the
-  body weight, not at the heading's.
-- **Cap height**: the bin reads it from the `OS/2` table, and from the top of
-  the `H` outline when the table has none — an `OS/2` table older than version
-  2, where fontaine's `readMetrics` returns `capHeight: null`. That value is
-  the one `$trimmed-to-capitals` needs.
 
 ### `tokens`
 
@@ -416,32 +385,6 @@ by its full or PostScript name, never a family.
   `withMetricTwins(src)` is the rewrite on one value.
 - The plugin is typed on what it reads, so an app needs no `postcss`
   dependency of its own: Vite brings it.
-
-### `font-metrics`
-
-What `measure-font` runs on, for a script or a test of the app's own:
-
-```ts
-import { readFileSync } from 'node:fs'
-
-import { openFont, zeroWidth } from '@adrienlcp/styles/font-metrics'
-
-const font = await openFont(readFileSync('public/fonts/onest-latin.woff2'))
-if (font.status === 'success') console.log(`46ch is ${46 * zeroWidth(font.data, 400)}em`)
-```
-
-- `openFont(bytes)` reads a `woff2`, `woff`, `ttf` or `otf` file, a `woff2`
-  decompressed first, and fails `unreadable` or `collection`.
-- `zeroWidth(font, weight?)` is the zero's advance in em; `textWidth(font,
-  text, weight?, features?)` the width of a text, shaped and kerned, with the
-  OpenType features given (`['tnum', 'lnum']`). A variable file is
-  read at `weight` on its `wght` axis, a static file at its own.
-- `verticalMetrics(font)` is the ascent and descent from `hhea` and the
-  capital height, with `capHeightFrom`: `'OS/2'`, or `'H'` when the table has
-  none.
-- `fontaineSizeAdjust(font, fallback)` is fontaine's `size-adjust` formula;
-  `widthRatio({ font, fallback, sizeAdjust, text, weight })` one `$widths`
-  entry.
 
 ### `audit`
 

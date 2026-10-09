@@ -213,6 +213,66 @@ describe('fonts', () => {
     ).toThrow('$figures has no ratio for the weights 650 800')
   })
 
+  it('[fonts] takes one figures ratio for every band, and widens it to the separators', () => {
+    const css = compile(`
+@use 'fonts'
+@include fonts.fallback-faces('Barlow', (ascent: 1, descent: 0.2), 0.82, (400 649: 1, 650 800: 1), $figures: 0.9, $figure-separators: true)
+`)
+    const faces = css.split('@font-face').slice(1)
+    expect(faces).toHaveLength(4)
+    expect(faces[1]).toContain('size-adjust:91.1111111111%')
+    expect(faces[3]).toContain('unicode-range:U+002C,U+002E,U+0030-003A')
+  })
+
+  it('[fonts] refuses separators without a figures face', () => {
+    expect(() =>
+      compile(`
+@use 'fonts'
+@include fonts.fallback-faces('Barlow', (ascent: 1, descent: 0.2), 0.82, (400: 1), $figure-separators: true)
+`)
+    ).toThrow('$figure-separators widens the figures face')
+  })
+
+  it('[fonts] draws the figures face on the line box of its band letters, trimmed or not', () => {
+    const effective = (face: string, edge: string) =>
+      (Number.parseFloat(face.split(`${edge}-override:`)[1] ?? '') *
+        Number.parseFloat(face.split('size-adjust:')[1] ?? '')) /
+      100
+    for (const trimmed of [true, false]) {
+      const [letters = '', digits = ''] = compile(`
+@use 'fonts'
+@include fonts.fallback-faces('Barlow Condensed', (ascent: 1, descent: 0.2, cap-height: 0.7), 0.82, (400: 1.02), $figures: (400: 0.88), $trimmed-to-capitals: ${trimmed})
+`)
+        .split('@font-face')
+        .slice(1)
+      for (const edge of ['ascent', 'descent'])
+        expect(effective(digits, edge)).toBeCloseTo(effective(letters, edge), 8)
+    }
+  })
+
+  it('[fonts] declares the stretch of a width band', () => {
+    const css = compile(`
+@use 'fonts'
+@include fonts.fallback-faces('Archivo', (ascent: 0.878, descent: 0.21), 1.022878, (650 900: 1.33), $stretch: 62% 70%)
+`)
+    expect(css).toContain('font-stretch:62% 70%')
+    expect(css).toContain('src:local("Arial Bold")')
+  })
+
+  it('[fonts] leaves size-adjust at 1 when the widths come by name, and refuses no widths', () => {
+    const css = compile(`
+@use 'fonts'
+@include fonts.fallback-faces('Onest', (ascent: 0.97, descent: 0.305), $widths: (400: 0.95))
+`)
+    expect(css).toContain('size-adjust:105.2631578947%')
+    expect(() =>
+      compile(`
+@use 'fonts'
+@include fonts.fallback-faces('Onest', (ascent: 0.97, descent: 0.305))
+`)
+    ).toThrow('$widths is required')
+  })
+
   it('[fonts] refuses a fallback style it has no Arial cut for', () => {
     expect(() =>
       compile(`
