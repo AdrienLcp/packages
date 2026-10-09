@@ -5,7 +5,8 @@
     "outDir": "dist",
     "rewriteRelativeImportExtensions": true,
     "rootDir": "src",
-    "target": "es2022"
+    "target": "es2022",
+    "types": ["node"]
   },
   "exclude": ["src/**/*.test.ts"],
   "extends": "../../tsconfig.json",

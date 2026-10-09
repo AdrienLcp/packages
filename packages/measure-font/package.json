@@ -14,6 +14,9 @@
     "zod": "^4.6.5"
   },
   "description": "A dev-time bin that measures a self-hosted font against Arial for the fallback faces of @adrienlcp/styles — per weight and width, over the app's own text, its dictionaries or its prerendered pages, with the digits apart and the ratio range that keeps each edge line wrapped — and converts a ch to em",
+  "devDependencies": {
+    "@types/node": "^26.6.3"
+  },
   "exports": {
     ".": "./dist/font-metrics.js",
     "./package.json": "./package.json"

@@ -47,9 +47,9 @@ describe('gatherText', () => {
     expect(
       await gatherText({ dictionaries: [fixture('pages/index.html')] })
     ).toMatchObject({ error: { reason: 'unsupported-dictionary' } })
-    expect(await gatherText({ dictionaries: [fixture('pages')] })).toMatchObject(
-      { error: { reason: 'unsupported-dictionary' } }
-    )
+    expect(
+      await gatherText({ dictionaries: [fixture('pages')] })
+    ).toMatchObject({ error: { reason: 'unsupported-dictionary' } })
     expect(
       await gatherText({ dists: [fixture('pages')], select: 'h1[' })
     ).toEqual({
