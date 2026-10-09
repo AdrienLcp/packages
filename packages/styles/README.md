@@ -230,7 +230,7 @@ wins.
 
 | Token | Default |
 | --- | --- |
-| `--stroke-hair`, `--stroke-thin`, `--stroke-bold` | `1px`, `1.5px`, `2px` |
+| `--stroke-hair`, `--stroke-thin`, `--stroke-bold` | `1px`, `2px`, `3px`. Whole pixels: Chromium floors a border to whole device pixels, so a `1.5px` stroke is the hairline on a 1x screen and an inset shadow at that width smears across two |
 | `--hairline`, `--hairline-strong` | a `--stroke-hair` solid line in `--rule`, `--rule-strong` |
 | `--inset-hairline`, `--inset-hairline-strong` | the same line as an inset `box-shadow`, which takes no room |
 | `--outline-thick`, `--outline-offset` | `2px`, `3px`. A whole number of pixels: Chromium draws an outline in whole device pixels, so a `2.5px` ring is `2px` on a 1x screen |
@@ -446,72 +446,119 @@ if (font.status === 'success') console.log(`46ch is ${46 * zeroWidth(font.data, 
 ### `audit`
 
 The rules nobody should have to remember, checked in a test that reads every
-stylesheet:
+stylesheet and every piece of markup:
 
 ```ts
 import { globSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 import { REACT_ARIA_TOKENS } from '@adrienlcp/react-aria'
 import {
+  findFallbackBandFailures,
   findFallbackFailures,
+  findFontAttributeFailures,
   findTokenFailures,
   findTypeLiterals,
   findUnitFailures,
   findUnnamedValues,
+  findUnreadFontFaces,
   webFontFamilies
 } from '@adrienlcp/styles/audit'
 import { describe, expect, it } from 'vitest'
 
-const STYLESHEETS = globSync('src/**/*.{sass,css}')
-const SOURCES = globSync('src/**/*.{sass,css,ts,tsx}').map((path) => readFileSync(path, 'utf8'))
-const WEB_FONTS = webFontFamilies(STYLESHEETS.map((path) => readFileSync(path, 'utf8')))
+const SOURCE_FOLDER = join(import.meta.dirname, '../..')
+const findSourceFiles = (pattern: string) => globSync(pattern, { cwd: SOURCE_FOLDER })
+const readSourceFile = (path: string) => readFileSync(join(SOURCE_FOLDER, path), 'utf8')
+
+const STYLESHEETS = findSourceFiles('**/*.{sass,css}')
+const MARKUP = findSourceFiles('**/*.{tsx,svg}')
+const STYLESHEET_SOURCES = STYLESHEETS.map(readSourceFile)
+const SOURCES = findSourceFiles('**/*.{sass,css,ts,tsx}').map(readSourceFile)
+const WEB_FONTS = webFontFamilies(STYLESHEET_SOURCES)
+
+it('[audit] finds the stylesheets it audits', () => {
+  expect(STYLESHEETS).not.toEqual([])
+})
 
 describe.each(STYLESHEETS)('%s', (path) => {
-  const stylesheet = readFileSync(path, 'utf8')
+  const stylesheet = readSourceFile(path)
 
-  it('sizes text, spacing and boxes in rem', () => {
+  it('[units] sizes text, spacing and boxes in rem', () => {
     expect(findUnitFailures(stylesheet)).toEqual([])
   })
 
-  it.skipIf(path.endsWith('_typography.sass'))('takes its text voice from the typography mixins', () => {
+  it.skipIf(path.endsWith('_typography.sass'))('[voice] takes its text voice from the typography mixins', () => {
     expect(findTypeLiterals(stylesheet)).toEqual([])
   })
 
-  it('takes its radii and durations from tokens', () => {
+  it('[names] takes its radii, durations, text sizes and insets from tokens', () => {
     expect(findUnnamedValues(stylesheet)).toEqual([])
   })
 
-  it('names the fallback face after every web font in a font token', () => {
+  it('[fonts] writes every face so the audit reads its family', () => {
+    expect(findUnreadFontFaces(stylesheet)).toEqual([])
+  })
+
+  it('[fonts] names the fallback face after every web font in a font token', () => {
     expect(findFallbackFailures(stylesheet, WEB_FONTS)).toEqual([])
   })
 })
 
-it('reads only custom properties that exist, under their one shared name', () => {
+describe.each(MARKUP)('%s', (path) => {
+  it('[fonts] sets text in a font token, never a family by name', () => {
+    expect(findFontAttributeFailures(readSourceFile(path))).toEqual([])
+  })
+})
+
+it('[fonts] draws a fallback face for every weight and style it sets, and none it does not', () => {
+  expect(findFallbackBandFailures(STYLESHEET_SOURCES)).toEqual([])
+})
+
+it('[tokens] reads only custom properties that exist, under their one shared name', () => {
   expect(findTokenFailures(SOURCES, { provided: REACT_ARIA_TOKENS })).toEqual([])
 })
 ```
 
 `REACT_ARIA_TOKENS` comes from `@adrienlcp/react-aria`; an app without
-react-aria leaves the options out.
+react-aria leaves the options out. The folder is the test's own, never the
+working directory: a monorepo whose vitest runs from the root would otherwise
+audit nothing.
+
+**One tag per check**, the same in this package's tests and in an app's, so
+`pnpm test -- -t fonts` runs every font check: `[units]` for
+`findUnitFailures`, `[voice]` for `findTypeLiterals`, `[names]` for
+`findUnnamedValues`, `[fonts]` for the five font checks, `[tokens]` for
+`findTokenFailures`, and `[audit]` for the test that guards the audit itself.
 
 - Comments are never read, in a stylesheet or a script; a `//` inside a string
   or a `url()` is no comment.
 - `findUnitFailures` reads `font-size`, `font`, `margin*`, `padding*`, the
   gaps, `text-indent`, `width`, `height` and their logical, `min-` and `max-`
   forms, `inset*`, `top`, `right`, `bottom`, `left`, `translate`, `flex-basis`,
-  the `translate*()` functions of a `transform`, and every custom property. A
+  the grid tracks (`grid-template-columns`, `grid-auto-rows`, …), the
+  `translate*()` functions of a `transform`, and every custom property. A
   failure is `pixels` — any non-zero `px` value there, `clamp()` bounds and
-  `calc()` terms included — or `viewport-without-rem`: a
-  text size driven by `vw`, `vh`, `vmin` or a container unit with no rem part,
-  which zoom cannot enlarge. It also lists `ch`, a size or a custom property
-  in `ch` — the width of the font's zero, which moves when the web font
-  replaces the fallback —, and `fractional-outline`, an `outline`,
-  `outline-width` or `--outline-*` width (the offset aside) that is not a
-  whole number of pixels. Strokes, outlines, radii, shadows and the touch
-  target stay in px: their properties and their `--stroke-*`, `--outline-*`,
-  `--radius-*`, `--shadow-*` and `--target` tokens are not read. A
-  surface sized on the viewport — a scoreboard on a TV — derives its sizes from
-  a named unit token (`calc(var(--cu) * 4)`), which passes.
+  `calc()` terms included — or `viewport-without-rem`: a text size driven by
+  `vw`, `vh`, `vmin` or a container unit with no rem part, which zoom cannot
+  enlarge. It also lists `ch`, a size, a grid track or a custom property in
+  `ch` — the width of the font's zero, which moves when the web font replaces
+  the fallback —, `fractional-outline`, an `outline`, `outline-width` or
+  `--outline-*` width (the offset aside) that is not a whole number of pixels,
+  and `fractional-stroke`, a border width or a `--stroke-hair`,
+  `--stroke-thin` or `--stroke-bold` that is not one either. Strokes,
+  outlines, radii, shadows and the touch target stay in px: their properties
+  and their `--stroke-*`, `--outline-*`, `--radius-*`, `--shadow-*` and
+  `--target` tokens are not read for `pixels`. `outline: var(--stroke-thin)`
+  passes: the token's own declaration is checked. A stroke token of the app's
+  own for an SVG curve — `--stroke-chalk: 2.6px` — may be fractional: a curve
+  is antialiased whatever its width.
+- **Pixels a script must match go through a `--*-px` custom property**, which
+  passes: a board cell whose size the script computes in pixels is declared
+  `--cell-px: 24px` and read by the stylesheet (`calc(var(--cell-px) * 8)`)
+  and by the script through `getComputedStyle`. The suffix says the pixels are
+  wanted; any other `px` custom property is `pixels`.
+- A surface sized on the viewport — a scoreboard on a TV — derives its sizes
+  from a named unit token (`calc(var(--cu) * 4)`), which passes.
 - `findTypeLiterals` lists every `font-weight`, `line-height` and
   `letter-spacing` written as a number or a keyword: a text voice is declared
   once, in a mixin, and a component includes it. `inherit` and `var()` pass.
@@ -522,10 +569,24 @@ react-aria leaves the options out.
   `--text-*` step. `0` and `0s` pass; a font size passes when it reads a
   `var()` — a fitted floor `max(var(--text-s), 7cqi)`, a unit token
   `calc(var(--cu) * 4)` —, keeps the parent's size (`1em`, `100%`) or is a
-  keyword.
+  keyword. It also lists a raw `env(safe-area-inset-*)` outside the
+  `--safe-area-*` tokens, which carry its `0px` fallback (`safe-area`), and a
+  hand-written `max()` over `--safe-area-left` or `--safe-area-right`
+  (`gutter`): a page's sides, and whatever sits against them, take
+  `--gutter-left` and `--gutter-right`. A `max()` over the top or the bottom
+  inset passes — a sticky bar or a bottom bar writes its own.
 - `webFontFamilies` reads the families the stylesheets self-host: every
-  `fonts.font-face` include and every `@font-face` with a `url()` source. A
-  family loaded elsewhere — a `@fontsource` import — is added by hand.
+  `fonts.font-face` and `fonts.fallback-faces` include, every `@font-face` with
+  a `url()` source, and the family of a hand-written `<family> fallback` face.
+  A family held in a variable the same file assigns once is read, and so is
+  one passed to a face mixin of the app's own — a `@mixin` whose face takes its
+  family as a parameter. A family loaded elsewhere — a `@fontsource` import —
+  is added by hand.
+- `findUnreadFontFaces` lists a face whose family (`unread-family`) or
+  `$widths` bands (`unread-weights`) the audit cannot read: built in an
+  `@each` loop, interpolated, a variable assigned twice, a map from another
+  module. Every font check then misses that family and passes in silence, so
+  this one fails instead: write the faces out, one include per file.
 - `findFallbackFailures` lists a custom property whose font stack names one of
   those web fonts without `'<family> fallback'` right after it
   (`missing-fallback`, with the `family`): fontaine appends its fallback face
@@ -533,6 +594,24 @@ react-aria leaves the options out.
   token paints in an unscaled system font until the font arrives — for good
   under `font-display: optional` when it misses. A web font listed after a
   fallback face is a glyph backup the fallback always shadows, and passes.
+- `findFallbackBandFailures` takes every stylesheet and checks the bands
+  `fallback-faces` draws — fontaine's own faces copy every `@font-face`, and
+  are not read — against the weights the stylesheets set, a literal, a keyword
+  or a token: `uncovered-weight`, a `font-weight` no band of the family set in
+  the same block covers — with no family there, no band of any family —, which
+  paints in a face scaled for another weight; `uncovered-style`, a family that
+  serves italic files with no italic band, so italic text in the fallback
+  takes the upright face — `em` sets italic whether a stylesheet does or not;
+  `unused-band`, a band no weight falls in, `400` always counted. A family is
+  reported in lower case.
+- `findFontAttributeFailures` reads a `.tsx` or an `.svg` and lists a
+  `font-family` attribute, a `fontFamily` prop or style key, or an inline
+  `font-family:` that names a family instead of a font token
+  (`font-attribute`). **SVG text takes `var(--font-…)`**: a family named there
+  gets no fallback face, and one the page does not serve falls back to serif.
+  The SVG is inlined (`?react`): an SVG shown through `<img>` reads neither
+  the page's fonts nor its tokens. `inherit` passes; an expression —
+  `fontFamily={family}` — is not read.
 - `findTokenFailures` takes every source — stylesheets and the scripts that
   set a property through `style` — and lists a name read through `var()` but
   declared nowhere, not shared and not `provided` (`undeclared`: a rename
