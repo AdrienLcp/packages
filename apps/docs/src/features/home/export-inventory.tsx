@@ -13,6 +13,7 @@ import { ChevronIcon } from '@/presentation/components/icons'
 import { Tag } from '@/presentation/components/tag'
 import { Link } from '@/presentation/components/ui/link'
 import { useI18n } from '@/presentation/i18n/i18n-provider'
+import { packageDescriptionIn } from '@/presentation/i18n/package-descriptions'
 
 import './export-inventory.sass'
 
@@ -60,7 +61,7 @@ export const ExportInventory: React.FC<ExportInventoryProps> = ({
                   )}
                 </span>
                 <span className='inventory-package-description'>
-                  {housePackage.description}
+                  {packageDescriptionIn({ locale, packageInfo: housePackage })}
                 </span>
               </span>
               <span className='inventory-package-facts'>

@@ -11,6 +11,7 @@ import { loaderModuleFor, pageModuleFor } from '@/infrastructure/router/routes'
 import { prerenderPath } from '@/infrastructure/router/static-router'
 import { i18n } from '@/presentation/i18n/i18n'
 import { LOCALES, type Locale } from '@/presentation/i18n/locale'
+import { packageDescriptionIn } from '@/presentation/i18n/package-descriptions'
 
 export type PrerenderedPage = {
   /** The search snippet, and the line a link unfurls with. */
@@ -74,28 +75,35 @@ const homeFor = (locale: Locale): PrerenderedPage => {
 const packagePagesFor = (locale: Locale): PrerenderedPage[] => {
   const translate = i18n.translator(locale)
 
-  return CATALOGUE.map((housePackage) => ({
-    description: housePackage.description,
-    locale,
-    modules: [
-      pageModuleFor(localizedPaths.package),
-      loaderModuleFor(localizedPaths.package)
-    ],
-    path: packagePathFor({ locale, packageName: housePackage.name }),
-    shareImageAlt: translate('app.shareImageAlt'),
-    structuredData: {
-      '@type': 'SoftwareSourceCode',
-      codeRepository: packageFolderUrlOf(housePackage.name),
-      description: housePackage.description,
-      inLanguage: locale,
-      name: housePackage.scopedName,
-      programmingLanguage: 'TypeScript'
-    },
-    translations: translationsOf((translated) =>
-      packagePathFor({ locale: translated, packageName: housePackage.name })
-    ),
-    xDefaultPath: null
-  }))
+  return CATALOGUE.map((housePackage) => {
+    const description = packageDescriptionIn({
+      locale,
+      packageInfo: housePackage
+    })
+
+    return {
+      description,
+      locale,
+      modules: [
+        pageModuleFor(localizedPaths.package),
+        loaderModuleFor(localizedPaths.package)
+      ],
+      path: packagePathFor({ locale, packageName: housePackage.name }),
+      shareImageAlt: translate('app.shareImageAlt'),
+      structuredData: {
+        '@type': 'SoftwareSourceCode',
+        codeRepository: packageFolderUrlOf(housePackage.name),
+        description,
+        inLanguage: locale,
+        name: housePackage.scopedName,
+        programmingLanguage: 'TypeScript'
+      },
+      translations: translationsOf((translated) =>
+        packagePathFor({ locale: translated, packageName: housePackage.name })
+      ),
+      xDefaultPath: null
+    }
+  })
 }
 
 /** Read off the catalogue, so a package added there gets its own documents. */

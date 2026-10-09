@@ -21,6 +21,7 @@ describe('parsePackageManifest', () => {
 
     expect(parsePackageManifest(manifest)).toEqual({
       data: {
+        commands: [],
         dependencies: ['@adrienlcp/result'],
         description: 'Typed results.',
         exports: { '.': './dist/index.js' },
@@ -37,6 +38,7 @@ describe('parsePackageManifest', () => {
   it('[package-manifest] reads missing optional fields as empty', () => {
     expect(parsePackageManifest(minimal)).toEqual({
       data: {
+        commands: [],
         dependencies: [],
         description: 'Typed results.',
         exports: undefined,
@@ -99,4 +101,16 @@ describe('parsePackageManifest', () => {
       })
     }
   )
+
+  it.each([
+    [{ 'measure-font': './dist/measure-font.js' }, ['measure-font']],
+    ['./dist/cli.js', ['result']],
+    [42, []]
+  ])('[package-manifest] reads the commands of the bin %j', (bin, commands) => {
+    const parsed = parsePackageManifest({ ...minimal, bin })
+
+    expect(parsed.status === 'success' && parsed.data.commands).toEqual(
+      commands
+    )
+  })
 })
