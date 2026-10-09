@@ -17,7 +17,7 @@
         "packages/i18n/src/create-i18n.test.ts",
         "packages/i18n/src/translator.test.ts",
         "packages/i18n/src/translator.types.test.ts",
-        "packages/styles/src/measure-font-command.ts"
+        "packages/measure-font/src/measured-text.ts"
       ],
       "language": "en,en-GB,fr"
     },
@@ -69,6 +69,7 @@
     "cqmin",
     "culori",
     "displayname",
+    "dists",
     "Docable",
     "esnext",
     "focusables",
@@ -80,8 +81,10 @@
     "hreflang",
     "Hyperlegible",
     "IHDR",
+    "İSTANBUL",
     "japanese",
     "Kiritimati",
+    "Kraków",
     "Lacourpaille",
     "lightningcss",
     "linecap",
@@ -101,6 +104,7 @@
     "oklab",
     "oklch",
     "Onest",
+    "onum",
     "prerender",
     "prerendered",
     "pressable",
@@ -111,6 +115,8 @@
     "Segoe",
     "shiki",
     "Shrikhand",
+    "STRASSE",
+    "Straße",
     "stylesheet",
     "subtag",
     "tabindex",
@@ -125,7 +131,9 @@
     "vmin",
     "wawoff",
     "wcag",
+    "wdth",
     "wght",
-    "wordmark"
+    "wordmark",
+    "Łódź"
   ]
 }

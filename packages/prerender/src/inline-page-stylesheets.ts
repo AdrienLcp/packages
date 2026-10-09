@@ -1,42 +1,12 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
-import type { BuildChunk, BuildManifest } from './build-manifest.ts'
+import type { BuildManifest } from './build-manifest.ts'
+import { chunksInImportOrder } from './chunk-imports.ts'
+import { removeFormatted, replaceFormatted } from './formatted-insertion.ts'
 import { createElement } from './html-document.ts'
 
 const LINKED_STYLESHEETS = 'head > link[rel="stylesheet"]'
-
-/** Each chunk after the chunks it imports statically, each once. */
-const chunksInImportOrder = ({
-  manifest,
-  module,
-  seen
-}: {
-  manifest: BuildManifest
-  module: string
-  seen: Set<string>
-}): BuildChunk[] => {
-  if (seen.has(module)) {
-    return []
-  }
-
-  seen.add(module)
-
-  const chunk = manifest[module]
-
-  if (chunk === undefined) {
-    throw new Error(
-      `prerender: ${module} is not in Vite's manifest; the build did not emit it as a chunk`
-    )
-  }
-
-  return [
-    ...chunk.imports.flatMap((imported) =>
-      chunksInImportOrder({ manifest, module: imported, seen })
-    ),
-    chunk
-  ]
-}
 
 const readStylesheet = async ({
   clientDir,
@@ -107,14 +77,11 @@ export const inlinePageStylesheets = async ({
     )
   }
 
-  const seen = new Set<string>()
   const sheetUrls = [
     ...new Set([
       ...linked.flatMap((link) => link.getAttribute('href') ?? []),
-      ...modules.flatMap((module) =>
-        chunksInImportOrder({ manifest, module, seen }).flatMap((chunk) =>
-          chunk.css.map((file) => `/${file}`)
-        )
+      ...chunksInImportOrder({ manifest, modules }).flatMap((chunk) =>
+        chunk.css.map((file) => `/${file}`)
       )
     ])
   ]
@@ -126,13 +93,16 @@ export const inlinePageStylesheets = async ({
   const style = document.createElement('style')
 
   style.textContent = css
-  firstLinked.replaceWith(
-    style,
-    ...sheetUrls.map((href) => markerOfInlinedStylesheet({ document, href }))
-  )
   for (const link of linked.slice(1)) {
-    link.remove()
+    removeFormatted(link)
   }
+  replaceFormatted({
+    nodes: [
+      style,
+      ...sheetUrls.map((href) => markerOfInlinedStylesheet({ document, href }))
+    ],
+    reference: firstLinked
+  })
 
   return { css }
 }

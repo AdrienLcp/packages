@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "noEmit": false,
+    "outDir": "dist",
+    "rewriteRelativeImportExtensions": true,
+    "rootDir": "src",
+    "target": "es2022",
+    "types": ["node"]
+  },
+  "exclude": ["src/**/*.test.ts", "src/**/*.fixture.ts"],
+  "extends": "../../tsconfig.json",
+  "include": ["src"]
+}

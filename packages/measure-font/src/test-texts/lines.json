@@ -1,0 +1,9 @@
+[
+  {
+    "box": 180,
+    "fontSize": 16,
+    "text": "Print the family sheet",
+    "weight": 400
+  },
+  { "box": 96, "fontSize": 32, "letterSpacing": -0.02, "text": "Family" }
+]

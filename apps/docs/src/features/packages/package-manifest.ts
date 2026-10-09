@@ -3,6 +3,8 @@ import { z } from 'zod'
 
 /** What the site reads from a package's `package.json`. */
 export type PackageManifest = {
+  /** The commands its `bin` puts on the path: a tool, run while building. */
+  commands: readonly string[]
   /** The names of its runtime dependencies. */
   dependencies: readonly string[]
   description: string
@@ -27,7 +29,12 @@ const peerMetaSchema = z
   .nullable()
   .catch(null)
 
+const binSchema = lenient(
+  z.union([z.string(), z.record(z.string(), z.string())])
+)
+
 const manifestSchema = z.object({
+  bin: binSchema,
   dependencies: namesSchema,
   description: z.string(),
   exports: z.unknown().optional(),
@@ -40,6 +47,23 @@ const manifestSchema = z.object({
 
 const isString = (value: unknown): value is string => typeof value === 'string'
 
+const SCOPE = /^@[^/]+\//
+
+/** A string `bin` installs one command named after the package, without its scope. */
+const commandsOf = ({
+  bin,
+  name
+}: {
+  bin: string | Record<string, string> | undefined
+  name: string
+}): readonly string[] => {
+  if (bin === undefined) {
+    return []
+  }
+
+  return typeof bin === 'string' ? [name.replace(SCOPE, '')] : Object.keys(bin)
+}
+
 /** Reads a parsed `package.json`, failing when it lacks a name, a version or a description. */
 export const parsePackageManifest = (
   manifest: unknown
@@ -51,6 +75,7 @@ export const parsePackageManifest = (
   }
 
   const {
+    bin,
     dependencies = {},
     description,
     exports,
@@ -62,6 +87,7 @@ export const parsePackageManifest = (
   } = parsed.data
 
   return Result.success({
+    commands: commandsOf({ bin, name }),
     dependencies: Object.keys(dependencies),
     description,
     exports,

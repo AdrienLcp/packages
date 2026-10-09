@@ -1,4 +1,12 @@
+import {
+  type FallbackBand,
+  familiesThroughMixins,
+  readFontFaces,
+  type UnreadFace,
+  type WebFace
+} from './font-faces.ts'
 import { withoutComments } from './source-comments.ts'
+import { readDeclarations } from './stylesheet-declarations.ts'
 
 /** A declaration that breaks a stylesheet rule, with the line it sits on (1-based). */
 export type StyleFailure<Kind extends string> = {
@@ -8,14 +16,35 @@ export type StyleFailure<Kind extends string> = {
 }
 
 export type UnitFailure = StyleFailure<
-  'pixels' | 'viewport-without-rem' | 'ch' | 'fractional-outline'
+  | 'pixels'
+  | 'viewport-without-rem'
+  | 'ch'
+  | 'fractional-outline'
+  | 'fractional-stroke'
 >
 export type TypeLiteral = StyleFailure<'type-literal'>
-export type UnnamedValue = StyleFailure<'radius' | 'duration' | 'text-size'>
+export type UnnamedValue = StyleFailure<
+  'radius' | 'duration' | 'text-size' | 'gutter' | 'safe-area'
+>
 /** A font token naming a web font that fontaine's fallback face never follows. */
 export type FallbackFailure = StyleFailure<'missing-fallback'> & {
   family: string
 }
+/** A face whose family or weight bands the audit cannot read, so no check reaches it. */
+export type UnreadFontFace = UnreadFace
+/** A `font-family` attribute or style key in markup that names no font token. */
+export type FontAttributeFailure = StyleFailure<'font-attribute'>
+
+/** A weight or a style the fallback faces drawn per band miss, or a band nothing sets. */
+export type FallbackBandFailure =
+  | {
+      declaration: string
+      family: string
+      kind: 'uncovered-weight'
+      weight: number
+    }
+  | { family: string; kind: 'uncovered-style'; style: string }
+  | { family: string; kind: 'unused-band'; style: string; weights: string }
 
 /** A custom property read or declared under a name that breaks the shared set. */
 export type TokenFailure = {
@@ -61,9 +90,9 @@ export const SHARED_TOKEN_DEFAULTS = {
   '--safe-area-left': 'env(safe-area-inset-left, 0px)',
   '--safe-area-right': 'env(safe-area-inset-right, 0px)',
   '--safe-area-top': 'env(safe-area-inset-top, 0px)',
-  '--stroke-bold': '2px',
+  '--stroke-bold': '3px',
   '--stroke-hair': '1px',
-  '--stroke-thin': '1.5px',
+  '--stroke-thin': '2px',
   '--target': '44px',
   '--tracking-tight': '-0.02em',
   '--transition-base': '250ms',
@@ -96,17 +125,23 @@ const BARE_LENGTH = /^-?\d*\.?\d+[a-z]+$/
 
 const TEXT_PROPERTY = /^(font-size|font|--text-[\w-]+)$/
 const SIZED_PROPERTY =
-  /^(font-size|font|margin(-[\w-]+)?|padding(-[\w-]+)?|gap|row-gap|column-gap|text-indent|((min|max)-)?(width|height|inline-size|block-size)|inset(-[\w-]+)?|top|right|bottom|left|translate|flex-basis)$/
+  /^(font-size|font|margin(-[\w-]+)?|padding(-[\w-]+)?|gap|row-gap|column-gap|text-indent|((min|max)-)?(width|height|inline-size|block-size)|inset(-[\w-]+)?|top|right|bottom|left|translate|flex-basis|grid|grid-template(-columns|-rows)?|grid-auto-(columns|rows))$/
 const CUSTOM_PROPERTY = /^--[\w-]+$/
-const PIXEL_TOKEN = /^--(stroke|outline|radius|shadow|target)(-[\w-]+)?$/
+const PIXEL_TOKEN =
+  /^--((stroke|outline|radius|shadow|target)(-[\w-]+)?|[\w-]+-px)$/
 const TYPE_PROPERTY = /^(font-weight|line-height|letter-spacing)$/
 const RADIUS_PROPERTY = /^border(-[\w-]+)?-radius$/
 const MOTION_PROPERTY = /^(transition|animation)(-duration|-delay)?$/
-const DECLARATION = /^\s*([\w-]+)\s*:\s*(.+?)\s*;?\s*$/
 const PIXELS = /(^|[^\w.])-?(\d*\.?\d+)px\b/g
 const CH = /(^|[^\w.-])(\d*\.?\d+)ch\b/g
 const FRACTIONAL_PIXELS = /(^|[^\w.])\d*\.\d*[1-9]\d*px\b/
 const OUTLINE_WIDTH = /^(outline|outline-width|--outline-(?!offset\b)[\w-]+)$/
+const STROKE_WIDTH =
+  /^(border(-(top|right|bottom|left|block|inline)(-(start|end))?)?(-width)?|--stroke-(hair|thin|bold))$/
+const SIDE_SAFE_AREA = /--safe-area-(left|right)\b/
+const RAW_SAFE_AREA = /\benv\(\s*safe-area-(max-)?inset-/
+const SAFE_AREA_TOKEN = /^--safe-area-[\w-]+$/
+const GUTTER_TOKEN = /^--gutter-(left|right)$/
 const TRANSLATE_FUNCTION = /\btranslate(?:X|Y|Z|3d)?\(/g
 const VIEWPORT =
   /\d(vw|vh|vi|vb|vmin|vmax|svw|svh|lvw|lvh|dvw|dvh|cqi|cqb|cqw|cqh|cqmin|cqmax)\b/
@@ -125,26 +160,8 @@ const DECLARED_TOKEN = new RegExp(
 )
 const TOKEN_DECLARATION = /^\s*(--[\w-]+)\s*:\s*(.+?)\s*;?\s*$/gm
 const DISTINCTIVE_VALUE = /[\s(,]/
-const FONT_FACE_INCLUDE = /(?<![@\w-])font-face\(\s*(['"])(.+?)\1/g
-const FONT_FACE_RULE = /@font-face\b/g
-const FONT_FACE_FAMILY =
-  /(?:^|[;{\s])font-family\s*:\s*(['"]?)([^'";\n}]+?)\1\s*(?:;|\}|$)/m
-const URL_SOURCE = /\bsrc\s*:[^;}]*\burl\(/
 const INTERPOLATED = /[#$]\{|^\$/
 const FALLBACK_SUFFIX = ' fallback'
-
-const readDeclarations = (stylesheet: string) => {
-  const lines = stylesheet.split('\n')
-  return withoutComments(stylesheet)
-    .split('\n')
-    .flatMap((code, index) => {
-      const declaration = DECLARATION.exec(code)
-      if (!declaration) return []
-      const [, property = '', value = ''] = declaration
-      const text = (lines[index] ?? code).trim()
-      return [{ line: index + 1, property, text, value }]
-    })
-}
 
 const hasNonZero = (value: string, unit: RegExp) =>
   [...value.matchAll(unit)].some(([, , amount]) => Number(amount) !== 0)
@@ -187,6 +204,8 @@ const unitFailureKind = (
     return 'ch'
   if (OUTLINE_WIDTH.test(property) && FRACTIONAL_PIXELS.test(value))
     return 'fractional-outline'
+  if (STROKE_WIDTH.test(property) && FRACTIONAL_PIXELS.test(value))
+    return 'fractional-stroke'
   return undefined
 }
 
@@ -205,6 +224,14 @@ const unnamedValueKind = (
   if (MOTION_PROPERTY.test(property) && hasNonZero(value, TIME))
     return 'duration'
   if (isLiteralTextSize(property, value)) return 'text-size'
+  if (RAW_SAFE_AREA.test(value) && !SAFE_AREA_TOKEN.test(property))
+    return 'safe-area'
+  if (
+    value.includes('max(') &&
+    SIDE_SAFE_AREA.test(value) &&
+    !GUTTER_TOKEN.test(property)
+  )
+    return 'gutter'
   return undefined
 }
 
@@ -214,16 +241,25 @@ const unnamedValueKind = (
  * `translate*()` included —, a `px` custom property outside the families
  * drawn in pixels (`--stroke-*`, `--outline-*`, `--radius-*`, `--shadow-*`,
  * `--target`), a text size driven by the viewport with no rem part (each
- * `pixels` or `viewport-without-rem`), a size or a custom property in `ch`
- * (`ch`) — the width of the font's zero, which the fallback face and the web
- * font draw differently, so the box changes when one replaces the other —, or
- * an outline width that is not a whole number of pixels (`fractional-outline`)
- * — Chromium draws an outline in whole device pixels, so a `2.5px` ring is
- * `2px` on a 1x screen. Reads
- * one declaration per line, as Sass and plain CSS are written; comments are
- * not read. A zero passes in any unit, and so does a size derived from a named
- * unit token (`calc(var(--cu) * 4)`): that is how a viewport-sized surface
- * opts out.
+ * `pixels` or `viewport-without-rem`), a size, a grid track or a custom
+ * property in `ch` (`ch`) — the width of the font's zero, which the fallback
+ * face and the web font draw differently, so the box changes when one
+ * replaces the other —, an outline width that is not a whole number of
+ * pixels (`fractional-outline`) — Chromium draws an outline in whole device
+ * pixels, so a `2.5px` ring is `2px` on a 1x screen —, or a border width or a
+ * `--stroke-hair`, `--stroke-thin` or `--stroke-bold` that is not one either
+ * (`fractional-stroke`): a border is floored to whole device pixels too, so a
+ * `1.5px` stroke is the hairline on a 1x screen, and an inset shadow at that
+ * width smears across two. An outline drawn with one of them passes: the
+ * token's own declaration is the one checked. A stroke token of the app's own
+ * for an SVG curve — `--stroke-chalk: 2.6px` — may be fractional: a curve is
+ * antialiased whatever its width. A grid track in `px` is a box size like any
+ * other. A custom property named `--*-px` holds pixels on purpose — a length
+ * that must match a geometry a script computes in pixels, read back through
+ * `getComputedStyle` — and passes. Reads one declaration per line, as Sass and
+ * plain CSS are written; comments are not read. A zero passes in any unit,
+ * and so does a size derived from a named unit token (`calc(var(--cu) * 4)`):
+ * that is how a viewport-sized surface opts out.
  */
 export const findUnitFailures = (stylesheet: string): UnitFailure[] =>
   readDeclarations(stylesheet).flatMap(({ line, property, text, value }) => {
@@ -251,7 +287,10 @@ export const findTypeLiterals = (stylesheet: string): TypeLiteral[] =>
  * does a token's own declaration, which is a custom property. A font size
  * passes when it reads a `var()` (`max(var(--text-s), 7cqi)`,
  * `calc(var(--cu) * 4)`), is a keyword, or keeps the parent's size (`1em`,
- * `100%`).
+ * `100%`). It also lists a raw `env(safe-area-inset-*)` outside the
+ * `--safe-area-*` tokens, which carry its `0px` fallback (`safe-area`), and a
+ * hand-written `max()` over `--safe-area-left` or `--safe-area-right`
+ * (`gutter`): a page's sides pad by `--gutter-left` and `--gutter-right`.
  */
 export const findUnnamedValues = (stylesheet: string): UnnamedValue[] =>
   readDeclarations(stylesheet).flatMap(({ line, property, text, value }) => {
@@ -354,55 +393,40 @@ export const findTokenFailures = (
   )
 }
 
-const indentOf = (line: string) => line.length - line.trimStart().length
-
-/** The body of the `@font-face` at `start`: braces in CSS, deeper lines in indented Sass. */
-const fontFaceBody = (source: string, start: number) => {
-  const lineStart = source.lastIndexOf('\n', start) + 1
-  const headerEnd = source.indexOf('\n', start)
-  const header = source.slice(start, headerEnd === -1 ? undefined : headerEnd)
-  if (header.includes('{')) {
-    const open = source.indexOf('{', start)
-    return source.slice(open + 1, source.indexOf('}', open))
-  }
-  if (headerEnd === -1) return ''
-  const indent = indentOf(source.slice(lineStart, start + 1))
-  const body: string[] = []
-  for (const line of source.slice(headerEnd + 1).split('\n')) {
-    if (line.trim() !== '' && indentOf(line) <= indent) break
-    body.push(line)
-  }
-  return body.join('\n')
-}
-
-const selfHostedFamily = (body: string) => {
-  const family = FONT_FACE_FAMILY.exec(body)?.[2]?.trim()
-  if (family === undefined || !URL_SOURCE.test(body)) return undefined
-  return family
-}
-
-const fontFaceFamilies = (source: string) => [
-  ...[...source.matchAll(FONT_FACE_INCLUDE)].map(([, , family = '']) => family),
-  ...[...source.matchAll(FONT_FACE_RULE)].flatMap(({ index }) => {
-    const family = selfHostedFamily(fontFaceBody(source, index))
-    return family === undefined ? [] : [family]
-  })
-]
-
 /**
  * The families a project self-hosts, read from its stylesheets: every
- * `fonts.font-face` include and every `@font-face` with a `url()` source. A
- * family named through a variable or `#{…}` is not read, nor a face fontaine
- * wrote itself (`<family> fallback`, which has a `local()` source).
+ * `fonts.font-face` include, every `fonts.fallback-faces` include, every
+ * `@font-face` with a `url()` source, and the family of every hand-written
+ * `<family> fallback` face. A family held in a variable the same file assigns
+ * once is read, and so is one passed to a face mixin of the app's own. One
+ * built otherwise — in an `@each` loop, through `#{…}` — is not:
+ * `findUnreadFontFaces` lists it.
  */
-export const webFontFamilies = (sources: readonly string[]): string[] => [
-  ...new Set(
-    sources
-      .map(withoutComments)
-      .flatMap(fontFaceFamilies)
-      .filter((family) => !INTERPOLATED.test(family))
-  )
-]
+export const webFontFamilies = (sources: readonly string[]): string[] => {
+  const readings = sources.map(readFontFaces)
+  const mixins = readings.flatMap(({ mixins }) => mixins)
+  return [
+    ...new Set([
+      ...readings.flatMap(({ bands, faces }) => [
+        ...faces.map(({ family }) => family),
+        ...bands.map(({ family }) => family)
+      ]),
+      ...sources.flatMap((source) => familiesThroughMixins(source, mixins))
+    ])
+  ].filter((family) => !INTERPOLATED.test(family))
+}
+
+/**
+ * Lists every face in a stylesheet whose family (`unread-family`) or
+ * `$widths` bands (`unread-weights`) the audit cannot read — a family built in
+ * an `@each` loop, a `$widths` map from another module —: no fallback check
+ * reaches it, and a font token that skips its fallback face passes unseen.
+ * Write the family out, or assign it once to a variable in the same file. A
+ * face inside a mixin that takes its family as a parameter passes: its
+ * includes are read instead.
+ */
+export const findUnreadFontFaces = (stylesheet: string): UnreadFontFace[] =>
+  readFontFaces(stylesheet).unread
 
 const unquoted = (family: string) =>
   family.trim().replace(/^(['"])(.*)\1$/, '$2')
@@ -456,5 +480,251 @@ export const findFallbackFailures = (
             })
           )
         : []
+  )
+}
+
+const FONT_FACE_HEADER = /^\s*@font-face\b/
+const WEIGHT_KEYWORDS: Readonly<Record<string, number>> = {
+  bold: 700,
+  normal: 400
+}
+const VAR_READ = /^var\(\s*(--[\w-]+)\s*(?:,\s*(.+))?\)$/
+const INITIAL_WEIGHT = 400
+const MAX_TOKEN_DEPTH = 4
+
+type TokenValues = ReadonlyMap<string, readonly string[]>
+
+const tokenValues = (sources: readonly string[]): TokenValues => {
+  const values = new Map<string, string[]>()
+  for (const { name, value } of declaredValues(sources.map(withoutComments)))
+    values.set(name, [...(values.get(name) ?? []), value])
+  return values
+}
+
+/** Every value an expression may hold: itself, or each value of the token it reads. */
+const expand = (
+  expression: string,
+  tokens: TokenValues,
+  depth = 0
+): string[] => {
+  const read = VAR_READ.exec(expression.trim())
+  if (read === null || depth > MAX_TOKEN_DEPTH) return [expression.trim()]
+  const values = tokens.get(read[1] ?? '') ?? (read[2] ? [read[2]] : [])
+  return values.flatMap((value) => expand(value, tokens, depth + 1))
+}
+
+const weightsOf = (value: string, tokens: TokenValues) =>
+  expand(value, tokens).flatMap((weight) => {
+    const number = WEIGHT_KEYWORDS[weight] ?? Number(weight)
+    return Number.isInteger(number) && number > 0 ? [number] : []
+  })
+
+const bandedFamilyOf = (
+  value: string,
+  tokens: TokenValues,
+  banded: ReadonlySet<string>
+) =>
+  expand(value, tokens).flatMap((stack) => {
+    const family = stack
+      .split(',')
+      .map(unquoted)
+      .find((name) => !isFallbackName(name))
+    return family !== undefined && banded.has(family.toLowerCase())
+      ? [family.toLowerCase()]
+      : []
+  })
+
+type WeightUse = {
+  declaration: string
+  families: readonly string[]
+  style: string
+  weight: number
+}
+
+/** Every weight a stylesheet sets, with the banded families and the style set in the same block. */
+const weightUses = (
+  stylesheet: string,
+  tokens: TokenValues,
+  banded: ReadonlySet<string>
+): WeightUse[] => {
+  const lines = stylesheet.split('\n')
+  const declarations = readDeclarations(stylesheet).filter(
+    ({ block }) => !FONT_FACE_HEADER.test(lines[block] ?? '')
+  )
+  const inBlock = (block: number, property: string) =>
+    declarations.filter(
+      (declaration) =>
+        declaration.block === block && declaration.property === property
+    )
+  return declarations
+    .filter(({ property }) => property === 'font-weight')
+    .flatMap(({ block, text, value }) => {
+      const stacks = inBlock(block, 'font-family')
+      const families = stacks.flatMap((family) =>
+        bandedFamilyOf(family.value, tokens, banded)
+      )
+      if (stacks.length > 0 && families.length === 0) return []
+      const style = inBlock(block, 'font-style').at(-1)?.value ?? 'normal'
+      return weightsOf(value, tokens).map((weight) => ({
+        declaration: text,
+        families,
+        style,
+        weight
+      }))
+    })
+}
+
+const inBand = (weight: number, { weights: [from, to] }: FallbackBand) =>
+  weight >= from && weight <= to
+
+const uncoveredStyles = (
+  bands: readonly FallbackBand[],
+  faces: readonly WebFace[]
+): FallbackBandFailure[] => {
+  const keys = new Set(
+    faces.map(({ family, style }) => `${family.toLowerCase()}|${style}`)
+  )
+  const families = new Set(bands.map(({ family }) => family.toLowerCase()))
+  return [...keys].flatMap((key) => {
+    const [family = '', style = ''] = key.split('|')
+    const covered = bands.some(
+      (band) => band.family.toLowerCase() === family && band.style === style
+    )
+    return families.has(family) && !covered
+      ? [{ family, kind: 'uncovered-style' as const, style }]
+      : []
+  })
+}
+
+const uncoveredWeights = (
+  bands: readonly FallbackBand[],
+  uses: readonly WeightUse[]
+): FallbackBandFailure[] => {
+  const familiesOf = (style: string) => [
+    ...new Set(
+      bands
+        .filter((band) => band.style === style)
+        .map(({ family }) => family.toLowerCase())
+    )
+  ]
+  const covers = (family: string, style: string, weight: number) =>
+    bands.some(
+      (band) =>
+        band.family.toLowerCase() === family &&
+        band.style === style &&
+        inBand(weight, band)
+    )
+  return uses.flatMap(({ declaration, families, style, weight }) => {
+    const drawn = familiesOf(style)
+    const checked = families.filter((family) => drawn.includes(family))
+    const coveredSomewhere = drawn.some((family) =>
+      covers(family, style, weight)
+    )
+    const missing =
+      families.length > 0
+        ? checked.filter((family) => !covers(family, style, weight))
+        : coveredSomewhere
+          ? []
+          : drawn
+    return missing.map((family) => ({
+      declaration,
+      family,
+      kind: 'uncovered-weight' as const,
+      weight
+    }))
+  })
+}
+
+const unusedBands = (
+  bands: readonly FallbackBand[],
+  uses: readonly WeightUse[]
+): FallbackBandFailure[] => {
+  const used = (family: string) => [
+    INITIAL_WEIGHT,
+    ...uses
+      .filter(
+        ({ families }) => families.length === 0 || families.includes(family)
+      )
+      .map(({ weight }) => weight)
+  ]
+  return bands
+    .filter(
+      (band) =>
+        !used(band.family.toLowerCase()).some((weight) => inBand(weight, band))
+    )
+    .map(({ family, style, weights: [from, to] }) => ({
+      family: family.toLowerCase(),
+      kind: 'unused-band' as const,
+      style,
+      weights: from === to ? `${from}` : `${from} ${to}`
+    }))
+}
+
+/**
+ * Checks the fallback faces `fonts.fallback-faces` draws per weight band
+ * against what the stylesheets set — fontaine's own faces copy every
+ * `@font-face`, and are not read. Takes every stylesheet, as
+ * `findTokenFailures` does; a family is reported in lower case:
+ * - `uncovered-weight`: a `font-weight` — a literal, a keyword or a token —
+ *   that no band of the family set in the same block covers, or, with no
+ *   family there, no band of any family: that text paints in the closest
+ *   band's face, scaled for another weight;
+ * - `uncovered-style`: a family that serves files in a style — `italic` —
+ *   its bands never draw: italic text in the fallback takes the upright face.
+ *   It holds whether or not a stylesheet sets italic: `em` and `i` do;
+ * - `unused-band`: a band no weight falls in — a weight set in a block with
+ *   another family aside, and `400`, the weight text starts at, always in.
+ */
+export const findFallbackBandFailures = (
+  sources: readonly string[]
+): FallbackBandFailure[] => {
+  const readings = sources.map(readFontFaces)
+  const bands = readings.flatMap((reading) => reading.bands)
+  const faces = readings.flatMap((reading) => reading.faces)
+  const banded = new Set(bands.map(({ family }) => family.toLowerCase()))
+  const tokens = tokenValues(sources)
+  const uses = sources.flatMap((source) => weightUses(source, tokens, banded))
+  return [
+    ...uncoveredStyles(bands, faces),
+    ...uncoveredWeights(bands, uses),
+    ...unusedBands(bands, uses)
+  ]
+}
+
+const FONT_ATTRIBUTE =
+  /\b(font-family|fontFamily)\s*(=\s*\{?\s*|:\s*)(?:(["'`])(.*?)\3|([^\s;"'`}<>][^;"'`}<>\n]*))/g
+const FONT_TOKEN = /^(var\(\s*--font-[\w-]+\s*(,[^)]*)?\)|inherit)$/
+
+const lineOf = (source: string, index: number) =>
+  source.slice(0, index).split('\n').length
+
+/**
+ * Lists every `font-family` attribute (`.svg`), `fontFamily` prop or style key
+ * (`.tsx`) and inline `font-family:` that names a family instead of a font
+ * token (`font-attribute`). A family named there gets no fallback face, and
+ * SVG text whose family the page does not serve falls back to serif: SVG text
+ * reads `var(--font-…)`, which carries the fallback face. An expression —
+ * `fontFamily={family}` — is not read.
+ */
+export const findFontAttributeFailures = (
+  source: string
+): FontAttributeFailure[] => {
+  const code = withoutComments(source)
+  const lines = source.split('\n')
+  return [...code.matchAll(FONT_ATTRIBUTE)].flatMap(
+    ({ 1: name = '', 2: separator = '', 4: quoted, 5: bare, index }) => {
+      const isCss = name === 'font-family' && separator.trim() === ':'
+      if (quoted === undefined && !isCss) return []
+      const value = (quoted ?? bare ?? '').trim()
+      if (FONT_TOKEN.test(value)) return []
+      const line = lineOf(code, index)
+      return [
+        {
+          declaration: (lines[line - 1] ?? '').trim(),
+          kind: 'font-attribute' as const,
+          line
+        }
+      ]
+    }
   )
 }

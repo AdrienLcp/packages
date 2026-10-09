@@ -60,13 +60,19 @@ const isConfigurationOnly = (entryPoints: readonly EntryPoint[]): boolean =>
   entryPoints.length > 0 &&
   entryPoints.every((entryPoint) => entryPoint.path.endsWith('.json'))
 
+/** A tool run while building, or settings read by one: neither ships with the app. */
+const isDevelopmentOnly = (
+  manifest: PackageManifest,
+  entryPoints: readonly EntryPoint[]
+): boolean => manifest.commands.length > 0 || isConfigurationOnly(entryPoints)
+
 const installCommandOf = (
-  scopedName: string,
+  manifest: PackageManifest,
   entryPoints: readonly EntryPoint[]
 ): string =>
-  isConfigurationOnly(entryPoints)
-    ? `pnpm add -D ${scopedName}`
-    : `pnpm add ${scopedName}`
+  isDevelopmentOnly(manifest, entryPoints)
+    ? `pnpm add -D ${manifest.name}`
+    : `pnpm add ${manifest.name}`
 
 const filedSectionsOf = (
   documents: readonly PackageDocumentSource[]
@@ -193,7 +199,7 @@ const documentedPackageOf = (
         oldestRelease !== null && oldestRelease !== FIRST_VERSION
           ? oldestRelease
           : null,
-      install: installCommandOf(manifest.name, entryPoints),
+      install: installCommandOf(manifest, entryPoints),
       name: directory,
       pending: pendingNotesOf({
         directory,

@@ -1,0 +1,52 @@
+{
+  "author": "Adrien Lacourpaille",
+  "bin": {
+    "measure-font": "./dist/measure-font.js"
+  },
+  "bugs": "https://github.com/AdrienLcp/packages/issues",
+  "dependencies": {
+    "@adrienlcp/result": "workspace:^",
+    "@capsizecss/unpack": "^4.0.1",
+    "@types/fontkit": "^2.0.9",
+    "fontkit": "^2.0.4",
+    "linkedom": "^0.18.13",
+    "wawoff2": "^2.0.1",
+    "zod": "^4.6.5"
+  },
+  "description": "A dev-time bin that measures a self-hosted font against Arial for the fallback faces of @adrienlcp/styles — per weight and width, over the app's own text, its dictionaries or its prerendered pages, with the digits apart and the ratio range that keeps each edge line wrapped — and converts a ch to em",
+  "devDependencies": {
+    "@types/node": "^26.6.3"
+  },
+  "exports": {
+    ".": "./dist/font-metrics.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "homepage": "https://adrienlcp.com/en/projects/packages#package-measure-font",
+  "keywords": [
+    "cli",
+    "font-fallback",
+    "font-metrics",
+    "fontaine",
+    "size-adjust",
+    "woff2"
+  ],
+  "license": "MIT",
+  "name": "@adrienlcp/measure-font",
+  "repository": {
+    "directory": "packages/measure-font",
+    "type": "git",
+    "url": "git+https://github.com/AdrienLcp/packages.git"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "pnpm build",
+    "test": "vitest run",
+    "test:watch": "vitest --watch"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "version": "0.0.0"
+}

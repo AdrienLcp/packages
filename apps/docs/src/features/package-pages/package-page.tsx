@@ -9,6 +9,7 @@ import { Main } from '@/presentation/components/main'
 import { Link } from '@/presentation/components/ui/link'
 import { DocumentTitle } from '@/presentation/head/document-title'
 import { useI18n } from '@/presentation/i18n/i18n-provider'
+import { packageDescriptionIn } from '@/presentation/i18n/package-descriptions'
 
 import { PackageDocumentation } from './package-documentation'
 import { PackageExports } from './package-exports'
@@ -52,7 +53,9 @@ export const PackagePage: React.FC = () => {
           <span className='package-scope'>@adrienlcp/</span>
           <span className='package-name'>{housePackage.name}</span>
         </h1>
-        <p className='package-description'>{housePackage.description}</p>
+        <p className='package-description'>
+          {packageDescriptionIn({ locale, packageInfo: housePackage })}
+        </p>
       </div>
       <div className='package-top'>
         <div>

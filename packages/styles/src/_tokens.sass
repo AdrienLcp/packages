@@ -27,16 +27,19 @@
 /// `:root`: the pair is computed there, so a `--gutter` declared deeper does
 /// not reach it.
 ///
-/// The ring is a whole number of pixels: Chromium draws an outline in whole
-/// device pixels, so a `2.5px` one is `2px` on a 1x screen.
+/// Strokes and the ring are whole numbers of pixels: Chromium floors a border
+/// and an outline to whole device pixels, so a `1.5px` stroke is the `1px`
+/// hairline on a 1x screen, and a shadow or an SVG stroke at that width smears
+/// across two pixels. `1px`, `2px` and `3px` stay three widths at every
+/// density.
 ///
 /// `--measure` is in `em`, never `ch`: a `ch` is the width of the font's zero,
 /// which the fallback face and the web font draw differently even scaled to one
 /// another, so a column in `ch` rewraps when the web font replaces the fallback.
 @mixin defaults
   --stroke-hair: 1px
-  --stroke-thin: 1.5px
-  --stroke-bold: 2px
+  --stroke-thin: 2px
+  --stroke-bold: 3px
 
   --hairline: var(--stroke-hair) solid var(--rule, color-mix(in oklab, currentColor 25%, transparent))
   --hairline-strong: var(--stroke-hair) solid var(--rule-strong, color-mix(in oklab, currentColor 55%, transparent))

@@ -22,6 +22,13 @@ const HOUSE_MARKS: Partial<Record<string, React.ReactNode>> = {
       />
     </>
   ),
+  'measure-font': (
+    <>
+      <path d='M4 2.5V7M20 2.5V7M4 4.75h16' />
+      <path d='M4 21.5 12 10l8 11.5' />
+      <path d='M12 10l5.2 7.5H6.8z' fill='currentColor' />
+    </>
+  ),
   result: (
     <>
       <path d='M12 21.5V16c0-3.5-5-4-5-8.25M12 16c0-3.5 5-4 5-8.25' />

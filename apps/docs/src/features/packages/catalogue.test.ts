@@ -21,6 +21,7 @@ const sourcesOf = (
   directory,
   documents: [{ file: 'README.md', markdown: `# @adrienlcp/${directory}` }],
   manifest: {
+    commands: [],
     dependencies: [],
     description: `The ${directory} package`,
     exports: { '.': './dist/index.js' },
@@ -192,6 +193,19 @@ describe('buildCatalogue', () => {
     ])
 
     expect(packages[0]?.install).toBe('pnpm add -D @adrienlcp/biome-config')
+  })
+
+  it('[catalogue] installs a package that ships a command as a dev dependency, whatever it exports', () => {
+    const { packages } = catalogueOf([
+      sourcesOf('measure-font', {
+        manifest: {
+          ...sourcesOf('measure-font').manifest,
+          commands: ['measure-font']
+        }
+      })
+    ])
+
+    expect(packages[0]?.install).toBe('pnpm add -D @adrienlcp/measure-font')
   })
 
   it('[catalogue] installs a package that holds code as a dependency', () => {

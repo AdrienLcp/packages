@@ -1,0 +1,33 @@
+// Pure module: mixins only; `keyframes` writes the one rule it owns where it is included.
+
+/// The mark under which `arriving` plays: the shell's `<html data-landing>`,
+/// which `@adrienlcp/browser`'s `endLanding()` removes once the visitor has
+/// landed. `false` plays it on every page an element appears on.
+$landing: '[data-landing]' !default
+
+/// How far an arriving element rises as it fades in.
+$rise: 0.5rem !default
+
+/// An element's entrance on the page the visitor lands on, and on that page
+/// only. Played under `prefers-reduced-motion: no-preference` alone, and on
+/// `--transition-base`, which `reduced-motion.css` collapses as well. It
+/// animates `opacity` and `translate`, never `transform`, so the element keeps
+/// a transform of its own. Starting at opacity 0, it holds a prerendered
+/// page's largest paint until it ends: keep it short.
+@mixin arriving($duration: var(--transition-base, 0s), $easing: var(--ease-out, ease), $delay: 0s)
+  @if $landing
+    :root#{$landing} &
+      @include _arrive($duration, $easing, $delay)
+  @else
+    @include _arrive($duration, $easing, $delay)
+
+/// The `arriving` keyframes, included once at the root of the app's base layer.
+@mixin keyframes
+  @keyframes arriving
+    from
+      opacity: 0
+      translate: 0 $rise
+
+@mixin _arrive($duration, $easing, $delay)
+  @media (prefers-reduced-motion: no-preference)
+    animation: arriving $duration $easing $delay both

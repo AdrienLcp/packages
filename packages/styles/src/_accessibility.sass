@@ -37,6 +37,29 @@
     outline: var(--ring)
     outline-offset: $offset
 
+/// A skip link parked above the viewport that slides in on keyboard focus.
+/// Shown at `max($top, var(--safe-area-top))`, below a notch, and parked by
+/// that offset as well, or its bottom would show under the notch. A view
+/// transition's picture of the page would still show it parked, so it hides
+/// while one runs. The app gives it its look — background, colour, type,
+/// padding — and writes its own `transition` when it also scales on press.
+@mixin skip-link($top: var(--space-2xs, 0.25rem), $left: var(--gutter-left, 1rem), $z-index: 30)
+  left: $left
+  position: fixed
+  top: max(#{$top}, var(--safe-area-top, 0px))
+  transition: translate var(--transition-base, 0s) var(--ease-out, ease)
+  translate: 0 calc(-100% - #{$top} - var(--safe-area-top, 0px) - #{$_skip-link-clearance})
+  z-index: $z-index
+
+  :root:active-view-transition &
+    visibility: hidden
+
+  &:focus-visible
+    translate: 0
+
+/// What the parked link clears past the top edge: its ring and a shadow.
+$_skip-link-clearance: 0.75rem
+
 /// react-aria's `VisuallyHidden` clips with an inline `clip-path: inset(50%)`,
 /// on the hidden element or on its wrapper. The match reads both
 /// serialisations: React's server string and the browser's own.

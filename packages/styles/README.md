@@ -82,6 +82,26 @@ size, so a user who raises it gets the narrow layout sooner. `wide` is
 `@use '@adrienlcp/styles/breakpoints' with ($wide-screen: 64rem)`; a container
 threshold that follows the shell takes the same value.
 
+#### One source for a breakpoint scripts read too
+
+A breakpoint that `matchMedia` answers to as well lives in TypeScript, and
+`sassValues` (below, under TypeScript) hands it to Sass: one line in
+`vite.config.ts`, one `@use` in the layout module.
+
+```ts
+// src/presentation/styles/screen-sizes.ts
+export const SCREEN_SIZES = { shortScreen: '30rem', wideScreen: '40rem' } as const
+
+// vite.config.ts
+css: { preprocessorOptions: { sass: { importers: [sassValues({ 'screen-sizes': SCREEN_SIZES })] } } }
+```
+
+```sass
+// _layout.sass
+@use 'values:screen-sizes'
+@forward '@adrienlcp/styles/breakpoints' with ($wide-screen: screen-sizes.$wide-screen)
+```
+
 ### `fonts`
 
 `$latin` and `$latin-ext` are the unicode ranges Google Fonts cuts a Latin face
@@ -118,8 +138,12 @@ Arial than in the web font.
   band's text is set in, both measured over the app's own text —
   `(arial × size-adjust) / web font`. The face is scaled by `$size-adjust`
   divided by that ratio, so it sets the text exactly as wide as the web font.
-  A ratio above 1 means scaled Arial is still too wide. `measure-font` prints
-  them.
+  A ratio above 1 means scaled Arial is still too wide. The `measure-font` bin
+  of [`@adrienlcp/measure-font`](../measure-font) prints them.
+- `$size-adjust` only sets the scale the ratios are read on — it cancels out
+  of every face. It defaults to `1`: pass `$widths` by name then,
+  `fallback-faces('Onest', $metrics, $widths: (400: 0.9505))`, with ratios
+  measured by `measure-font --size-adjust 1`.
 - A band from `$bold-from` (`650`) up is drawn in `Arial Bold`, and its ratio
   is measured over Arial Bold: a face that declares its weights is never
   synthesised bolder.
@@ -128,15 +152,27 @@ Arial than in the web font.
   them italic text in the fallback takes the upright face — slanted by
   synthesis at best, upright under `font-synthesis: none` — at upright
   widths. Any other style is a compile error.
-- `$figures` maps the same ranges to the **digits' own ratio**, measured over
-  `0123456789` with the features they are set with — `measure-font --figures
-  --figure-feature tnum --figure-feature lnum` for `tabular-nums lining-nums`.
-  Each band gets a second face for `U+0030-0039` alone, written after it so it
-  wins for the digits. One ratio cannot cover both when the font's digits
-  stand to Arial's otherwise than its letters do: Barlow Condensed's tabular
-  figures set ~14 % narrower in a face scaled on its letters, and a score
-  jumps when the web font lands. A range missing from `$figures` is a compile
-  error.
+- `$figures` maps the same ranges to the **digits' own ratio**, or is one
+  ratio for every band — `measure-font --figures --figure-feature tnum
+  --figure-feature lnum` for `tabular-nums lining-nums` prints it once when
+  every weight gives the same. Each band gets a second face for
+  `U+0030-0039` alone, written after it so it wins for the digits, on the
+  ascent and descent of the band's letters. One ratio cannot cover both when
+  the font's digits stand to Arial's otherwise than its letters do: tabular
+  figures scaled on the letters can set **15 to 25 % off** — Barlow
+  Condensed's 14 % narrower, arbor's 24 % — and a score jumps when the web
+  font lands. A
+  range missing from `$figures` is a compile error. `$figure-separators: true`
+  widens that face to `,`, `.` and `:` (`$figures-and-separators`), so a clock
+  such as `0:02` sets as wide as the web font draws it.
+- **`$figures` is a `fallback-faces` argument only.** A family left to
+  fontaine gets one face, scaled on its letters: move it to `fallback-faces`
+  to give its digits their own. A monospace family needs none — its digits
+  are as wide as its letters.
+- `$stretch` declares the faces' `font-stretch` — `70%`, or a range like
+  `62% 70%` — for a font with a width axis. Arial has none, so a condensed
+  title otherwise falls back to full-width Arial and wraps: write one call per
+  width band the app sets, each measured with `measure-font --axis wdth=70`.
 - `$trimmed-to-capitals` moves ascent and descent by the gap between the two
   capital heights, their sum kept, so a title trimmed to its capitals starts at
   the same height in both faces.
@@ -166,53 +202,6 @@ file: `measure-font` measures each file at its own weight against that one
 `size-adjust`, and Arial Bold from `$bold-from` — lower it to `600` when a 600
 file measures closer to Arial Bold.
 
-#### `measure-font`
-
-A bin that measures what `fallback-faces` takes and what converting a `ch`
-needs, from the font files the app serves — shaped and kerned as Chromium sets
-them, a variable file at any weight of its axis:
-
-```bash
-pnpm exec measure-font public/fonts/onest-latin.woff2 --weight 400 --weight 700
-```
-
-```text
-onest-latin.woff2 at 400: zero 0.665em, width ratio 1.023 over Arial
-onest-latin.woff2 at 700: zero 0.6602em, width ratio 1.0497 over Arial Bold
-cap height from the OS/2 table
-size-adjust 1.052039, fontaine's, computed from the first file
-
-@include fonts.fallback-faces('Onest', (ascent: 0.97, descent: 0.305, cap-height: 0.707), 1.052039, (400: 1.023, 700: 1.0497))
-```
-
-- List the family's files in the order of its `@font-face` rules, the
-  regular first: fontaine measures that one. A static file is measured at its
-  own weight; `--weight` (repeated) picks the weights of a variable one.
-- Widen each weight of the include to the band it stands for:
-  `(300 449: …, 650 800: …)`.
-- `--size-adjust` takes the value fontaine wrote in the built CSS. Without it,
-  the bin computes fontaine's formula from the first file; fontaine reads a
-  Google font from capsize's collection instead, so the two can differ in the
-  fourth decimal.
-- `--text` or `--text-file` is the app's own text, the more the better; a
-  pangram in English and French otherwise. Spaces, tabs and newlines collapse
-  to one space as a browser lays them out — a newline measured raw is a glyph
-  and widens every ratio —, and a text that is spaces alone is refused.
-  Measure it as it shows: uppercase where `text-transform` raises it.
-- `--figures` also measures the digits alone and writes `$figures`;
-  `--figure-feature` (repeated) names the OpenType features they are set with. `--italic` measures italic files
-  over the italic cuts of Arial and writes `$style: italic`; `--bold-from`
-  and `--family` match the include. Arial is found where Windows, macOS and
-  Linux keep it — Liberation Sans, drawn on Arial's widths, will do —, or
-  passed with `--fallback` and `--fallback-bold`.
-- **The zero is a `ch`**: a measure given as `46ch` is `46 × zero` em. Read it
-  at the weight of the elements that read the measure — a prose column at the
-  body weight, not at the heading's.
-- **Cap height**: the bin reads it from the `OS/2` table, and from the top of
-  the `H` outline when the table has none — an `OS/2` table older than version
-  2, where fontaine's `readMetrics` returns `capHeight: null`. That value is
-  the one `$trimmed-to-capitals` needs.
-
 ### `tokens`
 
 The tokens every app names the same way, so an app sets values, not names.
@@ -230,7 +219,7 @@ wins.
 
 | Token | Default |
 | --- | --- |
-| `--stroke-hair`, `--stroke-thin`, `--stroke-bold` | `1px`, `1.5px`, `2px` |
+| `--stroke-hair`, `--stroke-thin`, `--stroke-bold` | `1px`, `2px`, `3px`. Whole pixels: Chromium floors a border to whole device pixels, so a `1.5px` stroke is the hairline on a 1x screen and an inset shadow at that width smears across two |
 | `--hairline`, `--hairline-strong` | a `--stroke-hair` solid line in `--rule`, `--rule-strong` |
 | `--inset-hairline`, `--inset-hairline-strong` | the same line as an inset `box-shadow`, which takes no room |
 | `--outline-thick`, `--outline-offset` | `2px`, `3px`. A whole number of pixels: Chromium draws an outline in whole device pixels, so a `2.5px` ring is `2px` on a 1x screen |
@@ -277,6 +266,60 @@ them, a line is `currentColor` mixed toward transparent and the ring is
   focus — react-aria's `Group`, a `Select` root — would ring beside it. It
   skips what react-aria's `VisuallyHidden` clips — the input of a `Switch`, a
   `Checkbox`, a `Radio` — since the visible control rings instead.
+
+#### The skip link
+
+```sass
+@use '@adrienlcp/styles/accessibility'
+
+.skip-link
+  @include accessibility.skip-link
+  background: var(--ink)
+  color: var(--paper)
+  padding: 0 var(--space-s)
+```
+
+`skip-link($top: var(--space-2xs), $left: var(--gutter-left), $z-index: 30)`
+parks the link above the viewport, `position: fixed`, and slides it in on
+`:focus-visible`, so only the keyboard sees it. It shows at
+`max($top, var(--safe-area-top))`, below a notch, and is parked past the top
+by that offset too, or its bottom would show under the notch. While a view
+transition runs it is hidden: the transition's picture of the page would show
+it parked. It writes `transition: translate`; a link that also scales on press
+writes the whole list itself. The look — background, colour, type, padding,
+radius — is the app's.
+
+### `motion`
+
+A page's entrance on the visitor's first landing, and there only: a page
+reached through the app appears at once.
+
+```sass
+@use '@adrienlcp/styles/motion'
+
+@layer base
+  @include motion.keyframes
+
+.page
+  @include motion.arriving
+```
+
+- `arriving($duration: var(--transition-base), $easing: var(--ease-out), $delay: 0s)`
+  fades the element in from `$rise` (`0.5rem`) below, under
+  `:root[data-landing]` and `prefers-reduced-motion: no-preference`. It
+  animates `opacity` and `translate`, never `transform`, which stays the
+  element's own.
+- `keyframes` writes the `arriving` keyframes; include it once.
+- The shell writes the mark: `<html lang="en" data-landing>`.
+  `@adrienlcp/browser`'s `endLanding()` takes it off on the router's first
+  navigation, and before a `createRoot` replaces prerendered markup, which
+  would otherwise play the entrance twice over the same page.
+- `$landing: false` (`@use '@adrienlcp/styles/motion' with ($landing: false)`)
+  plays it wherever the element appears, every navigation included.
+- It starts at opacity 0, which Chrome does not count as a paint: on a
+  prerendered page the largest paint waits for it to end. Keep it on
+  `--transition-base`, and off the element that paints the page's largest
+  image or block of text.
 
 ### `sizes`
 
@@ -417,101 +460,154 @@ by its full or PostScript name, never a family.
 - The plugin is typed on what it reads, so an app needs no `postcss`
   dependency of its own: Vite brings it.
 
-### `font-metrics`
+### `sass-values`
 
-What `measure-font` runs on, for a script or a test of the app's own:
+A value a script and a stylesheet both read — a breakpoint a media query and
+`matchMedia` answer to — is written once, in TypeScript, and served to Sass as
+a module of variables:
 
 ```ts
-import { readFileSync } from 'node:fs'
+import { sassValues } from '@adrienlcp/styles/sass-values'
 
-import { openFont, zeroWidth } from '@adrienlcp/styles/font-metrics'
-
-const font = await openFont(readFileSync('public/fonts/onest-latin.woff2'))
-if (font.status === 'success') console.log(`46ch is ${46 * zeroWidth(font.data, 400)}em`)
+export default defineConfig({
+  css: { preprocessorOptions: { sass: { importers: [sassValues({ 'screen-sizes': SCREEN_SIZES })] } } }
+})
 ```
 
-- `openFont(bytes)` reads a `woff2`, `woff`, `ttf` or `otf` file, a `woff2`
-  decompressed first, and fails `unreadable` or `collection`.
-- `zeroWidth(font, weight?)` is the zero's advance in em; `textWidth(font,
-  text, weight?, features?)` the width of a text, shaped and kerned, with the
-  OpenType features given (`['tnum', 'lnum']`). A variable file is
-  read at `weight` on its `wght` axis, a static file at its own.
-- `verticalMetrics(font)` is the ascent and descent from `hhea` and the
-  capital height, with `capHeightFrom`: `'OS/2'`, or `'H'` when the table has
-  none.
-- `fontaineSizeAdjust(font, fallback)` is fontaine's `size-adjust` formula;
-  `widthRatio({ font, fallback, sizeAdjust, text, weight })` one `$widths`
-  entry.
+```sass
+@use 'values:screen-sizes'
+
+.sidebar
+  @media (width >= screen-sizes.$wide-screen)
+    display: block
+```
+
+- `sassValues(modules, { scheme: 'values' })` serves each module at
+  `<scheme>:<name>`; a name is kebab case. A camelCase key becomes a kebab-case
+  variable: `wideScreen` is `$wide-screen`.
+- A number is written as a number; a string as it is, so `'40rem'` is a length
+  and `'"Inter"'` a quoted string. A key Sass cannot take, or a string that is
+  not one CSS value, throws when the importer is built.
+- A module it does not serve, under its scheme, fails the build naming the
+  ones it does. Any other URL goes on to the next importer.
+- `sass` types the importer; the package lists it as an optional peer.
 
 ### `audit`
 
 The rules nobody should have to remember, checked in a test that reads every
-stylesheet:
+stylesheet and every piece of markup:
 
 ```ts
 import { globSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 import { REACT_ARIA_TOKENS } from '@adrienlcp/react-aria'
 import {
+  findFallbackBandFailures,
   findFallbackFailures,
+  findFontAttributeFailures,
   findTokenFailures,
   findTypeLiterals,
   findUnitFailures,
   findUnnamedValues,
+  findUnreadFontFaces,
   webFontFamilies
 } from '@adrienlcp/styles/audit'
 import { describe, expect, it } from 'vitest'
 
-const STYLESHEETS = globSync('src/**/*.{sass,css}')
-const SOURCES = globSync('src/**/*.{sass,css,ts,tsx}').map((path) => readFileSync(path, 'utf8'))
-const WEB_FONTS = webFontFamilies(STYLESHEETS.map((path) => readFileSync(path, 'utf8')))
+const SOURCE_FOLDER = join(import.meta.dirname, '../..')
+const findSourceFiles = (pattern: string) => globSync(pattern, { cwd: SOURCE_FOLDER })
+const readSourceFile = (path: string) => readFileSync(join(SOURCE_FOLDER, path), 'utf8')
+
+const STYLESHEETS = findSourceFiles('**/*.{sass,css}')
+const MARKUP = findSourceFiles('**/*.{tsx,svg}')
+const STYLESHEET_SOURCES = STYLESHEETS.map(readSourceFile)
+const SOURCES = findSourceFiles('**/*.{sass,css,ts,tsx}').map(readSourceFile)
+const WEB_FONTS = webFontFamilies(STYLESHEET_SOURCES)
+
+it('[audit] finds the stylesheets it audits', () => {
+  expect(STYLESHEETS).not.toEqual([])
+})
 
 describe.each(STYLESHEETS)('%s', (path) => {
-  const stylesheet = readFileSync(path, 'utf8')
+  const stylesheet = readSourceFile(path)
 
-  it('sizes text, spacing and boxes in rem', () => {
+  it('[units] sizes text, spacing and boxes in rem', () => {
     expect(findUnitFailures(stylesheet)).toEqual([])
   })
 
-  it.skipIf(path.endsWith('_typography.sass'))('takes its text voice from the typography mixins', () => {
+  it.skipIf(path.endsWith('_typography.sass'))('[voice] takes its text voice from the typography mixins', () => {
     expect(findTypeLiterals(stylesheet)).toEqual([])
   })
 
-  it('takes its radii and durations from tokens', () => {
+  it('[names] takes its radii, durations, text sizes and insets from tokens', () => {
     expect(findUnnamedValues(stylesheet)).toEqual([])
   })
 
-  it('names the fallback face after every web font in a font token', () => {
+  it('[fonts] writes every face so the audit reads its family', () => {
+    expect(findUnreadFontFaces(stylesheet)).toEqual([])
+  })
+
+  it('[fonts] names the fallback face after every web font in a font token', () => {
     expect(findFallbackFailures(stylesheet, WEB_FONTS)).toEqual([])
   })
 })
 
-it('reads only custom properties that exist, under their one shared name', () => {
+describe.each(MARKUP)('%s', (path) => {
+  it('[fonts] sets text in a font token, never a family by name', () => {
+    expect(findFontAttributeFailures(readSourceFile(path))).toEqual([])
+  })
+})
+
+it('[fonts] draws a fallback face for every weight and style it sets, and none it does not', () => {
+  expect(findFallbackBandFailures(STYLESHEET_SOURCES)).toEqual([])
+})
+
+it('[tokens] reads only custom properties that exist, under their one shared name', () => {
   expect(findTokenFailures(SOURCES, { provided: REACT_ARIA_TOKENS })).toEqual([])
 })
 ```
 
 `REACT_ARIA_TOKENS` comes from `@adrienlcp/react-aria`; an app without
-react-aria leaves the options out.
+react-aria leaves the options out. The folder is the test's own, never the
+working directory: a monorepo whose vitest runs from the root would otherwise
+audit nothing.
+
+**One tag per check**, the same in this package's tests and in an app's, so
+`pnpm test -- -t fonts` runs every font check: `[units]` for
+`findUnitFailures`, `[voice]` for `findTypeLiterals`, `[names]` for
+`findUnnamedValues`, `[fonts]` for the five font checks, `[tokens]` for
+`findTokenFailures`, and `[audit]` for the test that guards the audit itself.
 
 - Comments are never read, in a stylesheet or a script; a `//` inside a string
   or a `url()` is no comment.
 - `findUnitFailures` reads `font-size`, `font`, `margin*`, `padding*`, the
   gaps, `text-indent`, `width`, `height` and their logical, `min-` and `max-`
   forms, `inset*`, `top`, `right`, `bottom`, `left`, `translate`, `flex-basis`,
-  the `translate*()` functions of a `transform`, and every custom property. A
+  the grid tracks (`grid-template-columns`, `grid-auto-rows`, …), the
+  `translate*()` functions of a `transform`, and every custom property. A
   failure is `pixels` — any non-zero `px` value there, `clamp()` bounds and
-  `calc()` terms included — or `viewport-without-rem`: a
-  text size driven by `vw`, `vh`, `vmin` or a container unit with no rem part,
-  which zoom cannot enlarge. It also lists `ch`, a size or a custom property
-  in `ch` — the width of the font's zero, which moves when the web font
-  replaces the fallback —, and `fractional-outline`, an `outline`,
-  `outline-width` or `--outline-*` width (the offset aside) that is not a
-  whole number of pixels. Strokes, outlines, radii, shadows and the touch
-  target stay in px: their properties and their `--stroke-*`, `--outline-*`,
-  `--radius-*`, `--shadow-*` and `--target` tokens are not read. A
-  surface sized on the viewport — a scoreboard on a TV — derives its sizes from
-  a named unit token (`calc(var(--cu) * 4)`), which passes.
+  `calc()` terms included — or `viewport-without-rem`: a text size driven by
+  `vw`, `vh`, `vmin` or a container unit with no rem part, which zoom cannot
+  enlarge. It also lists `ch`, a size, a grid track or a custom property in
+  `ch` — the width of the font's zero, which moves when the web font replaces
+  the fallback —, `fractional-outline`, an `outline`, `outline-width` or
+  `--outline-*` width (the offset aside) that is not a whole number of pixels,
+  and `fractional-stroke`, a border width or a `--stroke-hair`,
+  `--stroke-thin` or `--stroke-bold` that is not one either. Strokes,
+  outlines, radii, shadows and the touch target stay in px: their properties
+  and their `--stroke-*`, `--outline-*`, `--radius-*`, `--shadow-*` and
+  `--target` tokens are not read for `pixels`. `outline: var(--stroke-thin)`
+  passes: the token's own declaration is checked. A stroke token of the app's
+  own for an SVG curve — `--stroke-chalk: 2.6px` — may be fractional: a curve
+  is antialiased whatever its width.
+- **Pixels a script must match go through a `--*-px` custom property**, which
+  passes: a board cell whose size the script computes in pixels is declared
+  `--cell-px: 24px` and read by the stylesheet (`calc(var(--cell-px) * 8)`)
+  and by the script through `getComputedStyle`. The suffix says the pixels are
+  wanted; any other `px` custom property is `pixels`.
+- A surface sized on the viewport — a scoreboard on a TV — derives its sizes
+  from a named unit token (`calc(var(--cu) * 4)`), which passes.
 - `findTypeLiterals` lists every `font-weight`, `line-height` and
   `letter-spacing` written as a number or a keyword: a text voice is declared
   once, in a mixin, and a component includes it. `inherit` and `var()` pass.
@@ -522,10 +618,24 @@ react-aria leaves the options out.
   `--text-*` step. `0` and `0s` pass; a font size passes when it reads a
   `var()` — a fitted floor `max(var(--text-s), 7cqi)`, a unit token
   `calc(var(--cu) * 4)` —, keeps the parent's size (`1em`, `100%`) or is a
-  keyword.
+  keyword. It also lists a raw `env(safe-area-inset-*)` outside the
+  `--safe-area-*` tokens, which carry its `0px` fallback (`safe-area`), and a
+  hand-written `max()` over `--safe-area-left` or `--safe-area-right`
+  (`gutter`): a page's sides, and whatever sits against them, take
+  `--gutter-left` and `--gutter-right`. A `max()` over the top or the bottom
+  inset passes — a sticky bar or a bottom bar writes its own.
 - `webFontFamilies` reads the families the stylesheets self-host: every
-  `fonts.font-face` include and every `@font-face` with a `url()` source. A
-  family loaded elsewhere — a `@fontsource` import — is added by hand.
+  `fonts.font-face` and `fonts.fallback-faces` include, every `@font-face` with
+  a `url()` source, and the family of a hand-written `<family> fallback` face.
+  A family held in a variable the same file assigns once is read, and so is
+  one passed to a face mixin of the app's own — a `@mixin` whose face takes its
+  family as a parameter. A family loaded elsewhere — a `@fontsource` import —
+  is added by hand.
+- `findUnreadFontFaces` lists a face whose family (`unread-family`) or
+  `$widths` bands (`unread-weights`) the audit cannot read: built in an
+  `@each` loop, interpolated, a variable assigned twice, a map from another
+  module. Every font check then misses that family and passes in silence, so
+  this one fails instead: write the faces out, one include per file.
 - `findFallbackFailures` lists a custom property whose font stack names one of
   those web fonts without `'<family> fallback'` right after it
   (`missing-fallback`, with the `family`): fontaine appends its fallback face
@@ -533,6 +643,24 @@ react-aria leaves the options out.
   token paints in an unscaled system font until the font arrives — for good
   under `font-display: optional` when it misses. A web font listed after a
   fallback face is a glyph backup the fallback always shadows, and passes.
+- `findFallbackBandFailures` takes every stylesheet and checks the bands
+  `fallback-faces` draws — fontaine's own faces copy every `@font-face`, and
+  are not read — against the weights the stylesheets set, a literal, a keyword
+  or a token: `uncovered-weight`, a `font-weight` no band of the family set in
+  the same block covers — with no family there, no band of any family —, which
+  paints in a face scaled for another weight; `uncovered-style`, a family that
+  serves italic files with no italic band, so italic text in the fallback
+  takes the upright face — `em` sets italic whether a stylesheet does or not;
+  `unused-band`, a band no weight falls in, `400` always counted. A family is
+  reported in lower case.
+- `findFontAttributeFailures` reads a `.tsx` or an `.svg` and lists a
+  `font-family` attribute, a `fontFamily` prop or style key, or an inline
+  `font-family:` that names a family instead of a font token
+  (`font-attribute`). **SVG text takes `var(--font-…)`**: a family named there
+  gets no fallback face, and one the page does not serve falls back to serif.
+  The SVG is inlined (`?react`): an SVG shown through `<img>` reads neither
+  the page's fonts nor its tokens. `inherit` passes; an expression —
+  `fontFamily={family}` — is not read.
 - `findTokenFailures` takes every source — stylesheets and the scripts that
   set a property through `style` — and lists a name read through `var()` but
   declared nowhere, not shared and not `provided` (`undeclared`: a rename
