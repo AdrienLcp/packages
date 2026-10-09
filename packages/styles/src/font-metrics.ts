@@ -92,16 +92,18 @@ const atWeight = (opened: OpenedFont, weight: number) =>
 
 /**
  * The width of `text` in em, shaped and kerned as a browser sets it, at
- * `weight` on a variable font's `wght` axis. A static file is measured as it
- * is: its weight is the file's own.
+ * `weight` on a variable font's `wght` axis, with the OpenType `features` the
+ * stylesheet turns on — `tnum` and `lnum` for `tabular-nums lining-nums`. A
+ * static file is measured as it is: its weight is the file's own.
  */
 export const textWidth = (
   opened: OpenedFont,
   text: string,
-  weight = opened.weight
+  weight = opened.weight,
+  features: readonly string[] = []
 ): number => {
   const font = atWeight(opened, weight)
-  return font.layout(text).advanceWidth / font.unitsPerEm
+  return font.layout(text, [...features]).advanceWidth / font.unitsPerEm
 }
 
 /**
@@ -163,6 +165,8 @@ export type WidthRatioInput = {
   text: string
   /** The weight on the web font's axis; a static file is measured as it is. */
   weight?: number
+  /** The OpenType features the text is set with, in both fonts. */
+  features?: readonly string[]
 }
 
 /**
@@ -173,9 +177,11 @@ export type WidthRatioInput = {
  */
 export const widthRatio = ({
   fallback,
+  features,
   font,
   sizeAdjust,
   text,
   weight
 }: WidthRatioInput): number =>
-  (textWidth(fallback, text) * sizeAdjust) / textWidth(font, text, weight)
+  (textWidth(fallback, text, fallback.weight, features) * sizeAdjust) /
+  textWidth(font, text, weight, features)

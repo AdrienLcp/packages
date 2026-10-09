@@ -128,6 +128,15 @@ Arial than in the web font.
   them italic text in the fallback takes the upright face — slanted by
   synthesis at best, upright under `font-synthesis: none` — at upright
   widths. Any other style is a compile error.
+- `$figures` maps the same ranges to the **digits' own ratio**, measured over
+  `0123456789` with the features they are set with — `measure-font --figures
+  --figure-feature tnum --figure-feature lnum` for `tabular-nums lining-nums`.
+  Each band gets a second face for `U+0030-0039` alone, written after it so it
+  wins for the digits. One ratio cannot cover both when the font's digits
+  stand to Arial's otherwise than its letters do: Barlow Condensed's tabular
+  figures set ~14 % narrower in a face scaled on its letters, and a score
+  jumps when the web font lands. A range missing from `$figures` is a compile
+  error.
 - `$trimmed-to-capitals` moves ascent and descent by the gap between the two
   capital heights, their sum kept, so a title trimmed to its capitals starts at
   the same height in both faces.
@@ -186,7 +195,12 @@ size-adjust 1.052039, fontaine's, computed from the first file
   Google font from capsize's collection instead, so the two can differ in the
   fourth decimal.
 - `--text` or `--text-file` is the app's own text, the more the better; a
-  pangram in English and French otherwise. `--italic` measures italic files
+  pangram in English and French otherwise. Spaces, tabs and newlines collapse
+  to one space as a browser lays them out — a newline measured raw is a glyph
+  and widens every ratio —, and a text that is spaces alone is refused.
+  Measure it as it shows: uppercase where `text-transform` raises it.
+- `--figures` also measures the digits alone and writes `$figures`;
+  `--figure-feature` (repeated) names the OpenType features they are set with. `--italic` measures italic files
   over the italic cuts of Arial and writes `$style: italic`; `--bold-from`
   and `--family` match the include. Arial is found where Windows, macOS and
   Linux keep it — Liberation Sans, drawn on Arial's widths, will do —, or
@@ -419,7 +433,8 @@ if (font.status === 'success') console.log(`46ch is ${46 * zeroWidth(font.data, 
 - `openFont(bytes)` reads a `woff2`, `woff`, `ttf` or `otf` file, a `woff2`
   decompressed first, and fails `unreadable` or `collection`.
 - `zeroWidth(font, weight?)` is the zero's advance in em; `textWidth(font,
-  text, weight?)` the width of a text, shaped and kerned. A variable file is
+  text, weight?, features?)` the width of a text, shaped and kerned, with the
+  OpenType features given (`['tnum', 'lnum']`). A variable file is
   read at `weight` on its `wght` axis, a static file at its own.
 - `verticalMetrics(font)` is the ascent and descent from `hhea` and the
   capital height, with `capHeightFrom`: `'OS/2'`, or `'H'` when the table has

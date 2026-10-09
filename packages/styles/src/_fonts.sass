@@ -14,6 +14,9 @@ $arial-cap-height: math.div(1467, 2048)
 /// The local Arial each band draws, by style and by whether the band is bold.
 $arial-cuts: (normal: (false: 'Arial', true: 'Arial Bold'), italic: (false: 'Arial Italic', true: 'Arial Bold Italic'))
 
+/// The digits, which a figures face draws alone.
+$digits: U+0030-0039
+
 /// One self-hosted `woff2` file. `$weight` and `$stretch` take a range for a
 /// variable face.
 @mixin font-face($family, $url, $unicode-range, $weight: 400, $style: normal, $stretch: null, $display: optional)
@@ -51,23 +54,37 @@ $arial-cuts: (normal: (false: 'Arial', true: 'Arial Bold'), italic: (false: 'Ari
 /// Italic and Arial Bold Italic. Without them italic text in the fallback takes
 /// the upright face — slanted by synthesis at best, upright under
 /// `font-synthesis: none` — at upright widths.
-@mixin fallback-faces($family, $metrics, $size-adjust, $widths, $bold-from: 650, $trimmed-to-capitals: false, $style: normal)
+///
+/// `$figures` maps the same weight ranges as `$widths` to the digits' own
+/// ratio — `measure-font --figures`, with `--figure-feature tnum` for tabular
+/// figures. Each band then gets a second face for U+0030-0039 alone, written
+/// after the first so it wins for the digits. One ratio cannot cover both
+/// when the font's digits stand to Arial's otherwise than its letters do —
+/// tabular figures most often.
+@mixin fallback-faces($family, $metrics, $size-adjust, $widths, $bold-from: 650, $trimmed-to-capitals: false, $style: normal, $figures: null)
   @if not map.has-key($arial-cuts, $style)
     @error 'fallback-faces: $style is normal or italic, not #{$style}.'
   @each $weights, $width-ratio in $widths
-    $scale: math.div($size-adjust, $width-ratio)
-    $gap: 0
-    @if $trimmed-to-capitals
-      $gap: map.get($metrics, cap-height) - $arial-cap-height * $scale
+    @if $figures and not map.has-key($figures, $weights)
+      @error 'fallback-faces: $figures has no ratio for the weights #{$weights}.'
     $bold: list.nth($weights, 1) >= $bold-from
     $arial: map.get($arial-cuts, $style, $bold)
+    @include -fallback-face($family, $metrics, math.div($size-adjust, $width-ratio), $weights, $style, $arial, $trimmed-to-capitals)
+    @if $figures
+      @include -fallback-face($family, $metrics, math.div($size-adjust, map.get($figures, $weights)), $weights, $style, $arial, $trimmed-to-capitals, $digits)
 
-    @font-face
-      ascent-override: math.percentage(math.div(map.get($metrics, ascent) - $gap, $scale))
-      descent-override: math.percentage(math.div(map.get($metrics, descent) + $gap, $scale))
-      font-family: '#{$family} fallback'
-      font-style: $style
-      font-weight: $weights
-      line-gap-override: 0%
-      size-adjust: math.percentage($scale)
-      src: local($arial)
+@mixin -fallback-face($family, $metrics, $scale, $weights, $style, $arial, $trimmed-to-capitals, $unicode-range: null)
+  $gap: 0
+  @if $trimmed-to-capitals
+    $gap: map.get($metrics, cap-height) - $arial-cap-height * $scale
+
+  @font-face
+    ascent-override: math.percentage(math.div(map.get($metrics, ascent) - $gap, $scale))
+    descent-override: math.percentage(math.div(map.get($metrics, descent) + $gap, $scale))
+    font-family: '#{$family} fallback'
+    font-style: $style
+    font-weight: $weights
+    line-gap-override: 0%
+    size-adjust: math.percentage($scale)
+    src: local($arial)
+    unicode-range: $unicode-range

@@ -188,6 +188,31 @@ describe('fonts', () => {
     expect(css).toContain('src:local("Arial Bold Italic")')
   })
 
+  it('[fonts] draws the digits in a face of their own, after the band it serves', () => {
+    const css = compile(`
+@use 'fonts'
+@include fonts.fallback-faces('Barlow Condensed', (ascent: 1, descent: 0.2), 0.82, (400 649: 1.02, 650 800: 1.04), $figures: (400 649: 0.88, 650 800: 0.9))
+`)
+    const faces = css.split('@font-face').slice(1)
+    expect(faces).toHaveLength(4)
+    expect(faces[0]).not.toContain('unicode-range')
+    expect(faces[1]).toContain('font-weight:400 649')
+    expect(faces[1]).toContain('size-adjust:93.1818181818%')
+    expect(faces[1]).toContain('unicode-range:U+0030-0039')
+    expect(faces[3]).toContain(
+      'src:local("Arial Bold");unicode-range:U+0030-0039'
+    )
+  })
+
+  it('[fonts] refuses figures that miss a band of the widths', () => {
+    expect(() =>
+      compile(`
+@use 'fonts'
+@include fonts.fallback-faces('Barlow', (ascent: 1, descent: 0.2), 0.82, (400 649: 1, 650 800: 1), $figures: (400 649: 0.9))
+`)
+    ).toThrow('$figures has no ratio for the weights 650 800')
+  })
+
   it('[fonts] refuses a fallback style it has no Arial cut for', () => {
     expect(() =>
       compile(`

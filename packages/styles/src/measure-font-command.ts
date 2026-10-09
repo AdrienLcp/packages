@@ -4,6 +4,7 @@ import { parseArgs } from 'node:util'
 
 import { type ArialCut, findArialFile } from './arial-files.ts'
 import {
+  collapseWhiteSpace,
   fallbackFacesInclude,
   measureFallbackFaces,
   measureReport
@@ -26,7 +27,14 @@ order its @font-face rules come, the regular first.
                        Defaults to the axis default. A static file is
                        measured at its own weight.
   --text <text>        The app's own text to measure widths over.
-  --text-file <path>   The same, read from a file.
+  --text-file <path>   The same, read from a file. Spaces and newlines
+                       collapse as a browser collapses them.
+  --figures            Also measure the digits alone, for a figures face of
+                       their own: a font whose digits are narrower or wider
+                       than its letters sets numbers off in the fallback.
+  --figure-feature <tag>
+                       An OpenType feature the digits are set with; repeat
+                       it — tnum and lnum for tabular-nums lining-nums.
   --size-adjust <n>    The size-adjust fontaine wrote in the built CSS.
                        Defaults to fontaine's computation from the first file.
   --bold-from <n>      The weight from which a band is drawn in Arial Bold
@@ -46,6 +54,8 @@ const OPTIONS = {
   fallback: { type: 'string' },
   'fallback-bold': { type: 'string' },
   family: { type: 'string' },
+  'figure-feature': { multiple: true, type: 'string' },
+  figures: { type: 'boolean' },
   help: { short: 'h', type: 'boolean' },
   italic: { type: 'boolean' },
   'size-adjust': { type: 'string' },
@@ -124,9 +134,16 @@ export const measureFontCommand = async (
     (values['text-file'] === undefined
       ? DEFAULT_TEXT
       : readFileSync(values['text-file'], 'utf8'))
+  if (collapseWhiteSpace(text) === '') {
+    output.stderr.write('No text to measure: the text is empty.\n')
+    return 1
+  }
   const measure = await measureFallbackFaces({
     bold,
     boldFrom: optionalNumber(values['bold-from']) ?? DEFAULT_BOLD_FROM,
+    figures: values.figures
+      ? { features: values['figure-feature'] ?? [] }
+      : undefined,
     files: opened,
     regular,
     sizeAdjust: optionalNumber(values['size-adjust']),

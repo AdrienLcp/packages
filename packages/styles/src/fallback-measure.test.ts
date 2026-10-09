@@ -3,6 +3,8 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import {
+  collapseWhiteSpace,
+  type FallbackMeasureInput,
   fallbackFacesInclude,
   measureFallbackFaces,
   measureReport
@@ -32,16 +34,17 @@ describe('openFont', () => {
 })
 
 describe('measureFallbackFaces', () => {
-  const measure = (sizeAdjust?: number) =>
+  const measureWith = (input: Partial<FallbackMeasureInput>) =>
     measureFallbackFaces({
       bold: onest,
       boldFrom: 650,
       files: [{ font: onest, name: 'onest-latin.woff2' }],
       regular: jetBrainsMono,
-      sizeAdjust,
       text: TEXT,
-      weights: [400, 700]
+      weights: [400, 700],
+      ...input
     })
+  const measure = (sizeAdjust?: number) => measureWith({ sizeAdjust })
 
   it('[fallback-measure] measures a variable file at each weight, over the bold cut from the bold band', async () => {
     const result = await measure(0.9)
@@ -73,6 +76,39 @@ describe('measureFallbackFaces', () => {
         weights: []
       })
     ).toBeNull()
+  })
+
+  it('[fallback-measure] collapses spaces and newlines as a browser lays the text out', async () => {
+    expect(collapseWhiteSpace('\n  The quick\n\tbrown  fox \n')).toBe(
+      'The quick brown fox'
+    )
+    const raw = await measureWith({
+      text: `\n${TEXT.replaceAll(' ', '\n')}\n`
+    })
+    const laidOut = await measure()
+    expect(raw?.weights[0]?.ratio).toBe(laidOut?.weights[0]?.ratio)
+  })
+
+  it('[fallback-measure] measures nothing over a text of spaces alone', async () => {
+    expect(await measureWith({ text: ' \n\t ' })).toBeNull()
+  })
+
+  it('[fallback-measure] measures the digits apart only when asked, with their features', async () => {
+    expect((await measure())?.weights[0]?.figures).toBeNull()
+    const result = await measureWith({ figures: { features: ['tnum'] } })
+    expect(result?.weights[1]?.figures).toBeCloseTo(
+      (textWidth(onest, '0123456789', 400, ['tnum']) *
+        (result?.sizeAdjust ?? 0)) /
+        textWidth(onest, '0123456789', 700, ['tnum']),
+      10
+    )
+    if (result === null) throw new Error('no measure')
+    expect(fallbackFacesInclude('Onest', result)).toMatch(
+      /, \$figures: \(400: [\d.]+, 700: [\d.]+\)\)$/
+    )
+    expect(measureReport(result)[0]).toMatch(
+      /width ratio [\d.]+, figures ratio [\d.]+ over/
+    )
   })
 
   it('[fallback-measure] writes the include and the report', async () => {
