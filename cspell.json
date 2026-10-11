@@ -16,6 +16,8 @@
         "apps/docs/src/presentation/i18n/package-descriptions.ts",
         "packages/i18n/documentation.md",
         "packages/i18n/src/create-i18n.test.ts",
+        "packages/i18n/src/elision.test.ts",
+        "packages/i18n/src/elision.ts",
         "packages/i18n/src/translator.test.ts",
         "packages/i18n/src/translator.types.test.ts",
         "packages/measure-font/src/measured-text.ts"
@@ -46,6 +48,24 @@
         "Übersicht",
         "Willkommen",
         "encontró"
+      ]
+    },
+    {
+      "filename": [
+        "cspell.json",
+        "packages/i18n/documentation.md",
+        "packages/i18n/src/elision.test.ts",
+        "packages/i18n/src/elision.ts"
+      ],
+      "words": [
+        "aeiouàâäéèêëîïôöùûüœæ",
+        "aeiouyàâäéèêëîïôöùûüœæ",
+        "Auguste",
+        "Hélène",
+        "Inès",
+        "Odile",
+        "Ulysse",
+        "Yann"
       ]
     }
   ],

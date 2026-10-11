@@ -135,7 +135,7 @@ describe('plural', () => {
       '1 message from Ada'
     )
     expect(inFrench('inbox', { count: 4, sender: 'Ada' })).toBe(
-      '4 messages de Ada'
+      '4 messages d’Ada'
     )
   })
 })

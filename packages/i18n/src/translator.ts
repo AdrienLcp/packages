@@ -15,6 +15,7 @@ import type {
   RichValuesFor,
   ValuesFor
 } from './dictionary.ts'
+import { type Elision, elisionFor } from './elision.ts'
 
 export type Translator<Reference> = {
   <Key extends PlainKey<Reference>>(key: Key): string
@@ -244,82 +245,86 @@ const substitute = ({
   options: TranslationOptions
   values: Record<string, unknown>
 }): string =>
-  message.replace(PLACEHOLDER, (placeholder, name: string, type?: string) => {
-    const value = values[name]
+  formatters
+    .elision(message, values)
+    .replace(PLACEHOLDER, (placeholder, name: string, type?: string) => {
+      const value = values[name]
 
-    if (value === undefined) {
-      return placeholder
-    }
-
-    switch (type) {
-      case 'date':
-        return isFormattableDate(value)
-          ? (formattedDate({
-              date: value,
-              formatters,
-              options: options.date?.[name]
-            }) ?? placeholder)
-          : placeholder
-      case 'displayname':
-        return typeof value === 'string'
-          ? (displayName({
-              formatters,
-              of: value,
-              options: options.displayname?.[name]
-            }) ?? placeholder)
-          : placeholder
-      case 'enum': {
-        const member =
-          typeof value === 'string' ? options.enum?.[name]?.[value] : undefined
-
-        return member === undefined
-          ? placeholder
-          : expand({
-              expanding,
-              formatters,
-              message: member,
-              name,
-              options,
-              placeholder,
-              values
-            })
+      if (value === undefined) {
+        return placeholder
       }
-      case 'list':
-        return Array.isArray(value)
-          ? formatters.list(options.list?.[name]).format(value)
-          : placeholder
-      case 'number':
-        return typeof value === 'number'
-          ? formatters.number(options.number?.[name]).format(value)
-          : placeholder
-      case 'plural':
-        return typeof value === 'number'
-          ? expand({
-              expanding,
-              formatters,
-              message: pluralize({
+
+      switch (type) {
+        case 'date':
+          return isFormattableDate(value)
+            ? (formattedDate({
+                date: value,
+                formatters,
+                options: options.date?.[name]
+              }) ?? placeholder)
+            : placeholder
+        case 'displayname':
+          return typeof value === 'string'
+            ? (displayName({
+                formatters,
+                of: value,
+                options: options.displayname?.[name]
+              }) ?? placeholder)
+            : placeholder
+        case 'enum': {
+          const member =
+            typeof value === 'string'
+              ? options.enum?.[name]?.[value]
+              : undefined
+
+          return member === undefined
+            ? placeholder
+            : expand({
+                expanding,
+                formatters,
+                message: member,
+                name,
+                options,
+                placeholder,
+                values
+              })
+        }
+        case 'list':
+          return Array.isArray(value)
+            ? formatters.list(options.list?.[name]).format(value)
+            : placeholder
+        case 'number':
+          return typeof value === 'number'
+            ? formatters.number(options.number?.[name]).format(value)
+            : placeholder
+        case 'plural':
+          return typeof value === 'number'
+            ? expand({
+                expanding,
+                formatters,
+                message: pluralize({
+                  count: value,
+                  formatters,
+                  forms: options.plural?.[name]
+                }),
+                name,
+                options,
+                placeholder,
+                values
+              })
+            : placeholder
+        case 'relative':
+          return typeof value === 'number' && Number.isFinite(value)
+            ? (relativeTime({
                 count: value,
                 formatters,
-                forms: options.plural?.[name]
-              }),
-              name,
-              options,
-              placeholder,
-              values
-            })
-          : placeholder
-      case 'relative':
-        return typeof value === 'number' && Number.isFinite(value)
-          ? (relativeTime({
-              count: value,
-              formatters,
-              unit: options.relative?.[name]
-            }) ?? placeholder)
-          : placeholder
-      default:
-        return String(value)
-    }
-  })
+                unit: options.relative?.[name]
+              }) ?? placeholder)
+            : placeholder
+        default:
+          return String(value)
+      }
+    })
 
 /**
  * A plural form and an enum member are dictionary text, so a placeholder one
@@ -501,6 +506,7 @@ const relativeTime = ({
     : formatters.relative(unit).format(count, unit.unit)
 
 type Formatters = {
+  elision: Elision
   date: (options?: Intl.DateTimeFormatOptions) => Intl.DateTimeFormat
   displayname: (options: Intl.DisplayNamesOptions) => Intl.DisplayNames
   list: (options?: Intl.ListFormatOptions) => Intl.ListFormat
@@ -561,6 +567,7 @@ const createTranslatorScopedFormatters = ({
         options,
         () => new Intl.DisplayNames(locale, options)
       ),
+    elision: elisionFor(locale),
     list: (options) =>
       remembered(lists, options, () => new Intl.ListFormat(locale, options)),
     number: (options) =>

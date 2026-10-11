@@ -274,6 +274,16 @@ const EN = defineDictionary({
 translate('inbox', { count: 4, sender: 'Ada' }) // '4 messages from Ada'
 ```
 
+### French elision
+
+A French message elides the word before a plain `{name}` placeholder when the
+value calls for it: `'Fiche de {name}'` reads "Fiche d’Emma" and "Fiche de
+Louis". `de`, `que`, `le`, `la`, `jusque`, `lorsque` and `puisque` elide before a
+vowel, a mute `h` — every initial `h` counts as mute, since a name does not say
+when it is aspirated — and a `y` followed by a consonant ("d’Yves", but "de
+Yann"). The apostrophe is the typographic `’`. A typed placeholder is never
+read as a word, and no other language is touched.
+
 ## Type guarantees
 
 This is what the library is for; the runtime is the small half.
