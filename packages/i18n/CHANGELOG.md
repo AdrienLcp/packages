@@ -1,5 +1,11 @@
 # @adrienlcp/i18n
 
+## 0.6.0
+
+### Minor Changes
+
+- 125ac12: A French message elides the word before a plain placeholder when the value starts with a vowel sound: "Fiche de {name}" reads "Fiche d’Emma".
+
 ## 0.5.2
 
 ### Patch Changes
