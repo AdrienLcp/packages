@@ -56,13 +56,13 @@ navigation instead of a page load.
 - **Give links absolute paths.** A relative `href` is displayed resolved
   against the link's route, but `navigate` runs from the root route.
 
-## An external URL left alone: `useRouterHref`
+## An external URL left alone
 
 react-router's `useHref` resolves every href against the current route, an
 external URL included: `https://example.com` would come out as
-`/current/route/https:/example.com`. `useRouterHref` returns an absolute URL
-untouched and defers to `useHref` for the rest. `AriaRouterProvider` already
-uses it; it is exported for an app that wires `RouterProvider` itself.
+`/current/route/https:/example.com`. `AriaRouterProvider` hands react-aria an
+`useHref` that returns an absolute URL untouched and defers to react-router's
+for the rest.
 
 ## `ignoreSupersededNavigation`
 

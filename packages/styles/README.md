@@ -82,26 +82,6 @@ size, so a user who raises it gets the narrow layout sooner. `wide` is
 `@use '@adrienlcp/styles/breakpoints' with ($wide-screen: 64rem)`; a container
 threshold that follows the shell takes the same value.
 
-#### One source for a breakpoint scripts read too
-
-A breakpoint that `matchMedia` answers to as well lives in TypeScript, and
-`sassValues` (below, under TypeScript) hands it to Sass: one line in
-`vite.config.ts`, one `@use` in the layout module.
-
-```ts
-// src/presentation/styles/screen-sizes.ts
-export const SCREEN_SIZES = { shortScreen: '30rem', wideScreen: '40rem' } as const
-
-// vite.config.ts
-css: { preprocessorOptions: { sass: { importers: [sassValues({ 'screen-sizes': SCREEN_SIZES })] } } }
-```
-
-```sass
-// _layout.sass
-@use 'values:screen-sizes'
-@forward '@adrienlcp/styles/breakpoints' with ($wide-screen: screen-sizes.$wide-screen)
-```
-
 ### `fonts`
 
 `$latin` and `$latin-ext` are the unicode ranges Google Fonts cuts a Latin face
@@ -163,7 +143,7 @@ Arial than in the web font.
   Condensed's 14 % narrower, arbor's 24 % — and a score jumps when the web
   font lands. A
   range missing from `$figures` is a compile error. `$figure-separators: true`
-  widens that face to `,`, `.` and `:` (`$figures-and-separators`), so a clock
+  widens that face to `,`, `.` and `:`, so a clock
   such as `0:02` sets as wide as the web font draws it.
 - **`$figures` is a `fallback-faces` argument only.** A family left to
   fontaine gets one face, scaled on its letters: move it to `fallback-faces`
@@ -221,9 +201,9 @@ wins.
 | --- | --- |
 | `--stroke-hair`, `--stroke-thin`, `--stroke-bold` | `1px`, `2px`, `3px`. Whole pixels: Chromium floors a border to whole device pixels, so a `1.5px` stroke is the hairline on a 1x screen and an inset shadow at that width smears across two |
 | `--hairline`, `--hairline-strong` | a `--stroke-hair` solid line in `--rule`, `--rule-strong` |
-| `--inset-hairline`, `--inset-hairline-strong` | the same line as an inset `box-shadow`, which takes no room |
+| `--inset-hairline` | the same hairline as an inset `box-shadow`, which takes no room |
 | `--outline-thick`, `--outline-offset` | `2px`, `3px`. A whole number of pixels: Chromium draws an outline in whole device pixels, so a `2.5px` ring is `2px` on a 1x screen |
-| `--ring`, `--ring-offset`, `--ring-inset` | an `--outline-thick` solid outline in `--focus`, drawn `--outline-offset` outside the box or inside it |
+| `--ring`, `--ring-offset` | an `--outline-thick` solid outline in `--focus`, drawn `--outline-offset` outside the box |
 | `--underline-offset`, `--tracking-tight` | `0.24em`, `-0.02em` |
 | `--icon-s`, `--icon-m`, `--icon-l` | `1rem`, `1.25rem`, `1.5rem` |
 | `--target` | `44px`, the smallest touch target |
@@ -245,27 +225,10 @@ them, a line is `currentColor` mixed toward transparent and the ring is
 
 .icon-label
   @include accessibility.visually-hidden
-
-.button
-  @include accessibility.ring
 ```
 
-- `visually-hidden` hides from sight, not from a screen reader.
-- `ring` draws `--ring` on keyboard focus only: `:focus-visible` for a native
-  element, `[data-focus-visible]` for one react-aria marks. `ring-inset` draws
-  it inside the box, for a row that fills its container edge to edge or sits
-  in an ancestor that clips. Both take `$on`, a selector that draws the ring
-  on a descendant of the focused element — `ring('.track')` for a switch whose
-  root takes the focus. `ring-within` rings a box while a field inside it has
-  focus, a search box around its input. `ring` and `ring-within` take
-  `$offset` for one ring closer than `--ring-offset`. An app on
-  `@adrienlcp/react-aria` has the same set in its `focus` module.
-- `ring-focusables`, included once at the root of the base layer, rings every
-  element that takes focus at zero specificity. It never matches `*`: a
-  wrapper that stamps `data-focus-visible` while a control inside holds the
-  focus — react-aria's `Group`, a `Select` root — would ring beside it. It
-  skips what react-aria's `VisuallyHidden` clips — the input of a `Switch`, a
-  `Checkbox`, a `Radio` — since the visible control rings instead.
+- `visually-hidden` hides from sight, not from a screen reader. The focus rings
+  are `@adrienlcp/react-aria`'s `focus` module.
 
 #### The skip link
 
@@ -289,38 +252,6 @@ it parked. It writes `transition: translate`; a link that also scales on press
 writes the whole list itself. The look — background, colour, type, padding,
 radius — is the app's.
 
-### `motion`
-
-A page's entrance on the visitor's first landing, and there only: a page
-reached through the app appears at once.
-
-```sass
-@use '@adrienlcp/styles/motion'
-
-@layer base
-  @include motion.keyframes
-
-.page
-  @include motion.arriving
-```
-
-- `arriving($duration: var(--transition-base), $easing: var(--ease-out), $delay: 0s)`
-  fades the element in from `$rise` (`0.5rem`) below, under
-  `:root[data-landing]` and `prefers-reduced-motion: no-preference`. It
-  animates `opacity` and `translate`, never `transform`, which stays the
-  element's own.
-- `keyframes` writes the `arriving` keyframes; include it once.
-- The shell writes the mark: `<html lang="en" data-landing>`.
-  `@adrienlcp/browser`'s `endLanding()` takes it off on the router's first
-  navigation, and before a `createRoot` replaces prerendered markup, which
-  would otherwise play the entrance twice over the same page.
-- `$landing: false` (`@use '@adrienlcp/styles/motion' with ($landing: false)`)
-  plays it wherever the element appears, every navigation included.
-- It starts at opacity 0, which Chrome does not count as a paint: on a
-  prerendered page the largest paint waits for it to end. Keep it on
-  `--transition-base`, and off the element that paints the page's largest
-  image or block of text.
-
 ### `sizes`
 
 Every text size and every spacing is rem, so it follows the font size the user
@@ -342,43 +273,6 @@ with the screen without leaving rem:
   `$max` stays within 2.5 times `$min` — past that, a 200 % zoom on a wide
   screen no longer doubles the size (WCAG 1.4.4). Anything else is a compile
   error.
-
-### `text-box`
-
-A box around one line of text centres its ink, not its line box:
-
-```sass
-@use '@adrienlcp/styles/text-box'
-
-.badge
-  @include text-box.trimmed-block(var(--space-xs))
-
-.score
-  @include text-box.trimmed-figure
-```
-
-- `trimmed-block($padding-block)` trims to cap height and baseline and grows
-  the padding by `(1lh - 1cap) / 2`, so the box keeps its size. Without
-  `text-box`, the plain padding stays.
-- `trimmed-figure` trims a numeral on a line of its own; without `text-box` it
-  falls back to `line-height: 1`.
-- Only a block container is trimmed: wrap a flex item's loose text in a `span`.
-
-### `spread`
-
-A page of two columns: `.columns` holding two `.column`s, stacked and ruled
-apart under `breakpoints.wide`, side by side above it with the rule running the
-full height between them.
-
-```sass
-@use '@adrienlcp/styles/spread'
-
-.settings-page
-  @include spread.columns($gap: var(--space-m))
-```
-
-`$gap` spaces a column's own items; `$rule` (`--hairline`), `$stacked-gap`
-(`--space-l`) and `$spread-gap` (`--space-2xl`) are optional.
 
 ## TypeScript
 
@@ -455,42 +349,9 @@ by its full or PostScript name, never a family.
   matched as a browser matches it, ignoring case; a downloaded file or a list
   stays as written, so the plugin never widens a face twice.
 - `metricTwins({ twins: { Helvetica: ['Helvetica', 'Arial'] } })` adds a font
-  or replaces a default one. `METRIC_TWINS` is the default map;
-  `withMetricTwins(src)` is the rewrite on one value.
+  or replaces a default one.
 - The plugin is typed on what it reads, so an app needs no `postcss`
   dependency of its own: Vite brings it.
-
-### `sass-values`
-
-A value a script and a stylesheet both read — a breakpoint a media query and
-`matchMedia` answer to — is written once, in TypeScript, and served to Sass as
-a module of variables:
-
-```ts
-import { sassValues } from '@adrienlcp/styles/sass-values'
-
-export default defineConfig({
-  css: { preprocessorOptions: { sass: { importers: [sassValues({ 'screen-sizes': SCREEN_SIZES })] } } }
-})
-```
-
-```sass
-@use 'values:screen-sizes'
-
-.sidebar
-  @media (width >= screen-sizes.$wide-screen)
-    display: block
-```
-
-- `sassValues(modules, { scheme: 'values' })` serves each module at
-  `<scheme>:<name>`; a name is kebab case. A camelCase key becomes a kebab-case
-  variable: `wideScreen` is `$wide-screen`.
-- A number is written as a number; a string as it is, so `'40rem'` is a length
-  and `'"Inter"'` a quoted string. A key Sass cannot take, or a string that is
-  not one CSS value, throws when the importer is built.
-- A module it does not serve, under its scheme, fails the build naming the
-  ones it does. Any other URL goes on to the next importer.
-- `sass` types the importer; the package lists it as an optional peer.
 
 ### `audit`
 
@@ -672,5 +533,5 @@ audit nothing.
   name for a shared value (`alias`: `--timing: cubic-bezier(0.16, 1, 0.3, 1)`
   is `--ease-out`), compared only on values with a space, a comma or a
   function. A name built by interpolation — `--g#{$n}`, `--pawn-${n}` — is not
-  read. `SHARED_TOKENS` lists the names that pass undeclared;
-  `SHARED_TOKEN_DEFAULTS` maps each `defaults` token to its value.
+  read. The names `tokens.defaults` declares, and the palette names it reads,
+  pass undeclared.

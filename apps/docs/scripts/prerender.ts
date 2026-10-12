@@ -7,7 +7,6 @@ import {
   appendStructuredData,
   htmlFileForPath,
   inlinePageStylesheets,
-  noindexShell,
   originOfCanonical,
   parseDocument,
   readBuildManifest,
@@ -30,6 +29,16 @@ const SERVER_ENTRY = join(ROOT, 'dist-ssr', 'entry-server.js')
 /** `fr` → `fr_FR`: Open Graph writes a locale with an underscore. */
 const openGraphLocaleOf = (locale: PrerenderedPage['locale']): string =>
   REGIONAL_LOCALES[locale].replace('-', '_')
+
+/** The 404 is the bare shell: a search engine must not index it. */
+const noindexMeta = (document: Document): Element => {
+  const meta = document.createElement('meta')
+
+  meta.setAttribute('name', 'robots')
+  meta.setAttribute('content', 'noindex')
+
+  return meta
+}
 
 const documentFor = async ({
   page,
@@ -107,7 +116,7 @@ for (const page of prerenderedPages) {
 
 const notFound = parseDocument(shell)
 
-noindexShell(notFound)
+notFound.head.append(noindexMeta(notFound))
 await writeFile(
   join(CLIENT_DIR, '404.html'),
   serializeDocument(notFound),

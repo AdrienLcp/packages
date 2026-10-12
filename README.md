@@ -14,7 +14,7 @@ dependency.
 | [`@adrienlcp/i18n`](packages/i18n) | A typed translation library in five files, built on `Intl`: a message's arguments are read off the message at compile time |
 | [`@adrienlcp/measure-font`](packages/measure-font) | A dev-time bin that measures a self-hosted font against Arial for the fallback faces of `@adrienlcp/styles`, over the app's own text, and converts a `ch` to em |
 | [`@adrienlcp/prerender`](packages/prerender) | Build-time helpers that write one prerendered document per page from a Vite app's shell: the rendered head in the head, language alternates, the page's stylesheets inlined, its fonts preloaded |
-| [`@adrienlcp/react`](packages/react) | A React context that names its missing provider, an exit transition that plays out, and a class name join |
+| [`@adrienlcp/react`](packages/react) | A React context that names its missing provider, and a class name join |
 | [`@adrienlcp/react-aria`](packages/react-aria) | For react-aria apps: a className merge that follows the render state, and a Sass focus ring on `data-focus-visible` |
 | [`@adrienlcp/react-router`](packages/react-router) | For react-aria apps on react-router: links that navigate on the client, external URLs left alone, `NavigateOptions` typed on every link |
 | [`@adrienlcp/result`](packages/result) | A success-or-failure value with no exceptions and no nulls |

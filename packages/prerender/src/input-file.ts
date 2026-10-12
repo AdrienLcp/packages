@@ -1,5 +1,4 @@
 import { readFile } from 'node:fs/promises'
-import { join } from 'node:path'
 
 const isMissingFileError = (error: unknown): boolean =>
   error instanceof Error && 'code' in error && error.code === 'ENOENT'
@@ -47,10 +46,3 @@ export const readInputJson = async ({
     throw new Error(`prerender: ${path} is not JSON; ${writtenBy} writes it`)
   }
 }
-
-/** The client build's `index.html`, the shell every page is written from. */
-export const readShell = (clientDir: string): Promise<string> =>
-  readInputFile({
-    path: join(clientDir, 'index.html'),
-    writtenBy: 'vite build'
-  })

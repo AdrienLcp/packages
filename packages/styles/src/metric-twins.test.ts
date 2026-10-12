@@ -5,7 +5,8 @@ import postcss from 'postcss'
 import { compileString } from 'sass'
 import { describe, expect, it } from 'vitest'
 
-import { metricTwins, withMetricTwins } from './metric-twins.ts'
+import { withMetricTwins } from './local-font-twins.ts'
+import { metricTwins } from './metric-twins.ts'
 
 const ARIAL_AND_TWINS =
   'local("Arial"), local("Liberation Sans"), local("Arimo"), local("Roboto")'

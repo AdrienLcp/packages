@@ -1,3 +1,5 @@
-export * from './aria-router-provider.ts'
-export * from './ignore-superseded-navigation.ts'
-export * from './use-router-href.ts'
+export {
+  AriaRouterProvider,
+  type AriaRouterProviderProps
+} from './aria-router-provider.ts'
+export { ignoreSupersededNavigation } from './ignore-superseded-navigation.ts'

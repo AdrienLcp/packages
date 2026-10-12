@@ -1,2 +1,1 @@
-export * from './use-prefers-reduced-motion.ts'
-export * from './use-screen-awake.ts'
+export { useScreenAwake } from './use-screen-awake.ts'

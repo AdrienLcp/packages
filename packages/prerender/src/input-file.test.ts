@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { readBuildManifest } from './build-manifest.ts'
-import { readInputJson, readShell } from './input-file.ts'
+import { readInputJson } from './input-file.ts'
 
 let directory = ''
 
@@ -48,10 +48,7 @@ describe('input files', () => {
     })
   })
 
-  it('says the client build writes the shell and the manifest', async () => {
-    await expect(readShell(directory)).rejects.toThrow(
-      'index.html does not exist; vite build writes it'
-    )
+  it('says the client build writes the manifest', async () => {
     await expect(readBuildManifest(directory)).rejects.toThrow(
       'manifest.json does not exist; vite build with build.manifest: true writes it'
     )

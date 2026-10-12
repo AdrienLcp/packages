@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { endLanding, LANDING_ATTRIBUTE } from './landing.ts'
 import { readDurationSeconds } from './read-duration-seconds.ts'
 
 const elementWith = (property: string, value: string): HTMLElement => {
@@ -14,7 +13,6 @@ const elementWith = (property: string, value: string): HTMLElement => {
 
 afterEach(() => {
   document.body.innerHTML = ''
-  document.documentElement.removeAttribute(LANDING_ATTRIBUTE)
 })
 
 describe('readDurationSeconds', () => {
@@ -34,15 +32,5 @@ describe('readDurationSeconds', () => {
 
     expect(readDurationSeconds(element, '--turn')).toBe(0)
     expect(readDurationSeconds(element, '--missing')).toBe(0)
-  })
-})
-
-describe('endLanding', () => {
-  it('[landing] takes the landing mark off the root element', () => {
-    document.documentElement.setAttribute(LANDING_ATTRIBUTE, '')
-
-    endLanding()
-
-    expect(document.documentElement.hasAttribute('data-landing')).toBe(false)
   })
 })

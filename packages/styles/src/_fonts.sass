@@ -10,17 +10,17 @@ $latin-ext: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0
 
 /// Arial's capital height, from its OS/2 table: 1467 of 2048 units, 1466 in
 /// its bold cut.
-$arial-cap-height: math.div(1467, 2048)
+$_arial-cap-height: math.div(1467, 2048)
 
 /// The local Arial each band draws, by style and by whether the band is bold.
-$arial-cuts: (normal: (false: 'Arial', true: 'Arial Bold'), italic: (false: 'Arial Italic', true: 'Arial Bold Italic'))
+$_arial-cuts: (normal: (false: 'Arial', true: 'Arial Bold'), italic: (false: 'Arial Italic', true: 'Arial Bold Italic'))
 
 /// The digits, which a figures face draws alone.
-$digits: U+0030-0039
+$_digits: U+0030-0039
 
 /// The digits and what separates a number's parts — `,`, `.` and the clock's
 /// `:` —, which a figures face draws under `$figure-separators`.
-$figures-and-separators: U+002C, U+002E, U+0030-003A
+$_figures-and-separators: U+002C, U+002E, U+0030-003A
 
 /// One self-hosted `woff2` file. `$weight` and `$stretch` take a range for a
 /// variable face.
@@ -80,17 +80,17 @@ $figures-and-separators: U+002C, U+002E, U+0030-003A
 @mixin fallback-faces($family, $metrics, $size-adjust: 1, $widths: null, $bold-from: 650, $trimmed-to-capitals: false, $style: normal, $figures: null, $figure-separators: false, $stretch: null)
   @if not $widths
     @error 'fallback-faces: $widths is required, a ratio per weight band.'
-  @if not map.has-key($arial-cuts, $style)
+  @if not map.has-key($_arial-cuts, $style)
     @error 'fallback-faces: $style is normal or italic, not #{$style}.'
   @if $figure-separators and not $figures
     @error 'fallback-faces: $figure-separators widens the figures face: pass $figures.'
-  $figures-range: $digits
+  $figures-range: $_digits
   @if $figure-separators
-    $figures-range: $figures-and-separators
+    $figures-range: $_figures-and-separators
   @each $weights, $width-ratio in $widths
     $figures-ratio: -figures-ratio($figures, $weights)
     $bold: list.nth($weights, 1) >= $bold-from
-    $arial: map.get($arial-cuts, $style, $bold)
+    $arial: map.get($_arial-cuts, $style, $bold)
     $scale: math.div($size-adjust, $width-ratio)
     $gap: -capital-gap($metrics, $scale, $trimmed-to-capitals)
     $face: (family: $family, weights: $weights, style: $style, stretch: $stretch, arial: $arial)
@@ -108,7 +108,7 @@ $figures-and-separators: U+002C, U+002E, U+0030-003A
 @function -capital-gap($metrics, $scale, $trimmed-to-capitals)
   @if not $trimmed-to-capitals
     @return 0
-  @return map.get($metrics, cap-height) - $arial-cap-height * $scale
+  @return map.get($metrics, cap-height) - $_arial-cap-height * $scale
 
 /// The overrides are divided by the face's own scale, which the browser
 /// multiplies them by: every face of a band draws the line box of its letters.

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 
-import { noindexShell } from './head-tags.ts'
 import {
   createElement,
   insertIntoHead,
@@ -8,7 +7,6 @@ import {
   serializeDocument
 } from './html-document.ts'
 import { writeLanguageVersions } from './language-versions.ts'
-import { insertScriptAfterRoot } from './page-root.ts'
 import { renderIntoShell } from './rendered-page.ts'
 import { INDENTED_SHELL_HTML, parseShell } from './shell.fixture.ts'
 import { appendStructuredData } from './structured-data.ts'
@@ -47,7 +45,6 @@ describe('formatted insertion', () => {
       ]
     })
     appendStructuredData({ data: { name: 'A' }, document })
-    noindexShell(document)
 
     expect(headOf(document)).toBe(`
     <meta charset="utf-8">
@@ -62,7 +59,6 @@ describe('formatted insertion', () => {
     <script type="module" crossorigin="" src="/assets/index.js"></script>
     <link rel="modulepreload" crossorigin="" href="/assets/vendor.js">
     <script type="application/ld+json">{"name":"A"}</script>
-    <meta name="robots" content="noindex">
   `)
   })
 
@@ -74,14 +70,12 @@ describe('formatted insertion', () => {
       html: '<title>Home</title><meta name="author" content="A"><main><p>Hi</p></main>',
       path: '/'
     })
-    insertScriptAfterRoot({ document, script: 'void 0' })
 
     expect(onlyElement({ document, selector: '#root' }).innerHTML).toBe(
       '<main><p>Hi</p></main>'
     )
     expect(serializeDocument(document)).toContain(`<body>
     <div id="root"><main><p>Hi</p></main></div>
-    <script>void 0</script>
   </body>`)
   })
 
@@ -90,8 +84,10 @@ describe('formatted insertion', () => {
       '<!DOCTYPE html><html><head></head><body><div id="root"></div></body></html>'
     )
 
-    noindexShell(document)
+    appendStructuredData({ data: { name: 'A' }, document })
 
-    expect(headOf(document)).toBe('<meta name="robots" content="noindex">')
+    expect(headOf(document)).toBe(
+      '<script type="application/ld+json">{"name":"A"}</script>'
+    )
   })
 })
