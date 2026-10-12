@@ -1,6 +1,7 @@
 /// Makes the element a container its descendants query by inline size. It can
 /// no longer take its width from its content, so its parent gives it one —
-/// a block, a stretched flex or grid item, a sized track.
+/// a block, a stretched flex or grid item, a sized track. On `body`, its
+/// background no longer reaches the canvas: paint the page's on `html`.
 @mixin container($name: null)
   container-type: inline-size
   @if $name
