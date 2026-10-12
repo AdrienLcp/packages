@@ -50,8 +50,6 @@ precedence: the system preference, unless `data-theme` says otherwise.
     --tint-strength: 38%
 ```
 
-`scheme.light` is the mirror, for an app whose defaults are the dark values.
-
 ## The store
 
 ```ts
@@ -81,8 +79,7 @@ import { themeStore } from './src/theme'
 export default defineConfig({ plugins: [themePreferencePlugin(themeStore)] })
 ```
 
-Without Vite, inline `themeStore.prePaintScript` (or
-`prePaintScriptFor(key)`) yourself.
+Without Vite, inline `themeStore.prePaintScript` yourself.
 
 ## React
 

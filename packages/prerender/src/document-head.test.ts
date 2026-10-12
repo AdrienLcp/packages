@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  noindexShell,
-  originOfCanonical,
-  setMetaContents,
-  setTitle
-} from './head-tags.ts'
+import { originOfCanonical, setMetaContents, setTitle } from './head-tags.ts'
 import {
   createElement,
   insertIntoHead,
@@ -82,14 +77,6 @@ describe('head tags', () => {
 
   it('reads the origin off the canonical link', () => {
     expect(originOfCanonical(parseShell())).toBe('https://example.com')
-  })
-
-  it('marks the not-found shell noindex', () => {
-    const document = parseShell()
-
-    noindexShell(document)
-
-    expect(headTags(document).at(-1)).toBe('meta content=noindex name=robots')
   })
 })
 

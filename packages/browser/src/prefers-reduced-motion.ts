@@ -10,16 +10,3 @@ const reducedMotionQuery = (): MediaQueryList | null =>
  */
 export const prefersReducedMotion = (): boolean =>
   reducedMotionQuery()?.matches ?? false
-
-/** Calls `listener` whenever the preference changes; returns the unsubscribe. */
-export const subscribeToReducedMotion = (
-  listener: () => void
-): (() => void) => {
-  const query = reducedMotionQuery()
-
-  query?.addEventListener('change', listener)
-
-  return () => {
-    query?.removeEventListener('change', listener)
-  }
-}

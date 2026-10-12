@@ -8,35 +8,6 @@
   white-space: nowrap
   width: 1px
 
-/// The focus ring from the `--ring` tokens, drawn on keyboard focus only.
-/// `data-focus-visible` is react-aria's mark of the same moment, on the element
-/// it styles; `:focus-visible` covers a native element. An app on
-/// `@adrienlcp/react-aria` has the same set in its `focus` module.
-///
-/// `$on` draws the ring on a descendant of the focused element — the track of
-/// a switch whose root takes the focus: `@include accessibility.ring('.track')`.
-///
-/// `$offset` moves this one ring off `--ring-offset` — closer around a dense
-/// control, never as a declaration after the include.
-@mixin ring($on: null, $offset: var(--ring-offset))
-  @include _on-focus-visible($on)
-    outline: var(--ring)
-    outline-offset: $offset
-
-/// The ring drawn inside the box, for a control that fills its row edge to edge
-/// or sits in an ancestor that clips.
-@mixin ring-inset($on: null)
-  @include _on-focus-visible($on)
-    outline: var(--ring)
-    outline-offset: var(--ring-inset)
-
-/// The ring drawn on a box while the field inside it has focus — a search box
-/// around its input and its clear button.
-@mixin ring-within($offset: var(--ring-offset))
-  &:has([data-focus-visible], :focus-visible)
-    outline: var(--ring)
-    outline-offset: $offset
-
 /// A skip link parked above the viewport that slides in on keyboard focus.
 /// Shown at `max($top, var(--safe-area-top))`, below a notch, and parked by
 /// that offset as well, or its bottom would show under the notch. A view
@@ -59,29 +30,3 @@
 
 /// What the parked link clears past the top edge: its ring and a shadow.
 $_skip-link-clearance: 0.75rem
-
-/// react-aria's `VisuallyHidden` clips with an inline `clip-path: inset(50%)`,
-/// on the hidden element or on its wrapper. The match reads both
-/// serialisations: React's server string and the browser's own.
-$_visually-hidden: "[style*='inset(50%)']"
-
-/// The ring every element that takes focus draws by default, at zero
-/// specificity so a component's own ring wins. Included once, at the root of
-/// the app's base layer. It matches what can take focus, never `*`: a wrapper
-/// that stamps `data-focus-visible` while the control inside holds the focus —
-/// react-aria's `Group`, a `Select` root — would ring beside it. An element
-/// clipped by an inline `clip-path: inset(50%)` — react-aria's `VisuallyHidden`
-/// around the input of a `Switch` or a `Checkbox` — is skipped, and so is
-/// anything it clips: the visible control rings instead.
-@mixin ring-focusables
-  :where(a[href], button, input, select, textarea, summary, [tabindex], [contenteditable]):where(:not(#{$_visually-hidden}, #{$_visually-hidden} *))
-    @include ring
-
-@mixin _on-focus-visible($on)
-  &[data-focus-visible],
-  &:focus-visible
-    @if $on
-      #{$on}
-        @content
-    @else
-      @content

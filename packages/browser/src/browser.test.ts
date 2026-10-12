@@ -6,8 +6,7 @@ import { copyText } from './copy-text.ts'
 import { keepScreenAwake } from './keep-screen-awake.ts'
 import {
   prefersReducedMotion,
-  REDUCED_MOTION_QUERY,
-  subscribeToReducedMotion
+  REDUCED_MOTION_QUERY
 } from './prefers-reduced-motion.ts'
 import { reloadPage } from './reload-page.ts'
 import { selectContents } from './select-contents.ts'
@@ -356,18 +355,6 @@ describe('prefersReducedMotion', () => {
     vi.stubGlobal('matchMedia', undefined)
 
     expect(prefersReducedMotion()).toBe(false)
-    expect(() => subscribeToReducedMotion(() => {})()).not.toThrow()
-  })
-
-  it('[motion] a subscription listens until it is dropped', () => {
-    const { query } = stubMatchMedia(false)
-    const listener = vi.fn()
-
-    const unsubscribe = subscribeToReducedMotion(listener)
-    unsubscribe()
-
-    expect(query.addEventListener).toHaveBeenCalledWith('change', listener)
-    expect(query.removeEventListener).toHaveBeenCalledWith('change', listener)
   })
 })
 

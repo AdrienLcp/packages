@@ -11,10 +11,9 @@ import {
   findUnitFailures,
   findUnnamedValues,
   findUnreadFontFaces,
-  SHARED_TOKEN_DEFAULTS,
-  SHARED_TOKENS,
   webFontFamilies
 } from './audit.ts'
+import { SHARED_TOKEN_DEFAULTS, SHARED_TOKENS } from './shared-tokens.ts'
 import { withoutComments } from './source-comments.ts'
 
 const kinds = (stylesheet: string) =>

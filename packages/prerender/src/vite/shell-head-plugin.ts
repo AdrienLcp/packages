@@ -1,41 +1,9 @@
-import { normalizePath, type Plugin } from 'vite'
+import type { Plugin } from 'vite'
 
-import { setMetaContents, setTitle } from '../head-tags.ts'
-import { parseDocument, serializeDocument } from '../html-document.ts'
-
-type ShellHeadOptions = {
-  /** The absolute path of the one HTML file to write; every page Vite serves when left out. */
-  filename?: string
-  /** Contents keyed by the attribute naming each `<meta>`, such as `property="og:title"`. */
-  metaContents?: Readonly<Record<string, string>>
-  title?: string
-}
-
-export const shellHeadTransform = ({
-  filename,
-  metaContents = {},
-  title
-}: ShellHeadOptions): ((
-  html: string,
-  context: { filename: string }
-) => string) => {
-  const shell = filename === undefined ? undefined : normalizePath(filename)
-
-  return (html, context) => {
-    if (shell !== undefined && normalizePath(context.filename) !== shell) {
-      return html
-    }
-
-    const document = parseDocument(html)
-
-    if (title !== undefined) {
-      setTitle({ document, title })
-    }
-    setMetaContents({ document, metaContents })
-
-    return serializeDocument(document)
-  }
-}
+import {
+  type ShellHeadOptions,
+  shellHeadTransform
+} from './shell-head-transform.ts'
 
 /**
  * Writes one page's head into the shell, `index.html`, so the document

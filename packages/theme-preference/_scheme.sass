@@ -17,12 +17,3 @@
 
   :root[data-theme='dark']
     @content
-
-/// The light side of `dark`, for an app whose default values are the dark ones.
-@mixin light
-  @media (prefers-color-scheme: light)
-    :root:not([data-theme='dark'])
-      @content
-
-  :root[data-theme='light']
-    @content

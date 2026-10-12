@@ -172,7 +172,7 @@ export type I18n<
    *
    * `signal` detaches one caller without cancelling the fetch for the others:
    * once it aborts, that caller's promise rejects with `signal.reason` — at once
-   * if it was aborted already — and `isAbortError` tells it from a failure. The
+   * if it was aborted already — and `signal.aborted` tells it from a failure. The
    * loader's own signal aborts only when every caller waiting on it has.
    */
   load: (

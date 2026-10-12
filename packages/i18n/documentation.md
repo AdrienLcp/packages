@@ -34,9 +34,9 @@ make.
 
 `createTranslator` is underneath, and takes a locale *and* a dictionary. Nothing
 there can check that the two go together: a translator built with the French
-dictionary and the tag `'en'` reads French and counts in English. It is for a
-dictionary that comes from somewhere TypeScript cannot see — a server, a CMS —
-and a normal project never calls it.
+dictionary and the tag `'en'` reads French and counts in English. That is why
+`@adrienlcp/i18n` does not export it: a project reaches a translator through
+`createI18n` alone.
 
 ## Getting started
 
@@ -105,8 +105,8 @@ regions of one language, declaration order decides.
 
 Order across tags wins over presence: a device listing `de-DE, fr-FR, en` gets
 French, so one tag is exhausted in both directions before the next is looked at.
-`negotiateLocale` is the same rule as a free function, for a caller with no
-registry — a server reading `Accept-Language`, for instance.
+`negotiateLocale` holds that rule as a free function; `@adrienlcp/i18n` keeps
+it internal, behind `createI18n`.
 
 ### Formats that are not the language's
 
@@ -500,12 +500,13 @@ let currentSwitch = new AbortController()
 
 const switchLocale = async (locale: Locale) => {
   currentSwitch.abort()
-  currentSwitch = new AbortController()
+  const thisSwitch = new AbortController()
+  currentSwitch = thisSwitch
 
   try {
-    setTranslator(await i18n.load(locale, { signal: currentSwitch.signal }))
-  } catch (error) {
-    if (!isAbortError(error)) {
+    setTranslator(await i18n.load(locale, { signal: thisSwitch.signal }))
+  } catch {
+    if (!thisSwitch.signal.aborted) {
       showLoadFailure()
     }
   }
@@ -601,8 +602,9 @@ reasoning, and unreachable for a dictionary written in the repo.
 
 **`createTranslator` cannot check that its dictionary matches its locale.**
 `createI18n` exists to make that pairing impossible to get wrong, whether the
-dictionary is in the bundle or fetched; reaching past it for a dictionary
-TypeScript cannot see takes the guarantee back off the table.
+dictionary is in the bundle or fetched, which is why the package exports
+`createI18n` and keeps `createTranslator` to itself; a hand copy that reaches
+past it takes the guarantee back off the table.
 
 **Intl formatters are cached per translator, keyed on the options as
 written.** Building one resolves locale data and costs far more than using one,

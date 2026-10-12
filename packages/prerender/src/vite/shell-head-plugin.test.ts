@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import { parseShell, SHELL_HTML } from '../shell.fixture.ts'
-import { shellHead, shellHeadTransform } from './shell-head-plugin.ts'
+import { shellHead } from './shell-head-plugin.ts'
+import { shellHeadTransform } from './shell-head-transform.ts'
 
 describe('shell head', () => {
   it('runs before Vite injects its own tags', () => {
