@@ -193,7 +193,7 @@ describe('findUnitFailures', () => {
     ).toEqual([{ kind: 'pixels', line: 3 }])
   })
 
-  it('[units] flags a border or a stroke token that is not a whole number of pixels', () => {
+  it('[units] passes a border or a stroke token at a fraction of a pixel', () => {
     expect(
       kinds(`:root
   --stroke-thin: 1.5px
@@ -201,14 +201,8 @@ describe('findUnitFailures', () => {
 .card
   border: 1.5px solid var(--rule)
   border-block-end-width: 0.5px
-  border-radius: 0.5px
-  border-inline-start: var(--stroke-bold) solid var(--rule)
-  outline: var(--stroke-thin) dashed var(--edge)`)
-    ).toEqual([
-      { kind: 'fractional-stroke', line: 2 },
-      { kind: 'fractional-stroke', line: 5 },
-      { kind: 'fractional-stroke', line: 6 }
-    ])
+  border-inline-start: var(--stroke-bold) solid var(--rule)`)
+    ).toEqual([])
   })
 
   it('[units] passes every token tokens.defaults declares', () => {

@@ -17,11 +17,7 @@ export type StyleFailure<Kind extends string> = {
 }
 
 export type UnitFailure = StyleFailure<
-  | 'pixels'
-  | 'viewport-without-rem'
-  | 'ch'
-  | 'fractional-outline'
-  | 'fractional-stroke'
+  'pixels' | 'viewport-without-rem' | 'ch' | 'fractional-outline'
 >
 export type TypeLiteral = StyleFailure<'type-literal'>
 export type UnnamedValue = StyleFailure<
@@ -80,8 +76,6 @@ const PIXELS = /(^|[^\w.])-?(\d*\.?\d+)px\b/g
 const CH = /(^|[^\w.-])(\d*\.?\d+)ch\b/g
 const FRACTIONAL_PIXELS = /(^|[^\w.])\d*\.\d*[1-9]\d*px\b/
 const OUTLINE_WIDTH = /^(outline|outline-width|--outline-(?!offset\b)[\w-]+)$/
-const STROKE_WIDTH =
-  /^(border(-(top|right|bottom|left|block|inline)(-(start|end))?)?(-width)?|--stroke-(hair|thin|bold))$/
 const SIDE_SAFE_AREA = /--safe-area-(left|right)\b/
 const RAW_SAFE_AREA = /\benv\(\s*safe-area-(max-)?inset-/
 const SAFE_AREA_TOKEN = /^--safe-area-[\w-]+$/
@@ -148,8 +142,6 @@ const unitFailureKind = (
     return 'ch'
   if (OUTLINE_WIDTH.test(property) && FRACTIONAL_PIXELS.test(value))
     return 'fractional-outline'
-  if (STROKE_WIDTH.test(property) && FRACTIONAL_PIXELS.test(value))
-    return 'fractional-stroke'
   return undefined
 }
 
@@ -190,14 +182,9 @@ const unnamedValueKind = (
  * face and the web font draw differently, so the box changes when one
  * replaces the other —, an outline width that is not a whole number of
  * pixels (`fractional-outline`) — Chromium draws an outline in whole device
- * pixels, so a `2.5px` ring is `2px` on a 1x screen —, or a border width or a
- * `--stroke-hair`, `--stroke-thin` or `--stroke-bold` that is not one either
- * (`fractional-stroke`): a border is floored to whole device pixels too, so a
- * `1.5px` stroke is the hairline on a 1x screen, and an inset shadow at that
- * width smears across two. An outline drawn with one of them passes: the
- * token's own declaration is the one checked. A stroke token of the app's own
- * for an SVG curve — `--stroke-chalk: 2.6px` — may be fractional: a curve is
- * antialiased whatever its width. A grid track in `px` is a box size like any
+ * pixels, so a `2.5px` ring is `2px` on a 1x screen. A border and a
+ * `--stroke-*` may be fractional: `1.5px` reads lighter than `2px` on the
+ * high-density screens the apps are read on. A grid track in `px` is a box size like any
  * other. A custom property named `--*-px` holds pixels on purpose — a length
  * that must match a geometry a script computes in pixels, read back through
  * `getComputedStyle` — and passes. Reads one declaration per line, as Sass and

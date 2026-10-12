@@ -199,7 +199,7 @@ wins.
 
 | Token | Default |
 | --- | --- |
-| `--stroke-hair`, `--stroke-thin`, `--stroke-bold` | `1px`, `2px`, `3px`. Whole pixels: Chromium floors a border to whole device pixels, so a `1.5px` stroke is the hairline on a 1x screen and an inset shadow at that width smears across two |
+| `--stroke-hair`, `--stroke-thin`, `--stroke-bold` | `1px`, `1.5px`, `2px` |
 | `--hairline`, `--hairline-strong` | a `--stroke-hair` solid line in `--rule`, `--rule-strong` |
 | `--inset-hairline` | the same hairline as an inset `box-shadow`, which takes no room |
 | `--outline-thick`, `--outline-offset` | `2px`, `3px`. A whole number of pixels: Chromium draws an outline in whole device pixels, so a `2.5px` ring is `2px` on a 1x screen |
@@ -453,15 +453,12 @@ audit nothing.
   enlarge. It also lists `ch`, a size, a grid track or a custom property in
   `ch` — the width of the font's zero, which moves when the web font replaces
   the fallback —, `fractional-outline`, an `outline`, `outline-width` or
-  `--outline-*` width (the offset aside) that is not a whole number of pixels,
-  and `fractional-stroke`, a border width or a `--stroke-hair`,
-  `--stroke-thin` or `--stroke-bold` that is not one either. Strokes,
+  `--outline-*` width (the offset aside) that is not a whole number of pixels;
+  a border and a `--stroke-*` may be fractional. Strokes,
   outlines, radii, shadows and the touch target stay in px: their properties
   and their `--stroke-*`, `--outline-*`, `--radius-*`, `--shadow-*` and
   `--target` tokens are not read for `pixels`. `outline: var(--stroke-thin)`
-  passes: the token's own declaration is checked. A stroke token of the app's
-  own for an SVG curve — `--stroke-chalk: 2.6px` — may be fractional: a curve
-  is antialiased whatever its width.
+  passes: the token's own declaration is checked.
 - **Pixels a script must match go through a `--*-px` custom property**, which
   passes: a board cell whose size the script computes in pixels is declared
   `--cell-px: 24px` and read by the stylesheet (`calc(var(--cell-px) * 8)`)
