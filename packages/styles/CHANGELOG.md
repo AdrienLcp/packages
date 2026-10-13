@@ -1,5 +1,25 @@
 # @adrienlcp/styles
 
+## 0.19.0
+
+### Minor Changes
+
+- 229f9ae: A `motion` Sass module with `spin($duration)`: the element turns a full circle every `$duration`, linear and forever, through the individual `rotate` property, and its `motion-spin` keyframes come out once per stylesheet at the root. `reduced-motion.css` ends the turn under `prefers-reduced-motion: reduce`.
+- 451095c: Strokes back to `--stroke-thin: 1.5px` and `--stroke-bold: 2px` (`--stroke-hair` stays `1px`): the whole-pixel `2px` and `3px` of 0.18 read heavy on the high-density screens the apps are read on. The `fractional-stroke` failure of `findUnitFailures` is gone with them — a border and a `--stroke-*` may be a fraction of a pixel. An outline stays whole (`fractional-outline`).
+- 60de920: Keep in the package only what two projects use. Removed:
+  
+  - `@adrienlcp/styles/motion` — `arriving`, `keyframes`, `$landing`, `$rise` — and the `--inset-hairline-strong` token: no project used them.
+  - `@adrienlcp/styles/sass-values` (`sassValues`, `SassModuleValues`): moved into arbor.
+  - `@adrienlcp/styles/spread` (`columns`): moved into sport.
+  - `@adrienlcp/styles/text-box` (`trimmed-block`, `trimmed-figure`): moved into taverla.
+  - `ring`, `ring-inset`, `ring-within` and `ring-focusables` from `@adrienlcp/styles/accessibility`: moved into sport; every other app rings through `@adrienlcp/react-aria/focus`. The `--ring-inset` token, which only `ring-inset` read, goes with them.
+  - No longer exported: `SHARED_TOKENS` and `SHARED_TOKEN_DEFAULTS` from `audit`, `METRIC_TWINS` and `withMetricTwins` from `metric-twins`, and `fonts`' `$arial-cap-height`, `$arial-cuts`, `$digits` and `$figures-and-separators`, now private. The audit and the mixins read them as before.
+
+### Patch Changes
+
+- 229f9ae: `findUnreadFontFaces` lists a face whose family or `$widths` an `@each` or `@for` around it binds, even when a variable of the file shares the loop variable's name, and an include of a face mixin of the same file whose family it cannot read: those faces passed every font check unread. `findFontAttributeFailures` fails a `var(--font-…)` whose fallback names a family, and takes the stylesheets as an optional second argument to demand a token they declare as a font stack.
+- 212ffb3: Document on `container` that a container `body` no longer propagates its background to the canvas, so the page's background belongs on `html`.
+
 ## 0.18.0
 
 ### Minor Changes

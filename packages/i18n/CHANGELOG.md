@@ -1,5 +1,11 @@
 # @adrienlcp/i18n
 
+## 0.7.0
+
+### Minor Changes
+
+- 60de920: Stop exporting what no project imports: `createTranslator`, `negotiateLocale` and `isAbortError` stay inside the package, behind `createI18n`. A caller that aborts `load` tells an abort from a failure by its own `signal.aborted`. Every type stays exported.
+
 ## 0.6.0
 
 ### Minor Changes

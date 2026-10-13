@@ -1,5 +1,11 @@
 # @adrienlcp/react
 
+## 0.5.0
+
+### Minor Changes
+
+- 60de920: Keep in the package only what two projects use. Removed `Animate` and `AnimateProps`, which no project used, and `staggerStyle` with `StaggerStyle`, moved into list, its one user.
+
 ## 0.4.0
 
 ### Minor Changes
