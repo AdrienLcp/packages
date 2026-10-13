@@ -17,11 +17,7 @@ export type StyleFailure<Kind extends string> = {
 }
 
 export type UnitFailure = StyleFailure<
-  | 'pixels'
-  | 'viewport-without-rem'
-  | 'ch'
-  | 'fractional-outline'
-  | 'fractional-stroke'
+  'pixels' | 'viewport-without-rem' | 'ch' | 'fractional-outline'
 >
 export type TypeLiteral = StyleFailure<'type-literal'>
 export type UnnamedValue = StyleFailure<
@@ -80,8 +76,6 @@ const PIXELS = /(^|[^\w.])-?(\d*\.?\d+)px\b/g
 const CH = /(^|[^\w.-])(\d*\.?\d+)ch\b/g
 const FRACTIONAL_PIXELS = /(^|[^\w.])\d*\.\d*[1-9]\d*px\b/
 const OUTLINE_WIDTH = /^(outline|outline-width|--outline-(?!offset\b)[\w-]+)$/
-const STROKE_WIDTH =
-  /^(border(-(top|right|bottom|left|block|inline)(-(start|end))?)?(-width)?|--stroke-(hair|thin|bold))$/
 const SIDE_SAFE_AREA = /--safe-area-(left|right)\b/
 const RAW_SAFE_AREA = /\benv\(\s*safe-area-(max-)?inset-/
 const SAFE_AREA_TOKEN = /^--safe-area-[\w-]+$/
@@ -148,8 +142,6 @@ const unitFailureKind = (
     return 'ch'
   if (OUTLINE_WIDTH.test(property) && FRACTIONAL_PIXELS.test(value))
     return 'fractional-outline'
-  if (STROKE_WIDTH.test(property) && FRACTIONAL_PIXELS.test(value))
-    return 'fractional-stroke'
   return undefined
 }
 
@@ -190,14 +182,9 @@ const unnamedValueKind = (
  * face and the web font draw differently, so the box changes when one
  * replaces the other —, an outline width that is not a whole number of
  * pixels (`fractional-outline`) — Chromium draws an outline in whole device
- * pixels, so a `2.5px` ring is `2px` on a 1x screen —, or a border width or a
- * `--stroke-hair`, `--stroke-thin` or `--stroke-bold` that is not one either
- * (`fractional-stroke`): a border is floored to whole device pixels too, so a
- * `1.5px` stroke is the hairline on a 1x screen, and an inset shadow at that
- * width smears across two. An outline drawn with one of them passes: the
- * token's own declaration is the one checked. A stroke token of the app's own
- * for an SVG curve — `--stroke-chalk: 2.6px` — may be fractional: a curve is
- * antialiased whatever its width. A grid track in `px` is a box size like any
+ * pixels, so a `2.5px` ring is `2px` on a 1x screen. A border and a
+ * `--stroke-*` may be fractional: `1.5px` reads lighter than `2px` on the
+ * high-density screens the apps are read on. A grid track in `px` is a box size like any
  * other. A custom property named `--*-px` holds pixels on purpose — a length
  * that must match a geometry a script computes in pixels, read back through
  * `getComputedStyle` — and passes. Reads one declaration per line, as Sass and
@@ -637,30 +624,62 @@ export const findFallbackBandFailures = (
 
 const FONT_ATTRIBUTE =
   /\b(font-family|fontFamily)\s*(=\s*\{?\s*|:\s*)(?:(["'`])(.*?)\3|([^\s;"'`}<>][^;"'`}<>\n]*))/g
-const FONT_TOKEN = /^(var\(\s*--font-[\w-]+\s*(,[^)]*)?\)|inherit)$/
+const FONT_TOKEN_READ = /^var\(\s*(--font-[\w-]+)\s*(?:,\s*(.*))?\)$/
+const GENERIC_FAMILY =
+  /^(serif|sans-serif|monospace|cursive|fantasy|math|emoji|fangsong|system-ui|ui-(serif|sans-serif|monospace|rounded))$/
+const NOT_A_FAMILY = /^-?\.?\d/
 
 const lineOf = (source: string, index: number) =>
   source.slice(0, index).split('\n').length
+
+/** Whether a `var()` fallback is a generic family or another font token: a family named there gets no fallback face. */
+const isFallbackGeneric = (
+  fallback: string,
+  fontTokens: ReadonlyMap<string, readonly string[]> | undefined
+): boolean => GENERIC_FAMILY.test(fallback) || isFontToken(fallback, fontTokens)
+
+const isFontToken = (
+  value: string,
+  fontTokens: ReadonlyMap<string, readonly string[]> | undefined
+): boolean => {
+  if (value === 'inherit') return true
+  const [, name = '', fallback] = FONT_TOKEN_READ.exec(value) ?? []
+  if (name === '') return false
+  if (fallback !== undefined && !isFallbackGeneric(fallback.trim(), fontTokens))
+    return false
+  if (fontTokens === undefined) return true
+  const values = fontTokens.get(name) ?? []
+  return (
+    values.length > 0 &&
+    values.every((declared) => !NOT_A_FAMILY.test(declared))
+  )
+}
 
 /**
  * Lists every `font-family` attribute (`.svg`), `fontFamily` prop or style key
  * (`.tsx`) and inline `font-family:` that names a family instead of a font
  * token (`font-attribute`). A family named there gets no fallback face, and
  * SVG text whose family the page does not serve falls back to serif: SVG text
- * reads `var(--font-…)`, which carries the fallback face. An expression —
- * `fontFamily={family}` — is not read.
+ * reads `var(--font-…)`, which carries the fallback face. A `var()` fallback
+ * is a generic family or another font token, never a family by name. Given
+ * the project's stylesheets, the token must be declared there as a font
+ * stack: an undeclared `var(--font-…)` paints in the browser's serif. An
+ * expression — `fontFamily={family}` — is not read.
  */
 export const findFontAttributeFailures = (
-  source: string
+  source: string,
+  stylesheets?: readonly string[]
 ): FontAttributeFailure[] => {
   const code = withoutComments(source)
   const lines = source.split('\n')
+  const fontTokens =
+    stylesheets === undefined ? undefined : tokenValues(stylesheets)
   return [...code.matchAll(FONT_ATTRIBUTE)].flatMap(
     ({ 1: name = '', 2: separator = '', 4: quoted, 5: bare, index }) => {
       const isCss = name === 'font-family' && separator.trim() === ':'
       if (quoted === undefined && !isCss) return []
       const value = (quoted ?? bare ?? '').trim()
-      if (FONT_TOKEN.test(value)) return []
+      if (isFontToken(value, fontTokens)) return []
       const line = lineOf(code, index)
       return [
         {

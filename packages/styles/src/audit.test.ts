@@ -193,7 +193,7 @@ describe('findUnitFailures', () => {
     ).toEqual([{ kind: 'pixels', line: 3 }])
   })
 
-  it('[units] flags a border or a stroke token that is not a whole number of pixels', () => {
+  it('[units] passes a border or a stroke token at a fraction of a pixel', () => {
     expect(
       kinds(`:root
   --stroke-thin: 1.5px
@@ -201,14 +201,8 @@ describe('findUnitFailures', () => {
 .card
   border: 1.5px solid var(--rule)
   border-block-end-width: 0.5px
-  border-radius: 0.5px
-  border-inline-start: var(--stroke-bold) solid var(--rule)
-  outline: var(--stroke-thin) dashed var(--edge)`)
-    ).toEqual([
-      { kind: 'fractional-stroke', line: 2 },
-      { kind: 'fractional-stroke', line: 5 },
-      { kind: 'fractional-stroke', line: 6 }
-    ])
+  border-inline-start: var(--stroke-bold) solid var(--rule)`)
+    ).toEqual([])
   })
 
   it('[units] passes every token tokens.defaults declares', () => {
@@ -626,6 +620,53 @@ $widths: (400 649: 1.02, 650 800: 1.04)
 @include face('Onest', 'onest')`)
     ).toEqual([])
   })
+  it('[fonts] lists a family an @each or @for binds, even one a file variable shares the name of', () => {
+    expect(
+      findUnreadFontFaces(`@use '@adrienlcp/styles/fonts'
+
+$family: 'Archivo'
+$widths: (400: 1)
+
+@include fonts.font-face($family, '/fonts/archivo.woff2', fonts.$latin)
+@each $family in 'Inter', 'Lora'
+  @include fonts.font-face($family, '/fonts/#{$family}.woff2', fonts.$latin)
+@each $widths in (400: 1), (700: 1)
+  @include fonts.fallback-faces('Archivo', $metrics, 0.9, $widths)
+@for $family from 1 through 2
+  @font-face
+    font-family: $family
+    src: url('/fonts/#{$family}.woff2')`).map(({ kind, line }) => ({
+        kind,
+        line
+      }))
+    ).toEqual([
+      { kind: 'unread-family', line: 8 },
+      { kind: 'unread-weights', line: 10 },
+      { kind: 'unread-family', line: 12 }
+    ])
+  })
+
+  it("[fonts] lists an include of the file's face mixin whose family it cannot read", () => {
+    expect(
+      findUnreadFontFaces(`@mixin face($family, $file)
+  @font-face
+    font-family: $family
+    src: url('/fonts/#{$file}.woff2')
+
+@mixin faces($family)
+  +face($family, 'shared')
+
+@each $name in 'Inter', 'Lora'
+  +face($name, 'loop')
+@include face('Onest', 'onest')
+@include face(map.get($families, 'display'), 'display')`).map(
+        ({ kind, line }) => ({ kind, line })
+      )
+    ).toEqual([
+      { kind: 'unread-family', line: 10 },
+      { kind: 'unread-family', line: 12 }
+    ])
+  })
 })
 
 describe('findFallbackBandFailures', () => {
@@ -776,6 +817,38 @@ describe('findFontAttributeFailures', () => {
   </g>
 )`).map(({ line }) => line)
     ).toEqual([3, 6])
+  })
+
+  it('[fonts] lists a font token whose fallback names a family', () => {
+    expect(
+      findFontAttributeFailures(`<svg xmlns="http://www.w3.org/2000/svg">
+  <text font-family="var(--font-letter, 'Georgia')">A</text>
+  <text font-family="var(--font-letter, var(--font-prose, Arial))">B</text>
+  <text font-family="var(--font-letter, var(--font-prose, ui-serif))">C</text>
+</svg>`).map(({ line }) => line)
+    ).toEqual([2, 3])
+  })
+
+  it('[fonts] demands a font token the stylesheets declare as a font stack', () => {
+    const STYLESHEETS = [
+      `:root
+  --font-letter: 'Sofia Sans', 'Sofia Sans fallback', sans-serif
+  --font-size-m: 1rem`,
+      `.badge
+  --font-figure: var(--font-letter)`
+    ]
+    expect(
+      findFontAttributeFailures(
+        `<svg xmlns="http://www.w3.org/2000/svg">
+  <text font-family="var(--font-letter)">A</text>
+  <text font-family="var(--font-figure)">B</text>
+  <text font-family="var(--font-typo)">C</text>
+  <text font-family="var(--font-size-m)">D</text>
+  <text font-family="inherit">E</text>
+</svg>`,
+        STYLESHEETS
+      ).map(({ line }) => line)
+    ).toEqual([4, 5])
   })
 })
 

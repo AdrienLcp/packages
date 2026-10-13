@@ -74,7 +74,8 @@ const installCommandOf = (
     ? `pnpm add -D ${manifest.name}`
     : `pnpm add ${manifest.name}`
 
-const filedSectionsOf = (
+/** Every section of the package's documents, slugged across all of them as the page anchors them. */
+export const filedSectionsOf = (
   documents: readonly PackageDocumentSource[]
 ): readonly FiledSection[] => {
   const slugger = createHeadingSlugger()

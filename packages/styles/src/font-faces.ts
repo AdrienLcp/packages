@@ -54,6 +54,7 @@ const FONT_FACE_CALL = /(?<![@\w-])font-face\(/g
 const FALLBACK_FACES_CALL = /(?<![@\w-])fallback-faces\(/g
 const FONT_FACE_RULE = /@font-face\b/g
 const MIXIN_HEADER = /@mixin\s+([\w-]+)\s*\(([^)]*)\)/
+const LOOP_HEADER = /@(?:each|for)\s+(\$[^{\n]*?)\s+(?:in|from)\b/
 const VARIABLE = /^\s*\$([\w-]+)\s*:\s*(.+?)\s*(?:!default)?\s*;?\s*$/gm
 const VARIABLE_READ = /\$([\w-]+)/g
 const QUOTED = /^(['"])(.*)\1$/s
@@ -206,6 +207,29 @@ const enclosingMixin = (
   return undefined
 }
 
+/** The variables an `@each` or `@for` around the line binds: their value changes on every pass. */
+const loopVariablesAt = (context: Context, lineIndex: number) => {
+  const bound = new Set<string>()
+  let block = context.blocks[lineIndex] ?? -1
+  while (block >= 0) {
+    const [, header = ''] = LOOP_HEADER.exec(context.lines[block] ?? '') ?? []
+    for (const [, name = ''] of header.matchAll(VARIABLE_READ)) bound.add(name)
+    block = context.blocks[block] ?? -1
+  }
+  return bound
+}
+
+const readsLoopVariable = (
+  context: Context,
+  lineIndex: number,
+  expression: string
+) => {
+  const bound = loopVariablesAt(context, lineIndex)
+  return [...expression.matchAll(VARIABLE_READ)].some(([, name = '']) =>
+    bound.has(name)
+  )
+}
+
 /** The mixin parameter an expression reads, when it sits in a mixin that takes it. */
 const mixinParameterRead = (
   context: Context,
@@ -242,7 +266,12 @@ const weightRange = (text: string): [number, number] | undefined => {
 }
 
 /** The weight ranges a `$widths` map holds, or `undefined` when one key is not a literal range. */
-const widthBands = (expression: string, context: Context) => {
+const widthBands = (
+  expression: string,
+  context: Context,
+  lineIndex: number
+) => {
+  if (readsLoopVariable(context, lineIndex, expression)) return undefined
   const map = resolve(expression, context.variables)?.trim()
   if (map === undefined || !map.startsWith('(')) return undefined
   const ranges = splitArguments(map, 0).map((entry) =>
@@ -284,7 +313,9 @@ const familyOrUnread = (
   lineIndex: number,
   expression: string
 ) => {
-  const family = resolveName(expression, context.variables)
+  const family = readsLoopVariable(context, lineIndex, expression)
+    ? undefined
+    : resolveName(expression, context.variables)
   if (family !== undefined) return family
   const mixin = mixinParameterRead(context, lineIndex, expression)
   if (mixin) collected.mixins.push(mixin)
@@ -330,7 +361,7 @@ const readFallbackFacesCalls = (
     )
     if (family === undefined) continue
     const widths = argument(list, FALLBACK_FACES_PARAMETERS, 'widths') ?? ''
-    const ranges = widthBands(widths, context)
+    const ranges = widthBands(widths, context, lineIndex)
     if (ranges === undefined) {
       if (!mixinParameterRead(context, lineIndex, widths))
         collected.unread.push({
@@ -383,12 +414,70 @@ const contextOf = (source: string): Context => {
   }
 }
 
+type MixinInclude = {
+  expression: string | undefined
+  family: string | undefined
+  lineIndex: number
+}
+
+const sameMixin = (
+  mixin: FaceMixin,
+  index: number,
+  all: readonly FaceMixin[]
+) =>
+  all.findIndex(
+    (other) => other.name === mixin.name && other.position === mixin.position
+  ) === index
+
+/** Every include of the app's face mixins in a source, with the family it passes when the audit can read it. */
+const mixinIncludes = (
+  context: Context,
+  mixins: readonly FaceMixin[]
+): MixinInclude[] =>
+  mixins.filter(sameMixin).flatMap((mixin) => {
+    const include = new RegExp(
+      String.raw`(?:@include\s+|^\s*\+)(?:[\w-]+\.)?${mixin.name}\(`,
+      'gm'
+    )
+    return [...context.code.matchAll(include)].map(({ 0: call, index }) => {
+      const open = index + call.length - 1
+      const lineIndex = lineAt(context.code, open) - 1
+      const list = readArguments(context.code, open)
+      const expression =
+        list.named.get(mixin.parameter) ?? list.positional[mixin.position]
+      const family =
+        expression === undefined ||
+        readsLoopVariable(context, lineIndex, expression)
+          ? undefined
+          : resolveName(expression, context.variables)
+      return { expression, family, lineIndex }
+    })
+  })
+
+/** An include of a face mixin of the same file whose family the audit cannot read: its face goes unchecked. */
+const readMixinIncludes = (context: Context, collected: FontFaceReading) => {
+  for (const { expression, family, lineIndex } of mixinIncludes(
+    context,
+    collected.mixins
+  )) {
+    if (expression === undefined || family !== undefined) continue
+    if (mixinParameterRead(context, lineIndex, expression)) continue
+    collected.unread.push({
+      declaration: declarationAt(context, lineIndex),
+      kind: 'unread-family',
+      line: lineIndex + 1
+    })
+  }
+}
+
 /**
  * Reads the faces a stylesheet declares — `fonts.font-face` and
  * `fonts.fallback-faces` includes, `@font-face` rules — resolving a family
  * held in a variable the same file assigns once. A face inside a mixin that
  * takes its family as a parameter is the app's own face mixin; any other
- * family or weight map it cannot read is `unread`.
+ * family or weight map it cannot read is `unread`, and so is a family bound
+ * by an `@each` or `@for` around the face, or passed to a face mixin of the
+ * same file in a form it cannot read.
  */
 export const readFontFaces = (source: string): FontFaceReading => {
   const context = contextOf(source)
@@ -401,6 +490,7 @@ export const readFontFaces = (source: string): FontFaceReading => {
   readFontFaceCalls(context, collected)
   readFallbackFacesCalls(context, collected)
   readFontFaceRules(context, collected)
+  readMixinIncludes(context, collected)
   return collected
 }
 
@@ -408,22 +498,7 @@ export const readFontFaces = (source: string): FontFaceReading => {
 export const familiesThroughMixins = (
   source: string,
   mixins: readonly FaceMixin[]
-): string[] => {
-  const context = contextOf(source)
-  return mixins.flatMap((mixin) => {
-    const include = new RegExp(
-      String.raw`(?:@include\s+|^\s*\+)(?:[\w-]+\.)?${mixin.name}\(`,
-      'gm'
-    )
-    return [...context.code.matchAll(include)].flatMap(({ 0: call, index }) => {
-      const list = readArguments(context.code, index + call.length - 1)
-      const expression =
-        list.named.get(mixin.parameter) ?? list.positional[mixin.position]
-      const family =
-        expression === undefined
-          ? undefined
-          : resolveName(expression, context.variables)
-      return family === undefined ? [] : [family]
-    })
-  })
-}
+): string[] =>
+  mixinIncludes(contextOf(source), mixins).flatMap(({ family }) =>
+    family === undefined ? [] : [family]
+  )

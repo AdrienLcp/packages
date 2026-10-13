@@ -199,7 +199,7 @@ wins.
 
 | Token | Default |
 | --- | --- |
-| `--stroke-hair`, `--stroke-thin`, `--stroke-bold` | `1px`, `2px`, `3px`. Whole pixels: Chromium floors a border to whole device pixels, so a `1.5px` stroke is the hairline on a 1x screen and an inset shadow at that width smears across two |
+| `--stroke-hair`, `--stroke-thin`, `--stroke-bold` | `1px`, `1.5px`, `2px` |
 | `--hairline`, `--hairline-strong` | a `--stroke-hair` solid line in `--rule`, `--rule-strong` |
 | `--inset-hairline` | the same hairline as an inset `box-shadow`, which takes no room |
 | `--outline-thick`, `--outline-offset` | `2px`, `3px`. A whole number of pixels: Chromium draws an outline in whole device pixels, so a `2.5px` ring is `2px` on a 1x screen |
@@ -273,6 +273,23 @@ with the screen without leaving rem:
   `$max` stays within 2.5 times `$min` — past that, a 200 % zoom on a wide
   screen no longer doubles the size (WCAG 1.4.4). Anything else is a compile
   error.
+
+### `motion`
+
+```sass
+@use '@adrienlcp/styles/motion'
+
+.spinner
+  @include motion.spin(calc(var(--transition-slow) * 2))
+```
+
+- `spin($duration)` turns the element a full circle every `$duration`, at a
+  constant speed, forever: a spinner, a sync icon. It writes the individual
+  `rotate` property, so a `transform` or a `translate` on the element still
+  holds. Its `motion-spin` keyframes come out once per stylesheet, at the
+  root, wherever the first include sits — a layer, a media query. Under
+  `prefers-reduced-motion: reduce`, `reduced-motion.css` ends the turn at
+  once and the element rests as its rules draw it.
 
 ## TypeScript
 
@@ -416,7 +433,7 @@ describe.each(STYLESHEETS)('%s', (path) => {
 
 describe.each(MARKUP)('%s', (path) => {
   it('[fonts] sets text in a font token, never a family by name', () => {
-    expect(findFontAttributeFailures(readSourceFile(path))).toEqual([])
+    expect(findFontAttributeFailures(readSourceFile(path), STYLESHEET_SOURCES)).toEqual([])
   })
 })
 
@@ -453,15 +470,12 @@ audit nothing.
   enlarge. It also lists `ch`, a size, a grid track or a custom property in
   `ch` — the width of the font's zero, which moves when the web font replaces
   the fallback —, `fractional-outline`, an `outline`, `outline-width` or
-  `--outline-*` width (the offset aside) that is not a whole number of pixels,
-  and `fractional-stroke`, a border width or a `--stroke-hair`,
-  `--stroke-thin` or `--stroke-bold` that is not one either. Strokes,
+  `--outline-*` width (the offset aside) that is not a whole number of pixels;
+  a border and a `--stroke-*` may be fractional. Strokes,
   outlines, radii, shadows and the touch target stay in px: their properties
   and their `--stroke-*`, `--outline-*`, `--radius-*`, `--shadow-*` and
   `--target` tokens are not read for `pixels`. `outline: var(--stroke-thin)`
-  passes: the token's own declaration is checked. A stroke token of the app's
-  own for an SVG curve — `--stroke-chalk: 2.6px` — may be fractional: a curve
-  is antialiased whatever its width.
+  passes: the token's own declaration is checked.
 - **Pixels a script must match go through a `--*-px` custom property**, which
   passes: a board cell whose size the script computes in pixels is declared
   `--cell-px: 24px` and read by the stylesheet (`calc(var(--cell-px) * 8)`)
@@ -495,8 +509,11 @@ audit nothing.
 - `findUnreadFontFaces` lists a face whose family (`unread-family`) or
   `$widths` bands (`unread-weights`) the audit cannot read: built in an
   `@each` loop, interpolated, a variable assigned twice, a map from another
-  module. Every font check then misses that family and passes in silence, so
-  this one fails instead: write the faces out, one include per file.
+  module, a loop variable of an `@each` or `@for` around the face — even one a
+  variable of the file shares the name of —, or a face mixin of the same file
+  included with a family it cannot read. Every font check then misses that
+  family and passes in silence, so this one fails instead: write the faces
+  out, one include per file.
 - `findFallbackFailures` lists a custom property whose font stack names one of
   those web fonts without `'<family> fallback'` right after it
   (`missing-fallback`, with the `family`): fontaine appends its fallback face
@@ -520,8 +537,12 @@ audit nothing.
   (`font-attribute`). **SVG text takes `var(--font-…)`**: a family named there
   gets no fallback face, and one the page does not serve falls back to serif.
   The SVG is inlined (`?react`): an SVG shown through `<img>` reads neither
-  the page's fonts nor its tokens. `inherit` passes; an expression —
-  `fontFamily={family}` — is not read.
+  the page's fonts nor its tokens. A `var()` fallback is a generic family or
+  another font token: `var(--font-letter, 'Georgia')` names a family, and
+  fails. Given the stylesheets, as in the example, a token must be declared
+  there as a font stack — an undeclared `var(--font-typo)` paints in the
+  browser's serif, and `var(--font-size-m)` holds no family. `inherit`
+  passes; an expression — `fontFamily={family}` — is not read.
 - `findTokenFailures` takes every source — stylesheets and the scripts that
   set a property through `style` — and lists a name read through `var()` but
   declared nowhere, not shared and not `provided` (`undeclared`: a rename

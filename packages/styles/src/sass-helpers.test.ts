@@ -46,3 +46,29 @@ describe('skip link', () => {
     expect(moved).toContain('top:max(1rem,var(--safe-area-top, 0px))')
   })
 })
+
+describe('spin', () => {
+  const css = compile(`
+@use 'motion'
+@layer components
+  .spinner
+    @include motion.spin(1s)
+  @media (width > 40rem)
+    .sync
+      @include motion.spin(calc(var(--transition-slow) * 2))
+`)
+
+  it('[spin] turns the element a full circle at a constant speed, forever', () => {
+    expect(css).toContain('.spinner{animation:motion-spin 1s linear infinite}')
+    expect(css).toContain(
+      '.sync{animation:motion-spin calc(var(--transition-slow)*2) linear infinite}'
+    )
+    expect(css).toContain('@keyframes motion-spin{to{rotate:360deg}}')
+  })
+
+  it('[spin] writes the keyframes once, at the root, outside the rule that includes it first', () => {
+    expect(css.match(/@keyframes/g)).toHaveLength(1)
+    expect(css.startsWith('@layer components{.spinner')).toBe(true)
+    expect(css).toMatch(/\}@keyframes motion-spin/)
+  })
+})
