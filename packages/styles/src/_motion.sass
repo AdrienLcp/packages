@@ -1,0 +1,26 @@
+/// Turns the element a full circle, again and again: a spinner, a sync icon.
+///
+/// ```sass
+/// @use '@adrienlcp/styles/motion'
+///
+/// .spinner
+///   @include motion.spin(calc(var(--transition-slow) * 2))
+/// ```
+///
+/// One turn takes `$duration`, at a constant speed. It writes the individual
+/// `rotate` property, so a `transform` or a `translate` on the element still
+/// holds. The `motion-spin` keyframes come out once per stylesheet, at its
+/// root, whatever rule or media query includes it first. Under
+/// `prefers-reduced-motion: reduce`, `reduced-motion.css` ends the turn at
+/// once and the element rests where its rules put it.
+@mixin spin($duration)
+  animation: motion-spin $duration linear infinite
+
+  @if not $_spin-written
+    $_spin-written: true !global
+    @at-root (without: all)
+      @keyframes motion-spin
+        to
+          rotate: 360deg
+
+$_spin-written: false

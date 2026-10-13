@@ -624,30 +624,62 @@ export const findFallbackBandFailures = (
 
 const FONT_ATTRIBUTE =
   /\b(font-family|fontFamily)\s*(=\s*\{?\s*|:\s*)(?:(["'`])(.*?)\3|([^\s;"'`}<>][^;"'`}<>\n]*))/g
-const FONT_TOKEN = /^(var\(\s*--font-[\w-]+\s*(,[^)]*)?\)|inherit)$/
+const FONT_TOKEN_READ = /^var\(\s*(--font-[\w-]+)\s*(?:,\s*(.*))?\)$/
+const GENERIC_FAMILY =
+  /^(serif|sans-serif|monospace|cursive|fantasy|math|emoji|fangsong|system-ui|ui-(serif|sans-serif|monospace|rounded))$/
+const NOT_A_FAMILY = /^-?\.?\d/
 
 const lineOf = (source: string, index: number) =>
   source.slice(0, index).split('\n').length
+
+/** Whether a `var()` fallback is a generic family or another font token: a family named there gets no fallback face. */
+const isFallbackGeneric = (
+  fallback: string,
+  fontTokens: ReadonlyMap<string, readonly string[]> | undefined
+): boolean => GENERIC_FAMILY.test(fallback) || isFontToken(fallback, fontTokens)
+
+const isFontToken = (
+  value: string,
+  fontTokens: ReadonlyMap<string, readonly string[]> | undefined
+): boolean => {
+  if (value === 'inherit') return true
+  const [, name = '', fallback] = FONT_TOKEN_READ.exec(value) ?? []
+  if (name === '') return false
+  if (fallback !== undefined && !isFallbackGeneric(fallback.trim(), fontTokens))
+    return false
+  if (fontTokens === undefined) return true
+  const values = fontTokens.get(name) ?? []
+  return (
+    values.length > 0 &&
+    values.every((declared) => !NOT_A_FAMILY.test(declared))
+  )
+}
 
 /**
  * Lists every `font-family` attribute (`.svg`), `fontFamily` prop or style key
  * (`.tsx`) and inline `font-family:` that names a family instead of a font
  * token (`font-attribute`). A family named there gets no fallback face, and
  * SVG text whose family the page does not serve falls back to serif: SVG text
- * reads `var(--font-…)`, which carries the fallback face. An expression —
- * `fontFamily={family}` — is not read.
+ * reads `var(--font-…)`, which carries the fallback face. A `var()` fallback
+ * is a generic family or another font token, never a family by name. Given
+ * the project's stylesheets, the token must be declared there as a font
+ * stack: an undeclared `var(--font-…)` paints in the browser's serif. An
+ * expression — `fontFamily={family}` — is not read.
  */
 export const findFontAttributeFailures = (
-  source: string
+  source: string,
+  stylesheets?: readonly string[]
 ): FontAttributeFailure[] => {
   const code = withoutComments(source)
   const lines = source.split('\n')
+  const fontTokens =
+    stylesheets === undefined ? undefined : tokenValues(stylesheets)
   return [...code.matchAll(FONT_ATTRIBUTE)].flatMap(
     ({ 1: name = '', 2: separator = '', 4: quoted, 5: bare, index }) => {
       const isCss = name === 'font-family' && separator.trim() === ':'
       if (quoted === undefined && !isCss) return []
       const value = (quoted ?? bare ?? '').trim()
-      if (FONT_TOKEN.test(value)) return []
+      if (isFontToken(value, fontTokens)) return []
       const line = lineOf(code, index)
       return [
         {

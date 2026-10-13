@@ -163,7 +163,7 @@ localStorage that never throws: every read, write and removal returns a Result, 
 
 ## @adrienlcp/styles
 
-A reset, a reduced-motion switch, default tokens, Sass mixins for self-hosted fonts, container queries, a breakpoint, visually hidden text, a skip link that clears the notch, a fluid size in rem, a PostCSS plugin that lists Arial's metric twins in fontaine's fallback faces, and checks for WCAG contrast between colour tokens, for sizes the user's font size cannot reach, for font tokens that skip their fallback face, for fallback bands that miss a weight and for SVG text that names a family
+A reset, a reduced-motion switch, default tokens, Sass mixins for self-hosted fonts, container queries, a breakpoint, visually hidden text, a skip link that clears the notch, a fluid size in rem, a spin animation, a PostCSS plugin that lists Arial's metric twins in fontaine's fallback faces, and checks for WCAG contrast between colour tokens, for sizes the user's font size cannot reach, for font tokens that skip their fallback face, for fallback bands that miss a weight and for SVG text that names a family
 
 ### `@adrienlcp/styles/accessibility`
 
@@ -226,6 +226,10 @@ A reset, a reduced-motion switch, default tokens, Sass mixins for self-hosted fo
 - `MetricTwinsOptions` (type)
 - `MetricTwinsPlugin` (type) — A PostCSS plugin, typed on the slice it reads: postcss is Vite's dependency, not the app's.
 - `metricTwins` (constant) — The PostCSS plugin that widens the `src` of every `@font-face` naming one local font with metric twins to all of them. [More](https://github.com/AdrienLcp/packages/blob/main/packages/styles/README.md#metric-twins)
+
+### `@adrienlcp/styles/motion`
+
+- `spin` (sass) — Turns the element a full circle, again and again: a spinner, a sync icon. [More](https://github.com/AdrienLcp/packages/blob/main/packages/styles/README.md#motion)
 
 ### `@adrienlcp/styles/reduced-motion.css`
 

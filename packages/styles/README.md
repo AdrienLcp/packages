@@ -274,6 +274,23 @@ with the screen without leaving rem:
   screen no longer doubles the size (WCAG 1.4.4). Anything else is a compile
   error.
 
+### `motion`
+
+```sass
+@use '@adrienlcp/styles/motion'
+
+.spinner
+  @include motion.spin(calc(var(--transition-slow) * 2))
+```
+
+- `spin($duration)` turns the element a full circle every `$duration`, at a
+  constant speed, forever: a spinner, a sync icon. It writes the individual
+  `rotate` property, so a `transform` or a `translate` on the element still
+  holds. Its `motion-spin` keyframes come out once per stylesheet, at the
+  root, wherever the first include sits — a layer, a media query. Under
+  `prefers-reduced-motion: reduce`, `reduced-motion.css` ends the turn at
+  once and the element rests as its rules draw it.
+
 ## TypeScript
 
 ### `contrast`
@@ -416,7 +433,7 @@ describe.each(STYLESHEETS)('%s', (path) => {
 
 describe.each(MARKUP)('%s', (path) => {
   it('[fonts] sets text in a font token, never a family by name', () => {
-    expect(findFontAttributeFailures(readSourceFile(path))).toEqual([])
+    expect(findFontAttributeFailures(readSourceFile(path), STYLESHEET_SOURCES)).toEqual([])
   })
 })
 
@@ -492,8 +509,11 @@ audit nothing.
 - `findUnreadFontFaces` lists a face whose family (`unread-family`) or
   `$widths` bands (`unread-weights`) the audit cannot read: built in an
   `@each` loop, interpolated, a variable assigned twice, a map from another
-  module. Every font check then misses that family and passes in silence, so
-  this one fails instead: write the faces out, one include per file.
+  module, a loop variable of an `@each` or `@for` around the face — even one a
+  variable of the file shares the name of —, or a face mixin of the same file
+  included with a family it cannot read. Every font check then misses that
+  family and passes in silence, so this one fails instead: write the faces
+  out, one include per file.
 - `findFallbackFailures` lists a custom property whose font stack names one of
   those web fonts without `'<family> fallback'` right after it
   (`missing-fallback`, with the `family`): fontaine appends its fallback face
@@ -517,8 +537,12 @@ audit nothing.
   (`font-attribute`). **SVG text takes `var(--font-…)`**: a family named there
   gets no fallback face, and one the page does not serve falls back to serif.
   The SVG is inlined (`?react`): an SVG shown through `<img>` reads neither
-  the page's fonts nor its tokens. `inherit` passes; an expression —
-  `fontFamily={family}` — is not read.
+  the page's fonts nor its tokens. A `var()` fallback is a generic family or
+  another font token: `var(--font-letter, 'Georgia')` names a family, and
+  fails. Given the stylesheets, as in the example, a token must be declared
+  there as a font stack — an undeclared `var(--font-typo)` paints in the
+  browser's serif, and `var(--font-size-m)` holds no family. `inherit`
+  passes; an expression — `fontFamily={family}` — is not read.
 - `findTokenFailures` takes every source — stylesheets and the scripts that
   set a property through `style` — and lists a name read through `var()` but
   declared nowhere, not shared and not `provided` (`undeclared`: a rename
