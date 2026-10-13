@@ -1,5 +1,11 @@
 # @adrienlcp/react-router
 
+## 0.2.0
+
+### Minor Changes
+
+- 60de920: Stop exporting `useRouterHref`: no project imports it, and `AriaRouterProvider` still hands it to react-aria.
+
 ## 0.1.2
 
 ### Patch Changes

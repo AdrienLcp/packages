@@ -1,5 +1,12 @@
 # @adrienlcp/react-aria
 
+## 0.4.2
+
+### Patch Changes
+
+- Updated dependencies [60de920]
+  - @adrienlcp/react@0.5.0
+
 ## 0.4.1
 
 ### Patch Changes
