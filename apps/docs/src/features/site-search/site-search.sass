@@ -1,0 +1,313 @@
+@use '@adrienlcp/styles/accessibility'
+
+@use '../../presentation/styles/layout'
+@use '../../presentation/styles/typography'
+
+@layer components
+  // In the header: the field the search will be, shrunk to its square on a
+  // narrow bar.
+  .site-search-trigger
+    align-items: center
+    background: var(--plane)
+    border: 0
+    border-radius: var(--radius-control)
+    color: var(--ink-soft)
+    cursor: pointer
+    display: inline-flex
+    font: inherit
+    gap: var(--space-2xs)
+    justify-content: center
+    min-height: var(--control-height)
+    min-width: var(--control-height)
+    padding: 0 var(--space-2xs) 0 var(--space-xs)
+    transition: background-color var(--transition-fast, 0s) var(--ease-out), scale var(--transition-fast, 0s) var(--ease-out)
+
+    &[data-hovered]
+      background: var(--hover)
+      color: var(--ink)
+
+    &[data-pressed]
+      background: var(--press)
+      scale: var(--press-scale)
+
+    .site-search-trigger-icon
+      height: 1.125rem
+      width: 1.125rem
+
+    .site-search-trigger-label
+      @include typography.chip
+
+      margin-inline-end: var(--space-xl)
+
+    .site-search-trigger-key
+      @include typography.tag
+
+      background: var(--track)
+      border-radius: var(--radius-inline)
+      color: var(--ink-soft)
+      display: none
+      padding: var(--space-4xs) var(--space-3xs)
+
+  @media (any-pointer: fine)
+    .site-search-trigger .site-search-trigger-key
+      display: inline-block
+
+  @include layout.container-narrow(52rem)
+    .site-search-trigger
+      padding: 0
+
+      .site-search-trigger-label
+        @include accessibility.visually-hidden
+
+      .site-search-trigger-key
+        display: none
+
+  .site-search-overlay
+    background: var(--scrim)
+    display: grid
+    // One row the height of the screen, so the dialog's `100%` is the room left.
+    grid-template-rows: minmax(0, 1fr)
+    inset: 0
+    justify-items: center
+    padding: max(var(--safe-area-top), var(--space-xs)) var(--gutter-right) var(--space-xs) var(--gutter-left)
+    position: fixed
+    z-index: 40
+
+    &[data-entering]
+      animation: site-search-scrim var(--transition-base, 0s) var(--ease-out)
+
+    &[data-exiting]
+      animation: site-search-scrim var(--transition-fast, 0s) var(--ease-out) reverse
+
+    @include layout.wide
+      padding-block-start: 12dvh
+
+  .site-search-modal
+    align-self: start
+    background: var(--plane)
+    border-radius: var(--radius-plane)
+    box-shadow: var(--shadow-dialog)
+    display: flex
+    max-height: min(38rem, 100%)
+    min-height: 0
+    overflow: clip
+    width: min(42rem, 100%)
+
+    &[data-entering]
+      animation: site-search-rise var(--transition-slow, 0s) var(--ease-out)
+
+    @include layout.wide
+      max-height: min(38rem, 76dvh)
+
+  .site-search-dialog
+    display: flex
+    flex: 1
+    flex-direction: column
+    min-height: 0
+    outline: none
+
+  .site-search-bar
+    align-items: center
+    border-block-end: var(--stroke-hair) solid var(--rule-strong)
+    display: flex
+    gap: var(--space-2xs)
+    padding: var(--space-2xs) var(--space-2xs) var(--space-2xs) var(--space-row)
+
+  .site-search-field
+    align-items: center
+    display: flex
+    flex: 1
+    gap: var(--space-xs)
+    min-width: 0
+
+    .site-search-field-icon
+      color: var(--accent)
+      height: 1.25rem
+      width: 1.25rem
+
+    .site-search-input
+      background: none
+      border: 0
+      color: var(--ink)
+      flex: 1
+      font: inherit
+      font-size: var(--text-xl)
+      min-height: var(--control-height)
+      min-width: 0
+      outline: none
+
+      &::placeholder
+        color: var(--ink-soft)
+        opacity: 1
+
+      &::-webkit-search-cancel-button
+        display: none
+
+  .site-search-close
+    align-items: center
+    background: none
+    border: 0
+    border-radius: var(--radius-control)
+    color: var(--ink-soft)
+    cursor: pointer
+    display: inline-grid
+    height: var(--control-height)
+    min-width: var(--control-height)
+    place-items: center
+    transition: background-color var(--transition-fast, 0s) var(--ease-out)
+
+    &[data-hovered],
+    &[data-pressed]
+      background: var(--hover)
+      color: var(--ink)
+
+    .site-search-close-key
+      @include typography.tag
+
+      background: var(--track)
+      border-radius: var(--radius-inline)
+      display: none
+      padding: var(--space-4xs) var(--space-3xs)
+
+    .site-search-close-icon
+      height: 1.25rem
+      width: 1.25rem
+
+  // Where Escape is at hand, the key says how to close; elsewhere a cross does.
+  @media (any-pointer: fine)
+    .site-search-close
+      .site-search-close-key
+        display: inline-block
+
+      .site-search-close-icon
+        display: none
+
+  .site-search-body
+    flex: 1
+    min-height: 0
+    overflow-y: auto
+    overscroll-behavior: contain
+    padding: var(--space-2xs)
+    scrollbar-color: var(--rule-strong) transparent
+    scrollbar-width: thin
+
+    > .state-row
+      padding-block: var(--space-s)
+
+  .site-search-results
+    display: grid
+    gap: var(--space-2xs)
+    outline: none
+
+  .site-search-page
+    display: grid
+    gap: var(--space-4xs)
+
+  .site-search-page-head
+    @include typography.group-label
+
+    align-items: center
+    display: flex
+    gap: var(--space-2xs)
+    padding: var(--space-2xs) var(--space-row) var(--space-3xs)
+
+    .icon-square
+      --square-size: 1.375rem
+
+      border-radius: var(--radius-inline)
+
+  .site-search-page-title
+    min-width: 0
+    overflow-wrap: anywhere
+
+  .site-search-hit
+    border-radius: var(--radius-control)
+    color: var(--ink)
+    cursor: pointer
+    display: grid
+    gap: var(--space-4xs)
+    outline: none
+    padding: var(--space-2xs) var(--space-row)
+    transition: background-color var(--transition-fast, 0s) var(--ease-out)
+
+    &[data-hovered]
+      background: var(--hover)
+
+    &[data-focused]
+      background: var(--accent-wash)
+
+      .site-search-hit-title
+        color: var(--accent)
+
+    &[data-focus-visible]
+      outline: var(--ring)
+      outline-offset: calc(-1 * var(--outline-thick))
+
+  .site-search-hit-title
+    @include typography.row-title
+
+  .site-search-hit-excerpt
+    @include typography.caption
+
+    -webkit-box-orient: vertical
+    -webkit-line-clamp: 2
+    display: -webkit-box
+    font-size: var(--text-s)
+    overflow: hidden
+    overflow-wrap: anywhere
+
+    mark
+      @include typography.strong
+
+      background: var(--accent-wash)
+      border-radius: var(--radius-mark)
+      box-decoration-break: clone
+      color: var(--ink)
+      padding: 0 0.12em
+
+  .site-search-foot
+    @include typography.caption
+
+    align-items: center
+    border-block-start: var(--stroke-hair) solid var(--rule)
+    display: flex
+    gap: var(--space-s)
+    justify-content: space-between
+    min-height: 2.5rem
+    padding: var(--space-3xs) var(--space-row)
+
+  .site-search-keys
+    display: none
+    gap: var(--space-s)
+
+    > span
+      align-items: center
+      display: inline-flex
+      gap: var(--space-4xs)
+
+    kbd
+      background: var(--track)
+      border-radius: var(--radius-inline)
+      display: inline-grid
+      height: 1.25rem
+      margin-inline-end: var(--space-4xs)
+      place-items: center
+      width: 1.25rem
+
+      > svg
+        height: 0.75rem
+        width: 0.75rem
+
+  @media (any-pointer: fine)
+    .site-search-keys
+      display: flex
+
+  @keyframes site-search-scrim
+    from
+      opacity: 0
+
+  @keyframes site-search-rise
+    from
+      opacity: 0
+      translate: 0 calc(-1 * var(--space-2xs))
+      scale: 0.985

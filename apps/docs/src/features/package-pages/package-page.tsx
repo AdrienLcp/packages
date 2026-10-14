@@ -41,9 +41,17 @@ export const PackagePage: React.FC = () => {
   const housePackage = documentedPackage
 
   return (
-    <Main aria-labelledby={PACKAGE_TITLE_ID} className='package-page'>
+    <Main
+      aria-labelledby={PACKAGE_TITLE_ID}
+      className='package-page'
+      data-pagefind-body=''
+    >
       <DocumentTitle>{`${housePackage.scopedName} — ${translate('app.name')}`}</DocumentTitle>
-      <Link className='package-back' href={homePathFor(locale)}>
+      <Link
+        className='package-back'
+        data-pagefind-ignore=''
+        href={homePathFor(locale)}
+      >
         <BackIcon />
         <span>{translate('package.back')}</span>
       </Link>
@@ -68,6 +76,7 @@ export const PackagePage: React.FC = () => {
           <nav
             aria-label={translate('package.navigation')}
             className='package-jumps'
+            data-pagefind-ignore=''
           >
             <Link className='package-jump' href={`#${SECTION_IDS.exports}`}>
               {translate('exports.title')}
@@ -98,8 +107,10 @@ export const PackagePage: React.FC = () => {
       </div>
       <div className='package-body'>
         <div className='package-main'>
+          {/* Each export is in the search through the README section it links to. */}
           <section
             aria-labelledby={`${SECTION_IDS.exports}-title`}
+            data-pagefind-ignore='all'
             id={SECTION_IDS.exports}
           >
             <div className='package-block-head'>

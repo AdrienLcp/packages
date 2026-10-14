@@ -40,6 +40,7 @@ export const EN_DICTIONARY = defineDictionary({
     version: 'Version'
   },
   footer: {
+    legal: 'Legal notice and privacy',
     source: 'Built from the packages monorepo'
   },
   header: {
@@ -84,6 +85,52 @@ export const EN_DICTIONARY = defineDictionary({
     sass: 'Sass',
     type: 'Type'
   },
+  legal: {
+    description:
+      'Who publishes the @adrienlcp packages documentation, what it keeps about you, and what it does not.',
+    host: {
+      body: 'The site is hosted on Cloudflare Pages, by:',
+      heading: 'Host'
+    },
+    intro:
+      'Who publishes this site, what it keeps about you, and how to change that.',
+    measurement: {
+      body: 'This site measures no audience. It runs no tracker and no analytics, and counts nobody’s visits.',
+      heading: 'Audience measurement'
+    },
+    publisher: {
+      address:
+        'As a non-professional publisher, I give the host’s identity in place of a postal address (LCEN, article 6-III-2).',
+      body: 'This site is published by {name}, a private individual, not a business. You can write to me through <contact>the contact page of adrienlcp.com</contact>.',
+      heading: 'Publisher'
+    },
+    rights: {
+      body: 'Under the GDPR, you may access, correct or erase what concerns you, or object to its use. Ask through <contact>the contact page</contact>; I answer within a month.',
+      complaint:
+        'If you believe your rights are not respected, you may lodge a complaint with the <authority>CNIL</authority>.',
+      heading: 'Your rights'
+    },
+    search: {
+      body: 'Search runs in your browser. When you first open it, your browser downloads the search index from this site; what you type is matched against it on your device and is never sent anywhere.',
+      heading: 'Search'
+    },
+    storage: {
+      device:
+        'This site sets no cookies. What it remembers stays in your browser, for this site only, until you clear it:',
+      heading: 'What this site stores',
+      locale:
+        'The language you last read the site in, so that its address without a language opens in it.',
+      server: 'Nothing about you is kept on a server.',
+      theme: 'The theme you picked: light, dark, or your system’s.'
+    },
+    thirdParties: {
+      body: 'Your browser talks to this site only: its fonts and its search index are served from it. Its host, Cloudflare, receives your IP address with each request, to deliver the page and protect the site from abuse, and may receive the reports your browser sends when a request fails.',
+      heading: 'Who else receives your data',
+      links:
+        'A link to GitHub or npm takes you to their site, under their own rules, only when you follow it.'
+    },
+    title: 'Legal notice and privacy'
+  },
   locale: {
     label: 'Interface language'
   },
@@ -124,6 +171,28 @@ export const EN_DICTIONARY = defineDictionary({
     all: 'Every export',
     noMatch: 'No match',
     title: 'Packages'
+  },
+  siteSearch: {
+    close: 'Close',
+    hint: 'Every README, document and release note of the packages, matched in your browser.',
+    keyMove: 'to move',
+    keyOpen: 'to open',
+    label: 'Search the documentation',
+    noMatch: 'Nothing matches “{query}”',
+    noMatchBody:
+      'Every word is looked for, whole or with another ending. Try fewer words, or another spelling.',
+    open: 'Search the docs',
+    pageCount: defineTranslation('{count:plural}', {
+      plural: {
+        count: { one: '{?} page matches', other: '{?} pages match' }
+      }
+    }),
+    placeholder: 'A word, a phrase, an export…',
+    results: 'Pages that match',
+    searching: 'Searching…',
+    unavailable: 'Search is unavailable',
+    unavailableBody:
+      'Its index could not be loaded. Reload the page, or check your connection.'
   },
   theme: {
     dark: 'Dark theme',

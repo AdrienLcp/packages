@@ -1,0 +1,86 @@
+@use '../../presentation/styles/layout'
+@use '../../presentation/styles/typography'
+
+// Set like a package's documentation: a title and its lead, then one plane per
+// subject, read at the prose's measure.
+@layer components
+  .legal-page
+    display: grid
+    gap: var(--space-l)
+    max-width: calc(var(--measure) + 2 * var(--space-m))
+
+    .legal-head
+      display: grid
+      gap: var(--space-2xs)
+      padding-block-start: var(--space-2xs)
+
+      @include layout.wide
+        padding-block-start: var(--space-m)
+
+    .legal-title
+      @include typography.title
+
+    .legal-intro
+      @include typography.lead
+
+      color: var(--ink-soft)
+      text-wrap: pretty
+
+    .legal-sections
+      display: grid
+      gap: var(--space-s)
+
+    .legal-section
+      @include typography.prose
+
+      background: var(--plane)
+      border-radius: var(--radius-plane)
+      display: grid
+      gap: var(--space-xs)
+      min-width: 0
+      padding: var(--space-m)
+
+      p
+        text-wrap: pretty
+
+      a
+        border-radius: var(--radius-inline)
+        color: var(--accent)
+        text-decoration: underline
+        text-decoration-thickness: var(--stroke-hair)
+        text-underline-offset: var(--underline-offset)
+
+    .legal-heading
+      @include typography.section-title
+
+      // Its anchor lands with the whole plane in view, not the heading alone.
+      scroll-margin-block-start: var(--space-m)
+
+      &:focus
+        outline: none
+
+    .legal-address
+      display: grid
+      font-style: normal
+
+    .legal-keys
+      background: var(--sunk)
+      border-radius: var(--radius-control)
+      display: grid
+
+      > div
+        display: grid
+        gap: var(--space-4xs) var(--space-s)
+        padding: var(--space-xs) var(--space-row)
+
+        @include layout.container-wide(36rem)
+          grid-template-columns: 7.5rem minmax(0, 1fr)
+
+      > div + div
+        border-block-start: var(--stroke-hair) solid var(--rule)
+
+      dt
+        @include typography.symbol
+
+      dd
+        margin: 0

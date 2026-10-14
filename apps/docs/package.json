@@ -31,6 +31,7 @@
     "linkedom": "^0.18.13",
     "marked": "^18.0.14",
     "oxc-transform-react": "^0.151.0",
+    "pagefind": "^1.5.2",
     "sass": "^1.105.0",
     "sass-parser": "^0.4.57",
     "shiki": "^4.5.0",
