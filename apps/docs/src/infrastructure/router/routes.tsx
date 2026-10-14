@@ -17,8 +17,11 @@ type LazyPage = {
    * its stylesheet.
    */
   module: string
-  /** The loader's own module, imported on demand beside the page's chunk. */
-  loaderModule: string
+  /**
+   * The loader's own module, imported on demand beside the page's chunk;
+   * `null` for a page that reads no data.
+   */
+  loaderModule: string | null
 }
 
 /** Keyed by path, so a path with no page fails to compile. */
@@ -30,6 +33,13 @@ const pageFor = {
     loaderModule: 'src/features/home/home-loader.ts',
     module: 'src/features/home/home-page.tsx'
   },
+  [localizedPaths.legal]: {
+    lazy: async () => ({
+      Component: (await import('@/features/legal/legal-page')).LegalPage
+    }),
+    loaderModule: null,
+    module: 'src/features/legal/legal-page.tsx'
+  },
   [localizedPaths.package]: {
     lazy: async () => ({
       Component: (await import('@/features/package-pages/package-page'))
@@ -40,11 +50,12 @@ const pageFor = {
   }
 } satisfies Record<LocalizedPath, LazyPage>
 
-export const pageModuleFor = (path: LocalizedPath): string =>
-  pageFor[path].module
+/** The chunks a page runs, its own then its loader's, as Vite's build manifest keys them. */
+export const modulesFor = (path: LocalizedPath): string[] => {
+  const { loaderModule, module } = pageFor[path]
 
-export const loaderModuleFor = (path: LocalizedPath): string =>
-  pageFor[path].loaderModule
+  return loaderModule === null ? [module] : [module, loaderModule]
+}
 
 /**
  * Outside `lazy`, so the data starts loading beside the page's chunk. Imported
@@ -54,17 +65,22 @@ export const loaderModuleFor = (path: LocalizedPath): string =>
 const loaderFor = {
   [localizedPaths.home]: async () =>
     (await import('@/features/home/home-loader')).homeLoader(),
+  [localizedPaths.legal]: null,
   [localizedPaths.package]: async ({ params }) =>
     (await import('@/features/package-pages/package-loader')).packageLoader({
       packageName: params.packageName ?? ''
     })
-} satisfies Record<LocalizedPath, LoaderFunction>
+} satisfies Record<LocalizedPath, LoaderFunction | null>
 
-const routeFor = (path: LocalizedPath): RouteObject => ({
-  lazy: pageFor[path].lazy,
-  loader: loaderFor[path],
-  path
-})
+const routeFor = (path: LocalizedPath): RouteObject => {
+  const loader = loaderFor[path]
+
+  return {
+    lazy: pageFor[path].lazy,
+    path,
+    ...(loader === null ? {} : { loader })
+  }
+}
 
 /** The tree, not a router: a prerender can mount the same one. */
 export const routes: RouteObject[] = [

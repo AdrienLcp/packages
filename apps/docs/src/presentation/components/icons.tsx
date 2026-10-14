@@ -1,4 +1,6 @@
 import {
+  ArrowDown,
+  ArrowUp,
   Box,
   Braces,
   Check,
@@ -6,6 +8,7 @@ import {
   ChevronRight,
   Contrast,
   Copy,
+  CornerDownLeft,
   Equal,
   ExternalLink,
   FileText,
@@ -18,7 +21,8 @@ import {
   PenLine,
   Search,
   Sparkles,
-  Sun
+  Sun,
+  X
 } from 'lucide-react'
 import type React from 'react'
 
@@ -97,6 +101,15 @@ export const ChevronIcon = iconOf(ChevronRight, { strokeWidth: 2.2 })
 export const OutboundIcon = iconOf(ExternalLink)
 
 export const SearchIcon = iconOf(Search)
+
+export const CloseIcon = iconOf(X)
+
+/** The keys that move through a list and open its row, drawn as their caps print them. */
+export const KeyUpIcon = iconOf(ArrowUp)
+
+export const KeyDownIcon = iconOf(ArrowDown)
+
+export const KeyEnterIcon = iconOf(CornerDownLeft)
 
 export const CopyIcon = iconOf(Copy)
 

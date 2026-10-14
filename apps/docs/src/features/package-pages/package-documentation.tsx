@@ -18,20 +18,21 @@ export const PackageDocumentation: React.FC<{
     <div className='package-documentation'>
       {documentation.map((section) => (
         <section
+          aria-labelledby={section.slug}
           className={
             fragment === section.slug ? 'doc-section is-target' : 'doc-section'
           }
-          id={section.slug}
           key={section.slug}
-          tabIndex={-1}
         >
-          <h3 className='doc-section-title'>
+          <h3 className='doc-section-title' id={section.slug} tabIndex={-1}>
             {section.titleHtml === null ? (
               translate('docs.opening')
             ) : (
               <RenderedHtml elementType='span' html={section.titleHtml} />
             )}
-            <span className='doc-section-file'>{section.file}</span>
+            <span className='doc-section-file' data-pagefind-ignore=''>
+              {section.file}
+            </span>
           </h3>
           <RenderedHtml className='doc-section-body' html={section.html} />
         </section>

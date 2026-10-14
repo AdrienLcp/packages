@@ -14,9 +14,6 @@
       min-width: 0
       padding: var(--space-m)
 
-      &:focus
-        outline: none
-
       &.is-target
         outline: var(--ring)
         outline-offset: 0
@@ -29,6 +26,12 @@
       flex-wrap: wrap
       gap: var(--space-3xs) var(--space-xs)
       justify-content: space-between
+
+      // Its anchor lands with the whole plane in view, not the heading alone.
+      scroll-margin-block-start: var(--space-m)
+
+      &:focus
+        outline: none
 
       code
         font-size: var(--text-code)

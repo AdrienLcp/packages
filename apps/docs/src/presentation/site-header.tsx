@@ -14,6 +14,8 @@ import './site-header.sass'
 type SiteHeaderProps = {
   /** Beside the site's name: where the visitor is, when the page says so. */
   context?: React.ReactNode
+  /** First of the settings: the way into the site's search. */
+  search?: React.ReactNode
 }
 
 /**
@@ -22,7 +24,7 @@ type SiteHeaderProps = {
  * would hold the link's fixed position to the bar, which starts below the
  * notch, so parked above the bar it would show in the notch.
  */
-export const SiteHeader: React.FC<SiteHeaderProps> = ({ context }) => {
+export const SiteHeader: React.FC<SiteHeaderProps> = ({ context, search }) => {
   const { locale } = useI18n()
 
   return (
@@ -39,6 +41,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({ context }) => {
         </Link>
         {context}
         <div className='site-settings'>
+          {search}
           <LocaleSwitch />
           <ThemeSwitch />
         </div>

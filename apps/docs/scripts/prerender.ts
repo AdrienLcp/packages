@@ -19,6 +19,7 @@ import {
 import type { PrerenderedPage } from '../src/entry-server.tsx'
 import { REGIONAL_LOCALES } from '../src/presentation/i18n/regional-locales.ts'
 import { robotsTxt, sitemapXml } from './crawler-files.ts'
+import { writeSearchIndex } from './search-index.ts'
 
 type EntryServer = typeof import('../src/entry-server.tsx')
 
@@ -134,3 +135,7 @@ await writeFile(join(CLIENT_DIR, 'llms.txt'), llmsTxt(origin), 'utf8')
 console.info(
   `prerendered ${prerenderedPages.length} documents into ${CLIENT_DIR}`
 )
+
+const indexedCount = await writeSearchIndex(CLIENT_DIR)
+
+console.info(`indexed ${indexedCount} documents for search`)

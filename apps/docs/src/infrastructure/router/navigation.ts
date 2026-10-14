@@ -16,6 +16,7 @@ import { isLocale, type Locale } from '@/presentation/i18n/locale'
  */
 export const localizedPaths = {
   home: '/:locale',
+  legal: '/:locale/legal',
   package: '/:locale/:packageName'
 } as const
 
@@ -36,6 +37,9 @@ const pathFor = <TPath extends string>(
 
 export const homePathFor = (locale: Locale): string =>
   pathFor(paths.home, { locale })
+
+export const legalPathFor = (locale: Locale): string =>
+  pathFor(paths.legal, { locale })
 
 export const packagePathFor = ({
   locale,

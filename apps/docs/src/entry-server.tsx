@@ -3,11 +3,12 @@ import { llmsTxtOf, llmsTxtPagesOf } from '@/features/packages/llms-txt'
 import { packageFolderUrlOf } from '@/features/packages/repository'
 import {
   homePathFor,
+  legalPathFor,
   localizedPaths,
   packagePathFor,
   paths
 } from '@/infrastructure/router/navigation'
-import { loaderModuleFor, pageModuleFor } from '@/infrastructure/router/routes'
+import { modulesFor } from '@/infrastructure/router/routes'
 import { prerenderPath } from '@/infrastructure/router/static-router'
 import { i18n } from '@/presentation/i18n/i18n'
 import { LOCALES, type Locale } from '@/presentation/i18n/locale'
@@ -35,7 +36,7 @@ export type PrerenderedPage = {
 }
 
 export type StructuredData = {
-  '@type': 'SoftwareSourceCode' | 'WebSite'
+  '@type': 'SoftwareSourceCode' | 'WebPage' | 'WebSite'
   [property: string]: string
 }
 
@@ -55,10 +56,7 @@ const homeFor = (locale: Locale): PrerenderedPage => {
   return {
     description: translate('app.description'),
     locale,
-    modules: [
-      pageModuleFor(localizedPaths.home),
-      loaderModuleFor(localizedPaths.home)
-    ],
+    modules: modulesFor(localizedPaths.home),
     path: homePathFor(locale),
     shareImageAlt: translate('app.shareImageAlt'),
     structuredData: {
@@ -69,6 +67,26 @@ const homeFor = (locale: Locale): PrerenderedPage => {
     },
     translations: translationsOf(homePathFor),
     xDefaultPath: paths.root
+  }
+}
+
+const legalFor = (locale: Locale): PrerenderedPage => {
+  const translate = i18n.translator(locale)
+
+  return {
+    description: translate('legal.description'),
+    locale,
+    modules: modulesFor(localizedPaths.legal),
+    path: legalPathFor(locale),
+    shareImageAlt: translate('app.shareImageAlt'),
+    structuredData: {
+      '@type': 'WebPage',
+      description: translate('legal.description'),
+      inLanguage: locale,
+      name: translate('legal.title')
+    },
+    translations: translationsOf(legalPathFor),
+    xDefaultPath: null
   }
 }
 
@@ -84,10 +102,7 @@ const packagePagesFor = (locale: Locale): PrerenderedPage[] => {
     return {
       description,
       locale,
-      modules: [
-        pageModuleFor(localizedPaths.package),
-        loaderModuleFor(localizedPaths.package)
-      ],
+      modules: modulesFor(localizedPaths.package),
       path: packagePathFor({ locale, packageName: housePackage.name }),
       shareImageAlt: translate('app.shareImageAlt'),
       structuredData: {
@@ -109,7 +124,8 @@ const packagePagesFor = (locale: Locale): PrerenderedPage[] => {
 /** Read off the catalogue, so a package added there gets its own documents. */
 export const prerenderedPages: PrerenderedPage[] = LOCALES.flatMap((locale) => [
   homeFor(locale),
-  ...packagePagesFor(locale)
+  ...packagePagesFor(locale),
+  legalFor(locale)
 ])
 
 /**
