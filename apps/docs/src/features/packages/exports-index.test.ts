@@ -33,6 +33,9 @@ const resultPackage: PackageSources = {
       : null
 }
 
+/** Every package's exports run through the TypeScript compiler, 120-odd files: about a second alone under coverage, past five beside another build's tests. */
+const COMPILE_EVERY_PACKAGE_TIMEOUT_MS = 30_000
+
 describe('exportsIndexOf', () => {
   it('[exports-index] lists each export under its entry point, with its summary and the section that shows it', () => {
     expect(exportsIndexOf([resultPackage])).toBe(
@@ -56,7 +59,9 @@ describe('exportsIndexOf', () => {
     )
   })
 
-  it('[exports-index] EXPORTS.md matches what the packages export', () => {
+  it('[exports-index] EXPORTS.md matches what the packages export', {
+    timeout: COMPILE_EVERY_PACKAGE_TIMEOUT_MS
+  }, () => {
     const repositoryRoot = resolve(import.meta.dirname, '../../../../..')
     const written = readFileSync(resolve(repositoryRoot, 'EXPORTS.md'), 'utf8')
 
