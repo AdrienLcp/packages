@@ -1,5 +1,6 @@
 import type React from 'react'
-import { useEffect } from 'react'
+import { useContext, useEffect } from 'react'
+import { OverlayTriggerStateContext } from 'react-aria-components'
 
 const RELEASED_PROPERTIES = ['scrollbar-gutter', 'padding-inline-end'] as const
 
@@ -57,24 +58,56 @@ const releaseScrollbarGutter = (root: HTMLElement): (() => void) => {
   }
 }
 
+type GutterHold = { count: number; restore: () => void }
+
+/**
+ * One release for every overlay that is open, put back once the last closes.
+ * Each opening releases afresh, since the overlay closing beside it has had
+ * react-aria's scroll lock put the gutter back already: a modal opened from a
+ * sheet opens as the sheet closes.
+ */
+const gutterHold: GutterHold = { count: 0, restore: () => undefined }
+
+const holdScrollbarGutter = (root: HTMLElement): (() => void) => {
+  gutterHold.restore()
+  gutterHold.restore = releaseScrollbarGutter(root)
+  gutterHold.count += 1
+
+  return () => {
+    gutterHold.count -= 1
+
+    if (gutterHold.count === 0) {
+      gutterHold.restore()
+      gutterHold.restore = () => undefined
+    }
+  }
+}
+
 /**
  * Lets a modal's scrim reach the screen's edge on a page that reserves its
  * scrollbar's room. Render it inside the `ModalOverlay`, beside the `Modal`'s
- * content, so it is on screen as long as the overlay, its exit included;
- * `PopoverSheet` already does. A reserved scrollbar gutter is no part of the viewport a
- * fixed scrim covers, and Chromium paints nothing there but the root's
- * background colour, so a page with `scrollbar-gutter: stable` kept a bright
- * strip down the scrim's edge. While the overlay is up, the gutter becomes
- * padding on the root: the page keeps its width and the scrim reaches the
- * edge.
+ * content; `PopoverSheet` already does. A reserved scrollbar gutter is no part
+ * of the viewport a fixed scrim covers, and Chromium paints nothing there but
+ * the root's background colour, so a page with `scrollbar-gutter: stable` kept
+ * a bright strip down the scrim's edge. While the overlay is open, the gutter
+ * becomes padding on the root: the page keeps its width and the scrim reaches
+ * the edge.
  *
- * A passive effect, so it runs after react-aria's scroll lock, a layout
+ * It holds from the overlay's opening to its closing, as react-aria's scroll
+ * lock does, and not through the exit: the lock gives the gutter back as the
+ * overlay starts leaving, and padding held past it narrowed the page for the
+ * length of the fade. A passive effect, so it runs after the lock, a layout
  * effect of the overlay above: released before it, the page's scrollbar still
- * showed and the lock reserved its room again. On the way out, the lock
- * restores the root first, and a property it already put back is left alone.
+ * showed and the lock reserved its room again. A property the lock already put
+ * back is left alone.
  */
 export const ScrollbarGutterRelease: React.FC = () => {
-  useEffect(() => releaseScrollbarGutter(document.documentElement), [])
+  const isOpen = useContext(OverlayTriggerStateContext)?.isOpen ?? true
+
+  useEffect(
+    () => (isOpen ? holdScrollbarGutter(document.documentElement) : undefined),
+    [isOpen]
+  )
 
   return null
 }
