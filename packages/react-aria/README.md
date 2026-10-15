@@ -115,6 +115,11 @@ or Escape puts it away, and so does a pull on the `SheetGrabber` across its
 top, past a quarter of its height or on a flick. A shorter pull settles back.
 The `Dialog` inside is the caller's, the same on both faces.
 
+The scrim reaches the screen's edge on a page that reserves its scrollbar's
+room with `scrollbar-gutter: stable`: a fixed element never paints over that
+gutter, so while the sheet is up the gutter becomes padding on the root, and
+the page keeps its width.
+
 The sheet is a plain `Modal` with its own rise in CSS rather than react-aria's
 `Sheet`: that one enters through the browser's smooth scroll, whose length no
 stylesheet sets, and at over half a second it reads as lag after the press.
