@@ -1,15 +1,28 @@
 import type React from 'react'
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useEffect } from 'react'
 
 const RELEASED_PROPERTIES = ['scrollbar-gutter', 'padding-inline-end'] as const
 
-const measureScrollbarGutter = (root: HTMLElement): number =>
-  window.innerWidth - root.clientWidth
+/**
+ * The window's width less the viewport a fixed element fills. The root's
+ * `clientWidth` cannot tell it: Chromium counts a stable gutter there only
+ * while a scrollbar shows in it, not on a page too short to scroll, nor once
+ * the overflow is hidden.
+ */
+const measureScrollbarGutter = (root: HTMLElement): number => {
+  const probe = document.createElement('div')
+  probe.style.cssText =
+    'position: fixed; inset: 0; visibility: hidden; pointer-events: none'
+  root.append(probe)
+  const viewportWidth = probe.getBoundingClientRect().width
+  probe.remove()
 
-const releaseScrollbarGutter = (
-  root: HTMLElement,
-  gutter: number
-): (() => void) => {
+  return viewportWidth > 0 ? window.innerWidth - viewportWidth : 0
+}
+
+const releaseScrollbarGutter = (root: HTMLElement): (() => void) => {
+  const gutter = measureScrollbarGutter(root)
+
   if (gutter <= 0) {
     return () => undefined
   }
@@ -27,13 +40,17 @@ const releaseScrollbarGutter = (
     value: style.getPropertyValue(property)
   }))
 
-  for (const property of RELEASED_PROPERTIES) {
+  const applied = RELEASED_PROPERTIES.map((property) => {
     style.setProperty(property, released[property], 'important')
-  }
 
+    return style.getPropertyValue(property)
+  })
+
+  // Read back rather than compared with what was written: the browser
+  // rounds a fractional gutter, `15.333333px` reading `15.3333px`.
   return () => {
-    for (const { priority, property, value } of saved) {
-      if (style.getPropertyValue(property) === released[property]) {
+    for (const [index, { priority, property, value }] of saved.entries()) {
+      if (style.getPropertyValue(property) === applied[index]) {
         style.setProperty(property, value, priority)
       }
     }
@@ -49,24 +66,13 @@ const releaseScrollbarGutter = (
  * padding on the root: the page keeps its width and the scrim reaches the
  * edge.
  *
- * Two steps around react-aria's scroll lock, a layout effect of the overlay
- * above. The gutter is measured before it, since with the overflow hidden the
- * root's `clientWidth` no longer counts the room the gutter keeps. It is
- * released after it, since released before, the page's scrollbar still showed
- * and the lock reserved its room again. On the way out, the lock restores the
- * root first, and a property it already put back is left alone.
+ * A passive effect, so it runs after react-aria's scroll lock, a layout
+ * effect of the overlay above: released before it, the page's scrollbar still
+ * showed and the lock reserved its room again. On the way out, the lock
+ * restores the root first, and a property it already put back is left alone.
  */
 export const ScrollbarGutterRelease: React.FC = () => {
-  const gutterRef = useRef(0)
-
-  useLayoutEffect(() => {
-    gutterRef.current = measureScrollbarGutter(document.documentElement)
-  }, [])
-
-  useEffect(
-    () => releaseScrollbarGutter(document.documentElement, gutterRef.current),
-    []
-  )
+  useEffect(() => releaseScrollbarGutter(document.documentElement), [])
 
   return null
 }

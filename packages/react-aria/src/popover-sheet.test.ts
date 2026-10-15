@@ -33,6 +33,19 @@ const stubScreen = (isWide: boolean): void => {
   )
 }
 
+/** What Chromium gives a fixed element filling the viewport, the gutter left out. */
+const stubViewportWidth = (width: () => number): void => {
+  const measure = HTMLElement.prototype.getBoundingClientRect
+
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+    function (this: HTMLElement) {
+      return this.style.position === 'fixed'
+        ? new DOMRect(0, 0, width(), window.innerHeight)
+        : measure.call(this)
+    }
+  )
+}
+
 let container: HTMLElement
 let root: Root
 
@@ -156,10 +169,10 @@ describe('PopoverSheet', () => {
     stubScreen(false)
     const { style } = document.documentElement
     style.setProperty('scrollbar-gutter', 'stable')
-    vi.spyOn(document.documentElement, 'clientWidth', 'get').mockImplementation(
-      () =>
-        window.innerWidth -
-        (style.getPropertyValue('overflow') === 'hidden' ? 0 : SCROLLBAR_WIDTH)
+    stubViewportWidth(() =>
+      style.getPropertyValue('scrollbar-gutter') === 'auto'
+        ? window.innerWidth
+        : window.innerWidth - SCROLLBAR_WIDTH
     )
 
     await openMenu()
@@ -183,9 +196,7 @@ describe('PopoverSheet', () => {
 
   it('[popover-sheet] leaves the root alone where scrollbars take no room', async () => {
     stubScreen(false)
-    vi.spyOn(document.documentElement, 'clientWidth', 'get').mockReturnValue(
-      window.innerWidth
-    )
+    stubViewportWidth(() => window.innerWidth)
 
     await openMenu()
 
