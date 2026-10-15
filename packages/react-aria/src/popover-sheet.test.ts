@@ -18,6 +18,7 @@ import { SheetGrabber } from './sheet-grabber.ts'
 
 const WIDE_QUERY = '(width >= 56.25rem)'
 const PULLED_SHEET_HEIGHT = 400
+const SCROLLBAR_WIDTH = 15
 
 type Pointer = { clientY: number; timeStamp?: number }
 
@@ -51,6 +52,8 @@ afterEach(async () => {
   })
   document.body.replaceChildren()
   vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+  document.documentElement.removeAttribute('style')
 })
 
 const openMenu = async (): Promise<void> => {
@@ -147,6 +150,50 @@ describe('PopoverSheet', () => {
     })
 
     expect(document.querySelector('.sheet')).toBeNull()
+  })
+
+  it('[popover-sheet] turns a reserved scrollbar gutter into root padding while the sheet is up', async () => {
+    stubScreen(false)
+    const { style } = document.documentElement
+    style.setProperty('scrollbar-gutter', 'stable')
+    vi.spyOn(document.documentElement, 'clientWidth', 'get').mockImplementation(
+      () =>
+        window.innerWidth -
+        (style.getPropertyValue('scrollbar-gutter') === 'auto'
+          ? 0
+          : SCROLLBAR_WIDTH)
+    )
+
+    await openMenu()
+
+    expect(style.getPropertyValue('scrollbar-gutter')).toBe('auto')
+    expect(style.getPropertyPriority('scrollbar-gutter')).toBe('important')
+    expect(style.getPropertyValue('padding-inline-end')).toBe(
+      `${SCROLLBAR_WIDTH}px`
+    )
+
+    await act(async () => {
+      document.activeElement?.dispatchEvent(
+        new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' })
+      )
+    })
+
+    expect(style.getPropertyValue('scrollbar-gutter')).toBe('stable')
+    expect(style.getPropertyPriority('scrollbar-gutter')).toBe('')
+    expect(style.getPropertyValue('padding-inline-end')).toBe('')
+  })
+
+  it('[popover-sheet] leaves the root alone where scrollbars take no room', async () => {
+    stubScreen(false)
+    vi.spyOn(document.documentElement, 'clientWidth', 'get').mockReturnValue(
+      window.innerWidth
+    )
+
+    await openMenu()
+
+    expect(
+      document.documentElement.style.getPropertyValue('padding-inline-end')
+    ).toBe('')
   })
 })
 

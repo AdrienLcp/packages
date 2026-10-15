@@ -9,6 +9,7 @@ import {
   type PopoverProps
 } from 'react-aria-components'
 
+import { ScrollbarGutterRelease } from './scrollbar-gutter-release.ts'
 import { SheetGrabber } from './sheet-grabber.ts'
 
 export type PopoverSheetProps = {
@@ -36,6 +37,9 @@ export type PopoverSheetProps = {
  *
  * The popover carries `sheet-popover`; the sheet is `sheet` inside a
  * `sheet-overlay`, styled by the `sheet` Sass module.
+ *
+ * The scrim covers a reserved scrollbar gutter too: while the sheet is up,
+ * the gutter turns into padding on the root, so the page does not move.
  *
  * The sheet is a plain `Modal` with its own rise in CSS rather than
  * react-aria's `Sheet`: that one enters through the browser's smooth scroll,
@@ -66,6 +70,7 @@ export const PopoverSheet: React.FC<PopoverSheetProps> = ({
         createElement(
           Fragment,
           null,
+          createElement(ScrollbarGutterRelease),
           createElement(SheetGrabber, { onDismiss: state.close }),
           children
         ),
