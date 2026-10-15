@@ -134,7 +134,20 @@ a centred card on a wide screen, say. It must be a direct child of the sheet: it
 moves its parent through `--sheet-drag-offset`, which the sheet's rise ends
 on, so a sheet let go leaves from where it was dropped. It calls `onDismiss`
 and leaves the closing to the caller: `state.close` from a `Modal`'s render
-props.
+props. Such a modal renders `ScrollbarGutterRelease` beside its content too,
+for its scrim to cover the reserved gutter as the sheet's does:
+
+```tsx
+<Modal className='sheet-modal'>
+  {({ state }) => (
+    <>
+      <ScrollbarGutterRelease />
+      <SheetGrabber onDismiss={state.close} />
+      <Dialog>{children}</Dialog>
+    </>
+  )}
+</Modal>
+```
 
 ## The sheet's styles: `sheet`
 

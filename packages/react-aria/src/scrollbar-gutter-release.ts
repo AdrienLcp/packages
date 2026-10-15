@@ -58,8 +58,10 @@ const releaseScrollbarGutter = (root: HTMLElement): (() => void) => {
 }
 
 /**
- * Rendered inside the sheet's overlay, for as long as it is on screen, its
- * exit included. A reserved scrollbar gutter is no part of the viewport a
+ * Lets a modal's scrim reach the screen's edge on a page that reserves its
+ * scrollbar's room. Render it inside the `ModalOverlay`, beside the `Modal`'s
+ * content, so it is on screen as long as the overlay, its exit included;
+ * `PopoverSheet` already does. A reserved scrollbar gutter is no part of the viewport a
  * fixed scrim covers, and Chromium paints nothing there but the root's
  * background colour, so a page with `scrollbar-gutter: stable` kept a bright
  * strip down the scrim's edge. While the overlay is up, the gutter becomes
