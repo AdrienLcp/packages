@@ -1,11 +1,15 @@
 import type React from 'react'
-import { useEffect } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 
 const RELEASED_PROPERTIES = ['scrollbar-gutter', 'padding-inline-end'] as const
 
-const releaseScrollbarGutter = (root: HTMLElement): (() => void) => {
-  const gutter = window.innerWidth - root.clientWidth
+const measureScrollbarGutter = (root: HTMLElement): number =>
+  window.innerWidth - root.clientWidth
 
+const releaseScrollbarGutter = (
+  root: HTMLElement,
+  gutter: number
+): (() => void) => {
   if (gutter <= 0) {
     return () => undefined
   }
@@ -45,14 +49,24 @@ const releaseScrollbarGutter = (root: HTMLElement): (() => void) => {
  * padding on the root: the page keeps its width and the scrim reaches the
  * edge.
  *
- * A passive effect, so it runs after react-aria's scroll lock, a layout
- * effect: the lock hides the overflow and reserves the gutter, and the gutter
- * it measured is the one released here. Released first, the page's scrollbar
- * still showed and the lock reserved its room again. On the way out, the lock
- * restores the root first, and a property it already put back is left alone.
+ * Two steps around react-aria's scroll lock, a layout effect of the overlay
+ * above. The gutter is measured before it, since with the overflow hidden the
+ * root's `clientWidth` no longer counts the room the gutter keeps. It is
+ * released after it, since released before, the page's scrollbar still showed
+ * and the lock reserved its room again. On the way out, the lock restores the
+ * root first, and a property it already put back is left alone.
  */
 export const ScrollbarGutterRelease: React.FC = () => {
-  useEffect(() => releaseScrollbarGutter(document.documentElement), [])
+  const gutterRef = useRef(0)
+
+  useLayoutEffect(() => {
+    gutterRef.current = measureScrollbarGutter(document.documentElement)
+  }, [])
+
+  useEffect(
+    () => releaseScrollbarGutter(document.documentElement, gutterRef.current),
+    []
+  )
 
   return null
 }

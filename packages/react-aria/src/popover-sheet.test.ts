@@ -159,10 +159,7 @@ describe('PopoverSheet', () => {
     vi.spyOn(document.documentElement, 'clientWidth', 'get').mockImplementation(
       () =>
         window.innerWidth -
-        (style.getPropertyValue('scrollbar-gutter') === 'auto' &&
-        style.getPropertyValue('overflow') === 'hidden'
-          ? 0
-          : SCROLLBAR_WIDTH)
+        (style.getPropertyValue('overflow') === 'hidden' ? 0 : SCROLLBAR_WIDTH)
     )
 
     await openMenu()
