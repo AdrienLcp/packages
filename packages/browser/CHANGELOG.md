@@ -1,5 +1,11 @@
 # @adrienlcp/browser
 
+## 0.5.0
+
+### Minor Changes
+
+- 284558e: `useMediaQuery` from `@adrienlcp/browser/react` answers whether the screen matches a media query and renders again when that changes; it is false on the server and through hydration.
+
 ## 0.4.0
 
 ### Minor Changes
