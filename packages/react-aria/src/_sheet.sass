@@ -1,0 +1,108 @@
+/// Configure once, in the app's own `_sheet.sass`:
+/// `@forward '@adrienlcp/react-aria/sheet' with ($z-index: 3)`.
+/// Each default reads the token an app built on `@adrienlcp/styles` declares,
+/// and falls back where it has none.
+$z-index: 10 !default
+$scrim: var(--scrim, rgb(0 0 0 / 40%)) !default
+$enter: var(--transition-base, 0.2s) !default
+$exit: var(--transition-fast, 0.15s) !default
+$easing: var(--ease-out, ease-out) !default
+/// The strip of screen the tallest sheet leaves above it, for a press that closes it.
+$top-gap: var(--space-2xl, 3rem) !default
+$grabber-color: var(--rule-strong, currentColor) !default
+$grabber-radius: var(--radius-full, 999px) !default
+
+/// Written by `SheetGrabber` while a thumb pulls the sheet.
+$_drag-offset: var(--sheet-drag-offset, 0rem)
+
+/// The scrim a sheet rises over, holding it to the bottom edge. Its height is
+/// the visual viewport react-aria measures, so a field focused inside the
+/// sheet lifts it above the software keyboard rather than under it.
+@mixin overlay
+  align-items: end
+  background: $scrim
+  block-size: var(--visual-viewport-height, 100dvh)
+  display: flex
+  inset: 0 0 auto
+  position: fixed
+  z-index: $z-index
+
+  &[data-entering]
+    animation: sheet-scrim $enter $easing
+
+  &[data-exiting]
+    animation: sheet-scrim $exit $easing reverse
+
+/// The sheet itself: the screen's width, scrolling inside past the screen's
+/// height, following the thumb on its grabber and settling back from where a
+/// short pull let go. Its look — ground, radius, shadow, padding — is the app's.
+@mixin surface
+  inline-size: 100%
+  max-block-size: calc(100% - $top-gap)
+  outline: none
+  overflow-y: auto
+  overscroll-behavior: contain
+  translate: 0rem $_drag-offset
+
+  &[data-entering]
+    animation: sheet-rise $enter $easing
+
+  &[data-exiting]
+    animation: sheet-rise $exit $easing reverse
+
+  &[data-settling]
+    transition: translate $enter $easing
+
+/// The strip a thumb pulls the sheet down by, held at the top while the sheet
+/// scrolls under it, on the sheet's own background.
+@mixin grabber
+  align-items: center
+  background: inherit
+  block-size: var(--space-xl, 2rem)
+  cursor: grab
+  display: flex
+  flex-shrink: 0
+  inset-block-start: 0
+  justify-content: center
+  position: sticky
+  touch-action: none
+  user-select: none
+  z-index: 1
+
+  &::before
+    background: $grabber-color
+    block-size: var(--space-2xs, 0.25rem)
+    border-radius: $grabber-radius
+    content: ''
+    inline-size: var(--space-2xl, 3rem)
+
+  &:active
+    cursor: grabbing
+
+/// The rise ends where the thumb left the sheet, so a sheet pulled down leaves
+/// from there.
+@mixin keyframes
+  @keyframes sheet-scrim
+    from
+      opacity: 0
+
+  @keyframes sheet-rise
+    from
+      translate: 0rem 100%
+
+    to
+      translate: 0rem $_drag-offset
+
+/// The rules `PopoverSheet` and `SheetGrabber` need, included once in the
+/// app's components layer.
+@mixin styles
+  .sheet-overlay
+    @include overlay
+
+  .sheet
+    @include surface
+
+  .sheet-grabber
+    @include grabber
+
+  @include keyframes

@@ -92,4 +92,22 @@ rather than reported.
 Playing audio does not keep a screen awake: Chromium's media wake lock needs a
 video track.
 
-React is an optional peer dependency, needed only for this hook.
+## Following a media query
+
+```tsx
+import { useMediaQuery } from '@adrienlcp/browser/react'
+
+const Menu = () => {
+  const isWide = useMediaQuery('(width >= 56.25rem)')
+  // …
+}
+```
+
+`useMediaQuery(query)` answers whether the screen matches `query` and renders
+again when that changes — a window resized, a phone turned. It is false on the
+server and through hydration, whose markup must match the server's: a
+component with a wide and a narrow face renders the narrow one first there.
+Write the query in `rem`, as the stylesheets' breakpoint is, so a raised font
+size reaches both at the same width.
+
+React is an optional peer dependency, needed only for these hooks.

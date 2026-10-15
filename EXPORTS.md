@@ -18,7 +18,7 @@ Biome lint and format settings: single quotes, no semicolons, sorted keys and im
 
 ## @adrienlcp/browser
 
-Browser calls that hide a trap: a clipboard copy that works over plain HTTP, a wake lock that survives the tab going away, the reduced-motion preference, a duration token read in seconds
+Browser calls that hide a trap: a clipboard copy that works over plain HTTP, a wake lock that survives the tab going away, the reduced-motion preference, a duration token read in seconds, a media query followed as the screen changes
 
 ### `@adrienlcp/browser`
 
@@ -30,6 +30,7 @@ Browser calls that hide a trap: a clipboard copy that works over plain HTTP, a w
 
 ### `@adrienlcp/browser/react`
 
+- `useMediaQuery` (hook) — Whether the screen answers `query` right now, following it as the window is resized or turned. [More](https://github.com/AdrienLcp/packages/blob/main/packages/browser/README.md#following-a-media-query)
 - `useScreenAwake` (hook) — Holds the screen awake while `isWanted` is true and the component is mounted. [More](https://github.com/AdrienLcp/packages/blob/main/packages/browser/README.md#keeping-the-screen-awake)
 
 ## @adrienlcp/i18n
@@ -106,13 +107,17 @@ Generic React helpers: a context that names its missing provider and a class nam
 
 ## @adrienlcp/react-aria
 
-What every react-aria app of mine repeats: a className merge that follows the render state, and a Sass focus ring on data-focus-visible
+What every react-aria app of mine repeats: a className merge that follows the render state, a Sass focus ring on data-focus-visible, and a popover that turns into a sheet rising from the bottom of a narrow screen, with the grabber that pulls it down
 
 ### `@adrienlcp/react-aria`
 
 - `ClassNameRenderProps` (type) — The render state react-aria hands a `className` function.
 - `composeClassName` (function) — Merges a component's own class names with the `className` its caller passed. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#merging-a-classname)
+- `PopoverSheetProps` (type)
+- `PopoverSheet` (component) — What a trigger opens, in the place of a `Popover` inside a `DialogTrigger`: a popover beside the trigger on a screen that answers `wideQuery`, a sheet rising from the bottom edge below it, where a box hung from a corner is out of a thumb's reach. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#a-popover-that-becomes-a-sheet-popoversheet)
 - `REACT_ARIA_TOKENS` (constant) — The custom properties react-aria-components sets at runtime on the elements it renders, which an app's stylesheets read but never declare: a popover's `--trigger-width`, a disclosure panel's `--disclosure-panel-height`, a tree item's `--tree-item-level`. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-custom-properties-react-aria-sets-react_aria_tokens)
+- `SheetGrabberProps` (type)
+- `SheetGrabber` (component) — The strip across the top of a sheet that a thumb pulls it down by: past a quarter of the sheet's height, or on a flick, it calls `onDismiss`; short of that, the sheet settles back. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#a-popover-that-becomes-a-sheet-popoversheet)
 
 ### `@adrienlcp/react-aria/focus`
 
@@ -123,6 +128,22 @@ What every react-aria app of mine repeats: a className merge that follows the re
 - `ring-inset` (sass) — The ring drawn inside the box, for an element a clipping ancestor would cut. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#a-focus-ring-focus)
 - `ring-within` (sass) — The ring drawn on a box while the field inside it has focus — a `SearchField`'s `Group` around its input and its clear button. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#a-focus-ring-focus)
 - `ring-focusables` (sass) — The ring every element that takes focus draws by default, at zero specificity so a component's own ring wins. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#a-focus-ring-focus)
+
+### `@adrienlcp/react-aria/sheet`
+
+- `$z-index` (sass) — Configure once, in the app's own `_sheet.sass`: `@forward '@adrienlcp/react-aria/sheet' with ($z-index: 3)`. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
+- `$scrim` (sass) [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
+- `$enter` (sass) [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
+- `$exit` (sass) [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
+- `$easing` (sass) [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
+- `$top-gap` (sass) — The strip of screen the tallest sheet leaves above it, for a press that closes it. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
+- `$grabber-color` (sass) [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
+- `$grabber-radius` (sass) [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
+- `overlay` (sass) — The scrim a sheet rises over, holding it to the bottom edge. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
+- `surface` (sass) — The sheet itself: the screen's width, scrolling inside past the screen's height, following the thumb on its grabber and settling back from where a short pull let go. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
+- `grabber` (sass) — The strip a thumb pulls the sheet down by, held at the top while the sheet scrolls under it, on the sheet's own background. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
+- `keyframes` (sass) — The rise ends where the thumb left the sheet, so a sheet pulled down leaves from there. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
+- `styles` (sass) — The rules `PopoverSheet` and `SheetGrabber` need, included once in the app's components layer. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
 
 ## @adrienlcp/react-router
 

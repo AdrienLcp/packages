@@ -14,7 +14,7 @@ export const PACKAGE_DESCRIPTIONS: Record<
     'biome-config':
       'Les réglages de lint et de formatage de Biome : guillemets simples, pas de points-virgules, clés et imports triés, aucune promesse laissée flottante',
     browser:
-      'Les appels au navigateur qui cachent un piège : une copie dans le presse-papiers qui marche en simple HTTP, un verrou d’écran qui survit au départ de l’onglet, la préférence de mouvement réduit, un token de durée lu en secondes, la première arrivée sur laquelle se joue l’entrée d’une page',
+      'Les appels au navigateur qui cachent un piège : une copie dans le presse-papiers qui marche en simple HTTP, un verrou d’écran qui survit au départ de l’onglet, la préférence de mouvement réduit, un token de durée lu en secondes, la première arrivée sur laquelle se joue l’entrée d’une page, une media query suivie quand l’écran change',
     i18n: 'Une bibliothèque i18n typée en cinq fichiers, sans dépendance, bâtie sur Intl',
     'measure-font':
       'Un bin de développement qui mesure une police auto-hébergée face à Arial pour les polices de repli de @adrienlcp/styles — par graisse et par chasse, sur le texte de l’app, ses dictionnaires ou ses pages prérendues, avec les chiffres à part et la plage de ratios qui garde chaque ligne limite coupée au même endroit — et convertit un ch en em',
@@ -23,7 +23,7 @@ export const PACKAGE_DESCRIPTIONS: Record<
     react:
       'Des utilitaires React génériques : un contexte qui nomme son provider manquant, un élément qui finit sa transition de sortie avant de se démonter, et une jointure de noms de classes',
     'react-aria':
-      'Ce que répète chacune de mes apps react-aria : une fusion de className qui suit l’état de rendu, et un anneau de focus Sass sur data-focus-visible',
+      'Ce que répète chacune de mes apps react-aria : une fusion de className qui suit l’état de rendu, un anneau de focus Sass sur data-focus-visible, et un popover qui devient une feuille montant du bas d’un écran étroit, avec la poignée qui la tire vers le bas',
     'react-router':
       'Des liens react-aria qui naviguent par react-router : un RouterProvider branché sur useNavigate, les URL externes laissées telles quelles, NavigateOptions typé sur chaque lien',
     result: 'Une valeur succès ou échec, sans exception et sans null',

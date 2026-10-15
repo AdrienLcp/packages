@@ -2,12 +2,14 @@
   "author": "Adrien Lacourpaille",
   "bugs": "https://github.com/AdrienLcp/packages/issues",
   "dependencies": {
+    "@adrienlcp/browser": "workspace:^",
     "@adrienlcp/react": "workspace:^"
   },
-  "description": "What every react-aria app of mine repeats: a className merge that follows the render state, and a Sass focus ring on data-focus-visible",
+  "description": "What every react-aria app of mine repeats: a className merge that follows the render state, a Sass focus ring on data-focus-visible, and a popover that turns into a sheet rising from the bottom of a narrow screen, with the grabber that pulls it down",
   "devDependencies": {
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "happy-dom": "20.14.5",
     "react": "19.3.0",
     "react-aria-components": "1.21.1",
     "react-dom": "19.3.0",
@@ -18,7 +20,10 @@
     "./focus": {
       "sass": "./src/_focus.sass"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./sheet": {
+      "sass": "./src/_sheet.sass"
+    }
   },
   "files": [
     "dist",
@@ -26,7 +31,9 @@
   ],
   "homepage": "https://adrienlcp.com/en/projects/packages#package-react-aria",
   "keywords": [
+    "bottom-sheet",
     "focus-visible",
+    "popover",
     "react",
     "react-aria",
     "react-aria-components",

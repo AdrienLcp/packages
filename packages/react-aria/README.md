@@ -2,9 +2,9 @@
 
 What every app of mine built on
 [react-aria-components](https://react-spectrum.adobe.com/react-aria/) repeats,
-kept in one version across them. Depends on `@adrienlcp/react`; React 19 and
+kept in one version across them. Depends on `@adrienlcp/react` and `@adrienlcp/browser`; React 19 and
 `react-aria-components` are peers, and Sass an optional one, for the focus
-module.
+and sheet modules.
 
 ```bash
 pnpm add @adrienlcp/react-aria
@@ -87,3 +87,86 @@ so a hover style is a plain `&[data-hovered]` rule.
 
 Resolved through the `sass` export condition, which Vite reads; with the Sass
 CLI, use `pkg:@adrienlcp/react-aria/focus` and `--pkg-importer=node`.
+
+## A popover that becomes a sheet: `PopoverSheet`
+
+```tsx
+import { PopoverSheet } from '@adrienlcp/react-aria'
+import { Button, Dialog, DialogTrigger } from 'react-aria-components'
+
+const WIDE_SCREEN_QUERY = '(width >= 56.25rem)'
+
+export const Menu = () => (
+  <DialogTrigger>
+    <Button aria-label='Menu'>…</Button>
+    <PopoverSheet className='menu' placement='bottom end' wideQuery={WIDE_SCREEN_QUERY}>
+      <Dialog aria-label='Menu'>…</Dialog>
+    </PopoverSheet>
+  </DialogTrigger>
+)
+```
+
+`PopoverSheet` takes the place of a `Popover` inside a `DialogTrigger`. On a
+screen that answers `wideQuery` — the app's own breakpoint, in `rem` like its
+stylesheets' — it is a popover beside the trigger, taking `placement` and
+`maxHeight`. Below it, it is a sheet rising from the bottom edge over a scrim,
+where a box hung from a corner is out of a thumb's reach: a press on the scrim
+or Escape puts it away, and so does a pull on the `SheetGrabber` across its
+top, past a quarter of its height or on a flick. A shorter pull settles back.
+The `Dialog` inside is the caller's, the same on both faces.
+
+The sheet is a plain `Modal` with its own rise in CSS rather than react-aria's
+`Sheet`: that one enters through the browser's smooth scroll, whose length no
+stylesheet sets, and at over half a second it reads as lag after the press.
+
+The popover carries `sheet-popover` and the sheet `sheet`, inside a
+`sheet-overlay`, each beside the `className` given. Before the first render on
+a client the sheet is the face drawn: the media query is false on the server
+and through hydration (`useMediaQuery` from `@adrienlcp/browser/react`).
+
+`SheetGrabber` is exported for a sheet of the app's own — a modal that becomes
+a centred card on a wide screen, say. It must be a direct child of the sheet: it
+moves its parent through `--sheet-drag-offset`, which the sheet's rise ends
+on, so a sheet let go leaves from where it was dropped. It calls `onDismiss`
+and leaves the closing to the caller: `state.close` from a `Modal`'s render
+props.
+
+## The sheet's styles: `sheet`
+
+The structure ships as Sass; the look — the sheet's ground, its radius, shadow
+and padding, the popover's whole surface — stays the app's, on the
+`className` it passes. Include the rules once, in the components layer:
+
+```sass
+@use '@adrienlcp/react-aria/sheet'
+
+@layer components
+  @include sheet.styles
+
+  .menu
+    background: var(--ground)
+    border-start-end-radius: var(--radius-sheet)
+    border-start-start-radius: var(--radius-sheet)
+```
+
+`styles` writes `.sheet-overlay`, `.sheet` and `.sheet-grabber` and the
+`sheet-rise` and `sheet-scrim` keyframes. The mixins under them — `overlay`,
+`surface`, `grabber` and `keyframes` — style a sheet of the app's own under
+its own class names. The overlay is held to the visual viewport react-aria
+measures, so a field focused inside the sheet lifts it above the software
+keyboard. The grabber takes the sheet's background, so content scrolls under
+it out of sight.
+
+Each default reads the token an app built on `@adrienlcp/styles` declares,
+with a fallback where there is none: `$scrim` (`--scrim`), `$enter` and
+`$exit` (`--transition-base`, `--transition-fast`), `$easing`
+(`--ease-out`), `$top-gap`, the strip the tallest sheet leaves above it
+(`--space-2xl`), `$grabber-color` (`--rule-strong`) and `$grabber-radius`
+(`--radius-full`). `$z-index` is `10`. Configure them once, in the app's own
+`_sheet.sass`, and `@use` that file:
+
+```sass
+@forward '@adrienlcp/react-aria/sheet' with ($z-index: 3, $grabber-radius: var(--radius-control))
+```
+
+Resolved through the `sass` export condition, like `focus`.
