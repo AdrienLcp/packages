@@ -1,5 +1,7 @@
 import type React from 'react'
-import { useLayoutEffect } from 'react'
+import { useEffect } from 'react'
+
+const RELEASED_PROPERTIES = ['scrollbar-gutter', 'padding-inline-end'] as const
 
 const releaseScrollbarGutter = (root: HTMLElement): (() => void) => {
   const gutter = window.innerWidth - root.clientWidth
@@ -9,20 +11,27 @@ const releaseScrollbarGutter = (root: HTMLElement): (() => void) => {
   }
 
   const { style } = root
-  const saved = ['scrollbar-gutter', 'padding-inline-end'].map((property) => ({
+  const padding =
+    Number.parseFloat(getComputedStyle(root).paddingInlineEnd) || 0
+  const released = {
+    'padding-inline-end': `${padding + gutter}px`,
+    'scrollbar-gutter': 'auto'
+  }
+  const saved = RELEASED_PROPERTIES.map((property) => ({
     priority: style.getPropertyPriority(property),
     property,
     value: style.getPropertyValue(property)
   }))
-  const padding =
-    Number.parseFloat(getComputedStyle(root).paddingInlineEnd) || 0
 
-  style.setProperty('scrollbar-gutter', 'auto', 'important')
-  style.setProperty('padding-inline-end', `${padding + gutter}px`, 'important')
+  for (const property of RELEASED_PROPERTIES) {
+    style.setProperty(property, released[property], 'important')
+  }
 
   return () => {
     for (const { priority, property, value } of saved) {
-      style.setProperty(property, value, priority)
+      if (style.getPropertyValue(property) === released[property]) {
+        style.setProperty(property, value, priority)
+      }
     }
   }
 }
@@ -34,11 +43,16 @@ const releaseScrollbarGutter = (root: HTMLElement): (() => void) => {
  * background colour, so a page with `scrollbar-gutter: stable` kept a bright
  * strip down the scrim's edge. While the overlay is up, the gutter becomes
  * padding on the root: the page keeps its width and the scrim reaches the
- * edge. It runs before react-aria's scroll lock, which then finds no gutter
- * to keep and only hides the overflow.
+ * edge.
+ *
+ * A passive effect, so it runs after react-aria's scroll lock, a layout
+ * effect: the lock hides the overflow and reserves the gutter, and the gutter
+ * it measured is the one released here. Released first, the page's scrollbar
+ * still showed and the lock reserved its room again. On the way out, the lock
+ * restores the root first, and a property it already put back is left alone.
  */
 export const ScrollbarGutterRelease: React.FC = () => {
-  useLayoutEffect(() => releaseScrollbarGutter(document.documentElement), [])
+  useEffect(() => releaseScrollbarGutter(document.documentElement), [])
 
   return null
 }
