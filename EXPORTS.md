@@ -18,7 +18,7 @@ Biome lint and format settings: single quotes, no semicolons, sorted keys and im
 
 ## @adrienlcp/browser
 
-Browser calls that hide a trap: a clipboard copy that works over plain HTTP, a wake lock that survives the tab going away, the reduced-motion preference, a duration token read in seconds, a media query followed as the screen changes
+Browser calls that hide a trap: a clipboard copy that works over plain HTTP, a link handed to the share sheet, a wake lock that survives the tab going away, the reduced-motion preference, a duration token read in seconds, a media query followed as the screen changes
 
 ### `@adrienlcp/browser`
 
