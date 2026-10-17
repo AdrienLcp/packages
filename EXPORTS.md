@@ -27,6 +27,9 @@ Browser calls that hide a trap: a clipboard copy that works over plain HTTP, a w
 - `readDurationSeconds` (function) — A `<time>` custom property as `element` computes it, in seconds: what a script hands to the Web Animations API or a timer, read from the token the stylesheet already holds rather than a copy of it. [More](https://github.com/AdrienLcp/packages/blob/main/packages/browser/README.md#reading-a-duration-token)
 - `reloadPage` (function) — Reloads the page, the way out a crash screen offers. [More](https://github.com/AdrienLcp/packages/blob/main/packages/browser/README.md#reloading-the-page)
 - `selectContents` (function) — Selects everything inside `node`, so a reader can finish a refused copy with a keystroke. [More](https://github.com/AdrienLcp/packages/blob/main/packages/browser/README.md#copying-to-the-clipboard)
+- `SharedLink` (type) — The link as the share sheet hands it on: a title, the address, and optionally the words to send it with.
+- `canShareLinks` (function) — Whether the device has a share sheet a link can be handed to — WhatsApp, SMS, mail. [More](https://github.com/AdrienLcp/packages/blob/main/packages/browser/README.md#handing-a-link-to-the-share-sheet)
+- `shareLink` (function) — Opens the device's share sheet on a link. [More](https://github.com/AdrienLcp/packages/blob/main/packages/browser/README.md#handing-a-link-to-the-share-sheet)
 
 ### `@adrienlcp/browser/react`
 

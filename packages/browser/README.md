@@ -26,6 +26,21 @@ plain HTTP — a LAN address, a phone pointed at a laptop — has none, so
 `execCommand('copy')`. When both are refused, `selectContents` leaves the text
 selected for the reader to copy by hand.
 
+## Handing a link to the share sheet
+
+```ts
+import { canShareLinks, shareLink } from '@adrienlcp/browser'
+
+if (canShareLinks()) {
+  const shared = await shareLink({ title, url }) // Result<void, 'closed' | 'unavailable'>
+}
+```
+
+Phones have a share sheet and most desktops do not, so draw the control only
+where `canShareLinks()` says so. `navigator.share` rejects when the sheet is
+put away; that comes back as `'closed'`, which means nothing was sent and is
+not an error worth showing.
+
 ## Reduced motion
 
 ```ts

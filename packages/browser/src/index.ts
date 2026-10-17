@@ -3,3 +3,8 @@ export { prefersReducedMotion } from './prefers-reduced-motion.ts'
 export { readDurationSeconds } from './read-duration-seconds.ts'
 export { reloadPage } from './reload-page.ts'
 export { selectContents } from './select-contents.ts'
+export {
+  canShareLinks,
+  type SharedLink,
+  shareLink
+} from './share-link.ts'

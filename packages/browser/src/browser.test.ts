@@ -10,6 +10,7 @@ import {
 } from './prefers-reduced-motion.ts'
 import { reloadPage } from './reload-page.ts'
 import { selectContents } from './select-contents.ts'
+import { canShareLinks, shareLink } from './share-link.ts'
 import { useScreenAwake } from './use-screen-awake.ts'
 
 const defineOn = (target: object, property: string, value: unknown): void => {
@@ -126,6 +127,44 @@ describe('copyText', () => {
     expect(isDialogOpen).toBe(true)
     expect(document.activeElement).toBe(copyButton)
     expect(document.querySelector('textarea')).toBeNull()
+  })
+})
+
+describe('shareLink', () => {
+  const link = { title: 'Room ABCD', url: 'https://example.com/play/ABCD' }
+
+  it('[share] hands the link to the share sheet when there is one', async () => {
+    const share = vi.fn(async () => {})
+    defineOn(navigator, 'share', share)
+
+    expect(canShareLinks()).toBe(true)
+    expect(await shareLink(link)).toEqual({ status: 'success' })
+    expect(share).toHaveBeenCalledWith(link)
+  })
+
+  it('[share] reports the sheet closed when the person puts it away', async () => {
+    defineOn(
+      navigator,
+      'share',
+      vi.fn(async () => {
+        throw new DOMException('Share canceled', 'AbortError')
+      })
+    )
+
+    expect(await shareLink(link)).toEqual({
+      error: 'closed',
+      status: 'failure'
+    })
+  })
+
+  it('[share] reports it unavailable where the device has no share sheet', async () => {
+    defineOn(navigator, 'share', undefined)
+
+    expect(canShareLinks()).toBe(false)
+    expect(await shareLink(link)).toEqual({
+      error: 'unavailable',
+      status: 'failure'
+    })
   })
 })
 
