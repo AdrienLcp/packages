@@ -1,5 +1,12 @@
 # @adrienlcp/react-aria
 
+## 0.6.2
+
+### Patch Changes
+
+- Updated dependencies [141b5ab]
+  - @adrienlcp/browser@0.6.0
+
 ## 0.6.1
 
 ### Patch Changes
