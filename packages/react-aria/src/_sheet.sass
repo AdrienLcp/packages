@@ -33,16 +33,24 @@ $_drag-offset: var(--sheet-drag-offset, 0rem)
   &[data-exiting]
     animation: sheet-scrim $exit $easing reverse
 
-/// The sheet itself: the screen's width, scrolling inside past the screen's
-/// height, following the thumb on its grabber and settling back from where a
-/// short pull let go. Its look — ground, radius, shadow, padding — is the app's.
+/// The sheet itself: the screen's width, following the thumb on its grabber
+/// and settling back from where a short pull let go. Past the screen's height
+/// its content scrolls below the grabber, never the sheet itself, so the
+/// scrollbar stays clear of the rounded corners. Its look — ground, radius,
+/// shadow, padding — is the app's.
 @mixin surface
+  display: flex
+  flex-direction: column
   inline-size: 100%
   max-block-size: calc(100% - $top-gap)
   outline: none
-  overflow-y: auto
-  overscroll-behavior: contain
+  overflow: clip
   translate: 0rem $_drag-offset
+
+  > :not(.sheet-grabber)
+    min-block-size: 0
+    overflow-y: auto
+    overscroll-behavior: contain
 
   &[data-entering]
     animation: sheet-rise $enter $easing
@@ -53,21 +61,17 @@ $_drag-offset: var(--sheet-drag-offset, 0rem)
   &[data-settling]
     transition: translate $enter $easing
 
-/// The strip a thumb pulls the sheet down by, held at the top while the sheet
-/// scrolls under it, on the sheet's own background.
+/// The strip a thumb pulls the sheet down by, at the top of the sheet above
+/// its scrolling content.
 @mixin grabber
   align-items: center
-  background: inherit
   block-size: var(--space-xl, 2rem)
   cursor: grab
   display: flex
   flex-shrink: 0
-  inset-block-start: 0
   justify-content: center
-  position: sticky
   touch-action: none
   user-select: none
-  z-index: 1
 
   &::before
     background: $grabber-color

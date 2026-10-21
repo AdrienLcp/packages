@@ -144,8 +144,8 @@ What every react-aria app of mine repeats: a className merge that follows the re
 - `$grabber-color` (sass) [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
 - `$grabber-radius` (sass) [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
 - `overlay` (sass) — The scrim a sheet rises over, holding it to the bottom edge. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
-- `surface` (sass) — The sheet itself: the screen's width, scrolling inside past the screen's height, following the thumb on its grabber and settling back from where a short pull let go. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
-- `grabber` (sass) — The strip a thumb pulls the sheet down by, held at the top while the sheet scrolls under it, on the sheet's own background. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
+- `surface` (sass) — The sheet itself: the screen's width, following the thumb on its grabber and settling back from where a short pull let go. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
+- `grabber` (sass) — The strip a thumb pulls the sheet down by, at the top of the sheet above its scrolling content. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
 - `keyframes` (sass) — The rise ends where the thumb left the sheet, so a sheet pulled down leaves from there. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
 - `styles` (sass) — The rules `PopoverSheet` and `SheetGrabber` need, included once in the app's components layer. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
 

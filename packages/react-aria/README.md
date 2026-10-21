@@ -172,8 +172,8 @@ and padding, the popover's whole surface — stays the app's, on the
 `surface`, `grabber` and `keyframes` — style a sheet of the app's own under
 its own class names. The overlay is held to the visual viewport react-aria
 measures, so a field focused inside the sheet lifts it above the software
-keyboard. The grabber takes the sheet's background, so content scrolls under
-it out of sight.
+keyboard. The sheet never scrolls itself: its content below the grabber
+does, so the scrollbar stays clear of the sheet's rounded corners.
 
 Each default reads the token an app built on `@adrienlcp/styles` declares,
 with a fallback where there is none: `$scrim` (`--scrim`), `$enter` and

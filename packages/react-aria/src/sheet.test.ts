@@ -80,6 +80,20 @@ describe('sheet', () => {
     expect(css).toContain('max-block-size:calc(100% - 2rem)')
   })
 
+  it('[sheet] scrolls its content below the grabber, never the rounded sheet', () => {
+    const css = compile(`
+@use 'sheet'
+.surface
+  @include sheet.surface
+`)
+
+    expect(css).toContain('overflow:clip')
+    expect(css).not.toMatch(/\.surface\{[^}]*overflow-y/)
+    expect(css).toContain(
+      '.surface>:not(.sheet-grabber){min-block-size:0;overflow-y:auto;overscroll-behavior:contain}'
+    )
+  })
+
   it('[sheet] settles a short pull back on a transition', () => {
     const css = compile(`
 @use 'sheet'
