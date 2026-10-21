@@ -1,5 +1,11 @@
 # @adrienlcp/react-aria
 
+## 0.6.3
+
+### Patch Changes
+
+- c76f831: The sheet no longer scrolls itself: its content below the grabber does, so the scrollbar stays clear of the sheet's rounded corners.
+
 ## 0.6.2
 
 ### Patch Changes
