@@ -20,6 +20,7 @@ import {
   Moon,
   PenLine,
   Search,
+  SlidersHorizontal,
   Sparkles,
   Sun,
   X
@@ -101,6 +102,8 @@ export const ChevronIcon = iconOf(ChevronRight, { strokeWidth: 2.2 })
 export const OutboundIcon = iconOf(ExternalLink)
 
 export const SearchIcon = iconOf(Search)
+
+export const SettingsIcon = iconOf(SlidersHorizontal)
 
 export const CloseIcon = iconOf(X)
 

@@ -1,0 +1,116 @@
+@use '../styles/focus'
+@use '../styles/layout'
+@use '../styles/sheet'
+@use '../styles/typography'
+
+@layer components
+  @include sheet.styles
+
+  .settings-trigger
+    @include layout.header-button
+
+    .settings-trigger-icon
+      height: 1.125rem
+      width: 1.125rem
+
+  .settings-sheet-surface
+    background: var(--ground)
+    box-shadow: var(--shadow-dialog)
+    color: var(--ink)
+
+    &.sheet
+      border-start-end-radius: var(--radius-sheet)
+      border-start-start-radius: var(--radius-sheet)
+
+      .settings-sheet
+        padding-block-end: max(var(--space-l), calc(var(--safe-area-bottom) + var(--space-s)))
+        padding-inline: var(--gutter-left) var(--gutter-right)
+
+    // Only reached by widening the window with the sheet up: the trigger is
+    // hidden from the rails' width on.
+    &.sheet-popover
+      border-radius: var(--radius-sheet)
+      inline-size: 20rem
+
+      .settings-sheet
+        padding: var(--space-s)
+
+  .settings-sheet
+    display: grid
+    gap: var(--space-l)
+    outline: none
+
+  .settings-sheet-title
+    @include typography.heading
+
+    margin: 0
+    padding-inline: var(--space-row)
+
+  .settings-group
+    display: grid
+    gap: var(--space-2xs)
+
+  .settings-group-label
+    @include typography.group-label
+
+    margin: 0
+    padding-inline: var(--space-row)
+
+  .settings-rows
+    @include layout.plane
+
+    display: grid
+
+  .settings-row
+    @include focus.ring-inset
+    @include layout.pressable-row
+    @include layout.row-separator($inset: var(--space-row))
+
+    align-items: center
+    color: var(--ink)
+    cursor: pointer
+    display: flex
+    font-size: var(--text-m)
+    gap: var(--space-xs)
+    min-height: 3rem
+    padding: var(--space-3xs) var(--space-row)
+    -webkit-tap-highlight-color: transparent
+
+    &.has-square
+      @include layout.row-separator
+
+  .settings-row-square
+    background: var(--track)
+    border-radius: var(--radius-square)
+    color: var(--ink-soft)
+    display: inline-grid
+    flex: none
+    height: var(--square-s)
+    place-items: center
+    transition: background-color var(--transition-fast, 0s) var(--ease-out), color var(--transition-fast, 0s) var(--ease-out)
+    width: var(--square-s)
+
+    svg
+      height: 1.0625rem
+      width: 1.0625rem
+
+  .settings-row-label
+    flex: 1
+    min-width: 0
+
+  .settings-row-check
+    color: var(--accent)
+    flex: none
+    height: 1.125rem
+    opacity: 0
+    transition: opacity var(--transition-fast, 0s) var(--ease-out)
+    width: 1.125rem
+
+  .settings-row[data-selected]
+    .settings-row-square
+      background: var(--accent-wash)
+      color: var(--accent)
+
+  .settings-row:is([data-selected], [aria-current])
+    .settings-row-check
+      opacity: 1

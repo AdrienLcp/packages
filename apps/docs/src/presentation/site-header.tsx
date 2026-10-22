@@ -6,6 +6,7 @@ import { PackageIcon } from '@/presentation/components/icons'
 import { Link } from '@/presentation/components/ui/link'
 import { useI18n } from '@/presentation/i18n/i18n-provider'
 import { LocaleSwitch } from '@/presentation/locale-switch'
+import { SettingsSheet } from '@/presentation/settings/settings-sheet'
 import { SkipLink } from '@/presentation/skip-link'
 import { ThemeSwitch } from '@/presentation/theme/theme-switch'
 
@@ -20,7 +21,8 @@ type SiteHeaderProps = {
 
 /**
  * The bar every screen keeps on top: the site's name back home, and the
- * settings. The skip link sits before it, not inside: the bar's backdrop filter
+ * settings: their rails where the bar has room, a sheet behind a button on a
+ * phone. The skip link sits before it, not inside: the bar's backdrop filter
  * would hold the link's fixed position to the bar, which starts below the
  * notch, so parked above the bar it would show in the notch.
  */
@@ -44,6 +46,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({ context, search }) => {
           {search}
           <LocaleSwitch />
           <ThemeSwitch />
+          <SettingsSheet />
         </div>
       </header>
     </>

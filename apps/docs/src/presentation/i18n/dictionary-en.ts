@@ -167,6 +167,15 @@ export const EN_DICTIONARY = defineDictionary({
     label: 'Find an export',
     placeholder: 'An export: copyText, ring…'
   },
+  settings: {
+    appearance: 'Appearance',
+    dark: 'Dark',
+    language: 'Language',
+    light: 'Light',
+    open: 'Settings',
+    system: 'Match my device',
+    title: 'Settings'
+  },
   sidebar: {
     all: 'Every export',
     noMatch: 'No match',

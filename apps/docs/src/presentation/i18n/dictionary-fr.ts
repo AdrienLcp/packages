@@ -168,6 +168,15 @@ export const FR_DICTIONARY = defineDictionary({
     label: 'Trouver un export',
     placeholder: 'Un export : copyText, ring…'
   },
+  settings: {
+    appearance: 'Apparence',
+    dark: 'Sombre',
+    language: 'Langue',
+    light: 'Clair',
+    open: 'Réglages',
+    system: 'Comme mon appareil',
+    title: 'Réglages'
+  },
   sidebar: {
     all: 'Tous les exports',
     noMatch: 'Aucun résultat',

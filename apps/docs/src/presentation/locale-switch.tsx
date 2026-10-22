@@ -1,12 +1,10 @@
 import type React from 'react'
 
-import {
-  pathInLocale,
-  useCurrentPath
-} from '@/infrastructure/router/navigation'
+import { useCurrentPath } from '@/infrastructure/router/navigation'
 import { LinkRail, type LinkRailItem } from '@/presentation/components/ui/rail'
 import { useI18n } from '@/presentation/i18n/i18n-provider'
-import { LOCALE_NAMES, LOCALES, type Locale } from '@/presentation/i18n/locale'
+import type { Locale } from '@/presentation/i18n/locale'
+import { localeLinksFor } from '@/presentation/i18n/locale-links'
 
 /**
  * Links rather than toggles: another language is another document, so
@@ -14,21 +12,16 @@ import { LOCALE_NAMES, LOCALES, type Locale } from '@/presentation/i18n/locale'
  */
 export const LocaleSwitch: React.FC = () => {
   const { locale, translate } = useI18n()
-  const pathname = useCurrentPath()
-  const items: LinkRailItem<Locale>[] = LOCALES.flatMap((slotLocale) => {
-    const href = pathInLocale({ locale: slotLocale, pathname })
-
-    return href === null
-      ? []
-      : {
-          href,
-          hrefLang: slotLocale,
-          id: slotLocale,
-          label: slotLocale.toUpperCase(),
-          lang: slotLocale,
-          name: LOCALE_NAMES[slotLocale]
-        }
-  })
+  const items: LinkRailItem<Locale>[] = localeLinksFor(useCurrentPath()).map(
+    (link) => ({
+      href: link.href,
+      hrefLang: link.locale,
+      id: link.locale,
+      label: link.locale.toUpperCase(),
+      lang: link.locale,
+      name: link.name
+    })
+  )
 
   if (items.length === 0) {
     return null

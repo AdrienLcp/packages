@@ -32,3 +32,32 @@
 
   &[data-pressed]
     background: var(--press)
+
+/// The header wide enough to hold the language and theme rails beside the
+/// search; below it they move into the settings sheet. Mirrors
+/// `SETTINGS_RAILS_QUERY`.
+$settings-rails-width: 40rem
+
+/// A square button of the header, on a plane: the search shrunk to its glass,
+/// the settings.
+@mixin header-button
+  align-items: center
+  background: var(--plane)
+  border: 0
+  border-radius: var(--radius-control)
+  color: var(--ink-soft)
+  cursor: pointer
+  display: inline-flex
+  font: inherit
+  justify-content: center
+  min-height: var(--control-height)
+  min-width: var(--control-height)
+  transition: background-color var(--transition-fast, 0s) var(--ease-out), scale var(--transition-fast, 0s) var(--ease-out)
+
+  &[data-hovered]
+    background: var(--hover)
+    color: var(--ink)
+
+  &[data-pressed]
+    background: var(--press)
+    scale: var(--press-scale)
