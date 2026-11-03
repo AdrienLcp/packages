@@ -40,8 +40,9 @@ export const EN_DICTIONARY = defineDictionary({
     version: 'Version'
   },
   footer: {
+    credit: 'Made by <author>{name}</author>',
     legal: 'Legal notice and privacy',
-    source: 'Built from the packages monorepo'
+    source: 'Source code'
   },
   header: {
     home: '@adrienlcp packages, every export',

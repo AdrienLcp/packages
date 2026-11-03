@@ -98,7 +98,7 @@ export const BackIcon = iconOf(ChevronLeft)
 
 export const ChevronIcon = iconOf(ChevronRight, { strokeWidth: 2.2 })
 
-/** Leads out of the site, to GitHub. */
+/** Leads out of the site. */
 export const OutboundIcon = iconOf(ExternalLink)
 
 export const SearchIcon = iconOf(Search)
