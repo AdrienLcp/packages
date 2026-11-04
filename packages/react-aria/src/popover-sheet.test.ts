@@ -276,3 +276,218 @@ describe('SheetGrabber', () => {
     expect(sheet.style.getPropertyValue('--sheet-drag-offset')).toBe('')
   })
 })
+
+describe('CloseOnBack', () => {
+  const watchers: FakeCloseWatcher[] = []
+
+  class FakeCloseWatcher extends EventTarget {
+    isDestroyed = false
+
+    constructor() {
+      super()
+      watchers.push(this)
+    }
+
+    destroy(): void {
+      this.isDestroyed = true
+    }
+  }
+
+  beforeEach(() => {
+    watchers.length = 0
+    vi.stubGlobal('CloseWatcher', FakeCloseWatcher)
+  })
+
+  const goBack = () =>
+    act(async () => {
+      watchers.at(-1)?.dispatchEvent(new Event('close'))
+    })
+
+  it('[close-on-back] puts the sheet away on the back gesture', async () => {
+    stubScreen(false)
+    await openMenu()
+
+    expect(watchers).toHaveLength(1)
+
+    await goBack()
+
+    expect(document.querySelector('.sheet')).toBeNull()
+  })
+
+  it('[close-on-back] closes the popover on the back gesture', async () => {
+    stubScreen(true)
+    await openMenu()
+
+    await goBack()
+
+    expect(document.querySelector('.sheet-popover')).toBeNull()
+  })
+
+  it('[close-on-back] hands the back gesture back to the page once the sheet is put away', async () => {
+    stubScreen(false)
+    await openMenu()
+
+    await act(async () => {
+      document.activeElement?.dispatchEvent(
+        new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' })
+      )
+    })
+
+    expect(watchers[0]?.isDestroyed).toBe(true)
+  })
+})
+
+describe('a touch on the sheet content', () => {
+  type TouchPoint = { clientX?: number; clientY: number; timeStamp: number }
+
+  const mountSheet = async (onDismiss: () => void) => {
+    await act(async () => {
+      root.render(
+        createElement(
+          'div',
+          { className: 'sheet' },
+          createElement(SheetGrabber, { onDismiss }),
+          createElement(
+            'div',
+            { className: 'content' },
+            createElement('button', { type: 'button' }, 'Close the table'),
+            createElement('input', { 'aria-label': 'Name' })
+          )
+        )
+      )
+    })
+    const sheet = container.querySelector<HTMLElement>('.sheet')
+    const content = container.querySelector<HTMLElement>('.content')
+    const button = container.querySelector('button')
+    const field = container.querySelector('input')
+
+    if (
+      sheet === null ||
+      content === null ||
+      button === null ||
+      field === null
+    ) {
+      throw new Error('The sheet did not render')
+    }
+
+    Object.defineProperty(sheet, 'offsetHeight', { value: PULLED_SHEET_HEIGHT })
+
+    const touch = async (
+      type: 'touchend' | 'touchmove' | 'touchstart',
+      target: Element,
+      { clientX = 0, clientY, timeStamp }: TouchPoint
+    ): Promise<TouchEvent> => {
+      const point = new Touch({ clientX, clientY, identifier: 1, target })
+      const event = new TouchEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        changedTouches: [point],
+        touches: type === 'touchend' ? [] : [point]
+      })
+      Object.defineProperty(event, 'timeStamp', { value: timeStamp })
+
+      await act(async () => {
+        target.dispatchEvent(event)
+      })
+
+      return event
+    }
+
+    const offset = () => sheet.style.getPropertyValue('--sheet-drag-offset')
+
+    return { button, content, field, offset, touch }
+  }
+
+  it('[sheet-touch-pull] pulls the sheet down from anywhere on its content', async () => {
+    const { button, offset, touch } = await mountSheet(vi.fn())
+
+    await touch('touchstart', button, { clientY: 100, timeStamp: 1 })
+    const move = await touch('touchmove', button, {
+      clientY: 160,
+      timeStamp: 1000
+    })
+
+    expect(offset()).toBe('60px')
+    expect(move.defaultPrevented).toBe(true)
+  })
+
+  it('[sheet-touch-pull] puts the sheet away past a quarter of its height', async () => {
+    const onDismiss = vi.fn()
+    const { button, touch } = await mountSheet(onDismiss)
+
+    await touch('touchstart', button, { clientY: 100, timeStamp: 1 })
+    await touch('touchmove', button, { clientY: 210, timeStamp: 1000 })
+    await touch('touchend', button, { clientY: 210, timeStamp: 1001 })
+
+    expect(onDismiss).toHaveBeenCalledOnce()
+  })
+
+  it('[sheet-touch-pull] cancels the press under the thumb once the sheet moves', async () => {
+    const { button, touch } = await mountSheet(vi.fn())
+    const onPointerCancel = vi.fn()
+    button.addEventListener('pointercancel', onPointerCancel)
+
+    await touch('touchstart', button, { clientY: 100, timeStamp: 1 })
+    await touch('touchmove', button, { clientY: 103, timeStamp: 50 })
+
+    expect(onPointerCancel).not.toHaveBeenCalled()
+
+    await touch('touchmove', button, { clientY: 160, timeStamp: 1000 })
+
+    expect(onPointerCancel).toHaveBeenCalledOnce()
+  })
+
+  it('[sheet-touch-pull] reads no direction from the first few pixels', async () => {
+    const { button, offset, touch } = await mountSheet(vi.fn())
+
+    await touch('touchstart', button, { clientY: 100, timeStamp: 1 })
+    const move = await touch('touchmove', button, {
+      clientY: 103,
+      timeStamp: 50
+    })
+
+    expect(offset()).toBe('')
+    expect(move.defaultPrevented).toBe(false)
+  })
+
+  it('[sheet-touch-pull] leaves content scrolled down to scroll back up', async () => {
+    const { button, content, offset, touch } = await mountSheet(vi.fn())
+    Object.defineProperty(content, 'scrollTop', { value: 50 })
+
+    await touch('touchstart', button, { clientY: 100, timeStamp: 1 })
+    const move = await touch('touchmove', button, {
+      clientY: 160,
+      timeStamp: 1000
+    })
+
+    expect(offset()).toBe('')
+    expect(move.defaultPrevented).toBe(false)
+  })
+
+  it('[sheet-touch-pull] leaves a touch going up or sideways to the content', async () => {
+    const { button, offset, touch } = await mountSheet(vi.fn())
+
+    await touch('touchstart', button, { clientY: 100, timeStamp: 1 })
+    await touch('touchmove', button, {
+      clientX: 40,
+      clientY: 110,
+      timeStamp: 1000
+    })
+    await touch('touchmove', button, { clientY: 200, timeStamp: 1100 })
+    await touch('touchend', button, { clientY: 200, timeStamp: 1101 })
+
+    await touch('touchstart', button, { clientY: 100, timeStamp: 2000 })
+    await touch('touchmove', button, { clientY: 40, timeStamp: 3000 })
+
+    expect(offset()).toBe('')
+  })
+
+  it('[sheet-touch-pull] leaves a touch that starts on a field to the field', async () => {
+    const { field, offset, touch } = await mountSheet(vi.fn())
+
+    await touch('touchstart', field, { clientY: 100, timeStamp: 1 })
+    await touch('touchmove', field, { clientY: 160, timeStamp: 1000 })
+
+    expect(offset()).toBe('')
+  })
+})

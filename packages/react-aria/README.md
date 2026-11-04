@@ -111,9 +111,21 @@ screen that answers `wideQuery` — the app's own breakpoint, in `rem` like its
 stylesheets' — it is a popover beside the trigger, taking `placement` and
 `maxHeight`. Below it, it is a sheet rising from the bottom edge over a scrim,
 where a box hung from a corner is out of a thumb's reach: a press on the scrim
-or Escape puts it away, and so does a pull on the `SheetGrabber` across its
-top, past a quarter of its height or on a flick. A shorter pull settles back.
-The `Dialog` inside is the caller's, the same on both faces.
+or Escape puts it away, and so does a pull past a quarter of its height or a
+flick — on the `SheetGrabber` across its top, or a touch anywhere on its
+content, as a native sheet allows. A shorter pull settles back. A touch pulls
+only downward and only from content scrolled to its top: one going up or
+sideways, starting on scrolled content, a field, a slider or anything whose
+`touch-action` refuses a downward pan is left to the browser, and the press
+under the thumb is cancelled once the sheet moves, so a pull that starts on a
+button never presses it. The `Dialog` inside is the caller's, the same on both
+faces.
+
+On both faces, the system's back gesture closes it rather than leaving the
+page, where the browser has a `CloseWatcher` (Chromium, whose Android back
+gesture it answers); elsewhere the back gesture is the page's, as before. The
+watcher lives as long as the overlay, so the next back gesture is the page's
+again once it is put away.
 
 The scrim reaches the screen's edge on a page that reserves its scrollbar's
 room with `scrollbar-gutter: stable`: a fixed element never paints over that
@@ -132,7 +144,8 @@ and through hydration (`useMediaQuery` from `@adrienlcp/browser/react`).
 `SheetGrabber` is exported for a sheet of the app's own — a modal that becomes
 a centred card on a wide screen, say. It must be a direct child of the sheet: it
 moves its parent through `--sheet-drag-offset`, which the sheet's rise ends
-on, so a sheet let go leaves from where it was dropped. It calls `onDismiss`
+on, so a sheet let go leaves from where it was dropped, and it is what lets a
+touch on the content pull the sheet too. It calls `onDismiss`
 and leaves the closing to the caller: `state.close` from a `Modal`'s render
 props. Such a modal renders `ScrollbarGutterRelease` beside its content too,
 for its scrim to cover the reserved gutter as the sheet's does:

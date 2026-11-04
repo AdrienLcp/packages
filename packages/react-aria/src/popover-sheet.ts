@@ -9,6 +9,7 @@ import {
   type PopoverProps
 } from 'react-aria-components'
 
+import { CloseOnBack } from './close-on-back.ts'
 import { ScrollbarGutterRelease } from './scrollbar-gutter-release.ts'
 import { SheetGrabber } from './sheet-grabber.ts'
 
@@ -32,8 +33,10 @@ export type PopoverSheetProps = {
  * What a trigger opens, in the place of a `Popover` inside a `DialogTrigger`:
  * a popover beside the trigger on a screen that answers `wideQuery`, a sheet
  * rising from the bottom edge below it, where a box hung from a corner is out
- * of a thumb's reach. The sheet is pulled down by its `SheetGrabber`, or put
- * away by a press on the scrim or Escape.
+ * of a thumb's reach. The sheet is pulled down by its `SheetGrabber` or by a
+ * touch anywhere on its content, or put away by a press on the scrim or
+ * Escape. On both faces, the system's back gesture closes it where the browser
+ * has a `CloseWatcher`, instead of leaving the page.
  *
  * The popover carries `sheet-popover`; the sheet is `sheet` inside a
  * `sheet-overlay`, styled by the `sheet` Sass module.
@@ -57,7 +60,12 @@ export const PopoverSheet: React.FC<PopoverSheetProps> = ({
 
   if (isWide) {
     return createElement(Popover, {
-      children,
+      children: createElement(
+        Fragment,
+        null,
+        createElement(CloseOnBack),
+        children
+      ),
       className: classNames('sheet-popover', className),
       maxHeight,
       placement
@@ -71,6 +79,7 @@ export const PopoverSheet: React.FC<PopoverSheetProps> = ({
           Fragment,
           null,
           createElement(ScrollbarGutterRelease),
+          createElement(CloseOnBack),
           createElement(SheetGrabber, { onDismiss: state.close }),
           children
         ),

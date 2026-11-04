@@ -110,7 +110,7 @@ Generic React helpers: a context that names its missing provider and a class nam
 
 ## @adrienlcp/react-aria
 
-What every react-aria app of mine repeats: a className merge that follows the render state, a Sass focus ring on data-focus-visible, and a popover that turns into a sheet rising from the bottom of a narrow screen, with the grabber that pulls it down
+What every react-aria app of mine repeats: a className merge that follows the render state, a Sass focus ring on data-focus-visible, and a popover that turns into a sheet rising from the bottom of a narrow screen, pulled down by its grabber or from anywhere on its content, and closed by the back gesture
 
 ### `@adrienlcp/react-aria`
 
@@ -121,7 +121,7 @@ What every react-aria app of mine repeats: a className merge that follows the re
 - `REACT_ARIA_TOKENS` (constant) — The custom properties react-aria-components sets at runtime on the elements it renders, which an app's stylesheets read but never declare: a popover's `--trigger-width`, a disclosure panel's `--disclosure-panel-height`, a tree item's `--tree-item-level`. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-custom-properties-react-aria-sets-react_aria_tokens)
 - `ScrollbarGutterRelease` (component) — Lets a modal's scrim reach the screen's edge on a page that reserves its scrollbar's room. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#a-popover-that-becomes-a-sheet-popoversheet)
 - `SheetGrabberProps` (type)
-- `SheetGrabber` (component) — The strip across the top of a sheet that a thumb pulls it down by: past a quarter of the sheet's height, or on a flick, it calls `onDismiss`; short of that, the sheet settles back. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#a-popover-that-becomes-a-sheet-popoversheet)
+- `SheetGrabber` (component) — The strip across the top of a sheet that a pointer pulls it down by, and what lets a touch pull it from anywhere on its content: downward, from content scrolled to its top, never from a field or a slider. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#a-popover-that-becomes-a-sheet-popoversheet)
 
 ### `@adrienlcp/react-aria/focus`
 

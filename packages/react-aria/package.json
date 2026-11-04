@@ -5,7 +5,7 @@
     "@adrienlcp/browser": "workspace:^",
     "@adrienlcp/react": "workspace:^"
   },
-  "description": "What every react-aria app of mine repeats: a className merge that follows the render state, a Sass focus ring on data-focus-visible, and a popover that turns into a sheet rising from the bottom of a narrow screen, with the grabber that pulls it down",
+  "description": "What every react-aria app of mine repeats: a className merge that follows the render state, a Sass focus ring on data-focus-visible, and a popover that turns into a sheet rising from the bottom of a narrow screen, pulled down by its grabber or from anywhere on its content, and closed by the back gesture",
   "devDependencies": {
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
