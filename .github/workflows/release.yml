@@ -44,11 +44,9 @@ jobs:
 
       # Opens a "Version packages" pull request while changesets are pending,
       # and publishes once that pull request is merged.
-      - uses: changesets/action@v1
+      - uses: changesets/action@v2
         if: steps.head.outputs.is-head == 'true'
         with:
-          publish: pnpm release
-          title: Version packages
-          commit: Version packages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          publish-script: pnpm release
+          pr-title: Version packages
+          commit-message: Version packages

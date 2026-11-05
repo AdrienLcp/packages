@@ -60,7 +60,7 @@ The suite runs in well under a second: it is pure TypeScript, with no browser an
 no network — the one module a test imports late is a dictionary, so that a lazily
 loaded locale is proved across a real module boundary.
 `src/translator.types.test.ts` is worth knowing about — every rule this library
-enforces is a *compile* error at a call site, and a compile error cannot be
+enforces is a _compile_ error at a call site, and a compile error cannot be
 caught by a test that has to compile, so each one is written there as the type it
 resolves to and checked by `tsc`.
 

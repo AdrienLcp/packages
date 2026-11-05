@@ -3,9 +3,9 @@
   "bugs": "https://github.com/AdrienLcp/packages/issues",
   "description": "Build-time helpers that turn a Vite app's shell into one prerendered document per page: the rendered head moved where it belongs, language alternates, the page's stylesheets inlined without Vite linking them again, its fonts preloaded as chosen",
   "devDependencies": {
-    "@types/node": "^26.6.3",
-    "linkedom": "^0.18.13",
-    "vite": "8.3.1"
+    "@types/node": "^26.6.6",
+    "linkedom": "^0.18.15",
+    "vite": "8.3.5"
   },
   "exports": {
     ".": "./dist/index.js",

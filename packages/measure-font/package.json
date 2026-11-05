@@ -9,13 +9,13 @@
     "@capsizecss/unpack": "^4.0.1",
     "@types/fontkit": "^2.0.9",
     "fontkit": "^2.0.4",
-    "linkedom": "^0.18.13",
+    "linkedom": "^0.18.15",
     "wawoff2": "^2.0.1",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   },
   "description": "A dev-time bin that measures a self-hosted font against Arial for the fallback faces of @adrienlcp/styles — per weight and width, over the app's own text, its dictionaries or its prerendered pages, with the digits apart and the ratio range that keeps each edge line wrapped — and converts a ch to em",
   "devDependencies": {
-    "@types/node": "^26.6.3"
+    "@types/node": "^26.6.6"
   },
   "exports": {
     "./package.json": "./package.json"

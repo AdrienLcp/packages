@@ -3,13 +3,13 @@
   "description": "Small, typed, dependency-free TypeScript packages",
   "devDependencies": {
     "@adrienlcp/biome-config": "workspace:*",
-    "@biomejs/biome": "2.5.14",
+    "@biomejs/biome": "2.6.4",
     "@changesets/cli": "^3.0.3",
     "@cspell/dict-fr-fr": "^2.3.2",
-    "@vitest/coverage-v8": "5.0.2",
-    "cspell": "^10.3.6",
+    "@vitest/coverage-v8": "5.1.0",
+    "cspell": "^10.4.0",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.2"
+    "vitest": "^5.1.0"
   },
   "engines": {
     "node": ">=26.0.0",
@@ -17,11 +17,12 @@
   },
   "license": "MIT",
   "name": "adrienlcp-packages",
-  "packageManager": "pnpm@12.8.1+sha512.f64ba907507f5ceafe06c8d38e6052d0179444580ec1279ddd5bfc11cb48aa8a2644b66598e07e761da84872a9fc57d5f902b87fa49d024198d558612aabbe45",
+  "packageManager": "pnpm@12.16.1+sha512.091d1dee7927575661b25dab3c2ae31cafc1c54d6b71ed6a6600cf0c1cb10434a447eae14015f1b23e2e6bedeed79df94a932e2164d2832280dce3fb32f656d1",
   "private": true,
   "scripts": {
     "build": "pnpm -r build",
     "changeset": "changeset",
+    "deps:upgrade": "corepack use pnpm@latest && pnpm -r up -L && biome migrate --write",
     "exports": "node apps/docs/scripts/write-exports-index.ts",
     "lint": "biome check --write",
     "lint:ci": "biome ci",

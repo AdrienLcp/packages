@@ -6,7 +6,7 @@
   },
   "description": "localStorage that never throws: every read, write and removal returns a Result, and typed reads check what they find",
   "devDependencies": {
-    "happy-dom": "20.14.5"
+    "happy-dom": "21.0.4"
   },
   "exports": {
     ".": "./dist/index.js",

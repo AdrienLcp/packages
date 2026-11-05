@@ -10,6 +10,8 @@ export const REACT_ARIA_TOKENS = [
   '--disclosure-panel-width',
   '--page-height',
   '--page-width',
+  '--sheet-scroll-padding-x',
+  '--sheet-scroll-padding-y',
   '--tab-panel-height',
   '--tab-panel-width',
   '--table-row-level',

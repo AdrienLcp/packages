@@ -3,13 +3,13 @@
 A translation and formatting library in five files, with no dependency on any
 project and none on a framework.
 
-| File | What it holds |
-| --- | --- |
-| `define-translation.ts` | `defineTranslation`, and the options a placeholder demands |
-| `dictionary.ts` | `defineDictionary`, what one locale owes another, and every type read off a message |
-| `translator.ts` | `createTranslator` — the lookup and the substitution |
-| `negotiate-locale.ts` | `negotiateLocale` — which locale a preference list asks for |
-| `create-i18n.ts` | `createI18n` — the registry binding each locale to its dictionary |
+| File                    | What it holds                                                                       |
+| ----------------------- | ----------------------------------------------------------------------------------- |
+| `define-translation.ts` | `defineTranslation`, and the options a placeholder demands                          |
+| `dictionary.ts`         | `defineDictionary`, what one locale owes another, and every type read off a message |
+| `translator.ts`         | `createTranslator` — the lookup and the substitution                                |
+| `negotiate-locale.ts`   | `negotiateLocale` — which locale a preference list asks for                         |
+| `create-i18n.ts`        | `createI18n` — the registry binding each locale to its dictionary                   |
 
 ## What it does, and what it does not
 
@@ -32,7 +32,7 @@ is either its dictionary or a function fetching it, and the guarantees are the
 same either way — which is why how a language ships is not a second decision to
 make.
 
-`createTranslator` is underneath, and takes a locale *and* a dictionary. Nothing
+`createTranslator` is underneath, and takes a locale _and_ a dictionary. Nothing
 there can check that the two go together: a translator built with the French
 dictionary and the tag `'en'` reads French and counts in English. That is why
 `@adrienlcp/i18n` does not export it: a project reaches a translator through
@@ -74,17 +74,17 @@ above are English even when the strings read are French.
 
 The registry exposes six things:
 
-| | |
-| --- | --- |
-| `i18n.translator(locale, formatLocale?)` | the translator for that locale, synchronously |
-| `i18n.load(locale, { formatLocale?, signal? }?)` | fetches a dictionary registered as a loader, and resolves with the translator that reads it |
-| `i18n.negotiate(preferred)` | which registered locale a list of BCP-47 tags asks for |
-| `i18n.compare(locale, options?)` | a comparator for `Array.sort`, so `Émile` lands between `Adrien` and `Zoé` rather than after both |
-| `i18n.locales` | every registered locale, loaded or not |
-| `i18n.defaultLocale` | the one `negotiate` falls back to |
+|                                                  |                                                                                                   |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `i18n.translator(locale, formatLocale?)`         | the translator for that locale, synchronously                                                     |
+| `i18n.load(locale, { formatLocale?, signal? }?)` | fetches a dictionary registered as a loader, and resolves with the translator that reads it       |
+| `i18n.negotiate(preferred)`                      | which registered locale a list of BCP-47 tags asks for                                            |
+| `i18n.compare(locale, options?)`                 | a comparator for `Array.sort`, so `Émile` lands between `Adrien` and `Zoé` rather than after both |
+| `i18n.locales`                                   | every registered locale, loaded or not                                                            |
+| `i18n.defaultLocale`                             | the one `negotiate` falls back to                                                                 |
 
 A translator is built once per locale and kept, so `translator('fr')` returns
-the *same* function every time. That is not a speed optimisation: a consumer
+the _same_ function every time. That is not a speed optimisation: a consumer
 memoising on the translator has to see a new identity when the locale changes
 and the same one when it does not, or every `useMemo` downstream either
 recomputes on every render or keeps serving the old language.
@@ -96,7 +96,7 @@ i18n.negotiate(navigator.languages)
 ```
 
 Each tag is tried whole, then with one subtag dropped at a time, and at every
-one of those steps a registered locale that *extends* the candidate will do. So
+one of those steps a registered locale that _extends_ the candidate will do. So
 `fr-CA` reads a registered `fr`, a registered `pt-BR` still beats a bare `pt`,
 and — the case a lookup that only walks up gets wrong — a bare `fr` reads
 `fr-FR` in an app that ships `fr-FR` and `fr-CA` and no plain `fr`. Answering
@@ -124,14 +124,14 @@ translate('openedAt', { time }) // 'Opens at 14:30', where `timeStyle: 'short'`
 translate('fileSize', { bytes: 2048 }) // '2 048 bytes written'
 ```
 
-| Follows `formatLocale` | Stays in the sentence's language |
-| --- | --- |
-| `{x:number}`, and the `{?}` of a plural | a number spelled out: `compactDisplay: 'long'`, `unitDisplay: 'long'`, `currencyDisplay: 'name'` |
+| Follows `formatLocale`                                                                            | Stays in the sentence's language                                                                                                                                                                                                                               |
+| ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `{x:number}`, and the `{?}` of a plural                                                           | a number spelled out: `compactDisplay: 'long'`, `unitDisplay: 'long'`, `currencyDisplay: 'name'`                                                                                                                                                               |
 | a numeric `{x:date}`: no options, `dateStyle: 'short'`, numeric `month`, `timeStyle` up to `long` | a `{x:date}` in words: a `weekday`, an `era`, a `dayPeriod`, a named `month`, `dateStyle` from `medium`, `timeStyle: 'full'`, a long `timeZoneName` — which still takes its hour cycle from `formatLocale`, unless the dictionary sets `hourCycle` or `hour12` |
-| | the plural form chosen, `{x:list}`, `{x:relative}`, `{x:displayname}` |
+|                                                                                                   | the plural form chosen, `{x:list}`, `{x:relative}`, `{x:displayname}`                                                                                                                                                                                          |
 
 Left out, it is the language's locale, and nothing changes. A translator is
-kept per locale *and* `formatLocale`; a list compares by its tags, so passing
+kept per locale _and_ `formatLocale`; a list compares by its tags, so passing
 `navigator.languages` on every render hands out the same function. When the app
 lets the reader choose a format — a 24-hour clock, a decimal comma — that
 choice is the `formatLocale` instead.
@@ -157,16 +157,16 @@ A typed placeholder whose formatter needs options, or whose alternatives the
 dictionary must supply, is written with `defineTranslation(message, options)`
 instead of a bare string.
 
-| Placeholder | Value | Dictionary options | Behind it |
-| --- | --- | --- | --- |
-| `{x}` | `string` | none | `String(value)` |
-| `{x:number}` | `number` | `number.x`, optional | `Intl.NumberFormat` |
-| `{x:plural}` | `number` | `plural.x`, **required** | `Intl.PluralRules`, then `Intl.NumberFormat` |
-| `{x:date}` | `FormattableDate`: a `Date`, or a Temporal `Instant`, `PlainDate`, `PlainDateTime`, `PlainTime` or `ZonedDateTime` | `date.x`, optional | `Intl.DateTimeFormat` |
-| `{x:list}` | `readonly string[]` | `list.x`, optional | `Intl.ListFormat` |
-| `{x:relative}` | `number` | `relative.x`, **required** | `Intl.RelativeTimeFormat` |
-| `{x:displayname}` | `string` | `displayname.x`, **required** | `Intl.DisplayNames` |
-| `{x:enum}` | a key of `enum.x` | `enum.x`, **required** | none |
+| Placeholder       | Value                                                                                                              | Dictionary options            | Behind it                                    |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------- | -------------------------------------------- |
+| `{x}`             | `string`                                                                                                           | none                          | `String(value)`                              |
+| `{x:number}`      | `number`                                                                                                           | `number.x`, optional          | `Intl.NumberFormat`                          |
+| `{x:plural}`      | `number`                                                                                                           | `plural.x`, **required**      | `Intl.PluralRules`, then `Intl.NumberFormat` |
+| `{x:date}`        | `FormattableDate`: a `Date`, or a Temporal `Instant`, `PlainDate`, `PlainDateTime`, `PlainTime` or `ZonedDateTime` | `date.x`, optional            | `Intl.DateTimeFormat`                        |
+| `{x:list}`        | `readonly string[]`                                                                                                | `list.x`, optional            | `Intl.ListFormat`                            |
+| `{x:relative}`    | `number`                                                                                                           | `relative.x`, **required**    | `Intl.RelativeTimeFormat`                    |
+| `{x:displayname}` | `string`                                                                                                           | `displayname.x`, **required** | `Intl.DisplayNames`                          |
+| `{x:enum}`        | a key of `enum.x`                                                                                                  | `enum.x`, **required**        | none                                         |
 
 `:number`, `:date` and `:list` only configure a formatter, so a bare string
 declaring one is already complete — the options are how you override the
@@ -176,8 +176,8 @@ translatable text, `:relative` needs the unit the count is counting and
 without its options does not compile.
 
 `{x:relative}` takes the count alone and reads its sign the way `Intl` does —
-negative is the past. With `numeric: 'auto'` the locale answers *yesterday*
-rather than *1 day ago*.
+negative is the past. With `numeric: 'auto'` the locale answers _yesterday_
+rather than _1 day ago_.
 
 ```ts
 const EN = defineDictionary({
@@ -416,7 +416,7 @@ section, and changes nothing above.
 
 A dictionary written into the registry is a dictionary the bundler ships. At two
 languages that is nothing; at five it is every reader downloading four languages
-they cannot read. So a locale may register a *loader* instead, and none of the
+they cannot read. So a locale may register a _loader_ instead, and none of the
 checking changes — the type of `import('./dictionary-de')` is known long before
 it is called:
 

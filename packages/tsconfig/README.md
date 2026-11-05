@@ -17,9 +17,9 @@ pnpm add -D @adrienlcp/tsconfig
 }
 ```
 
-| File | For |
-| --- | --- |
-| `base.json` | Any TypeScript: Node, a library, a script. `lib: ["esnext"]` |
+| File           | For                                                                              |
+| -------------- | -------------------------------------------------------------------------------- |
+| `base.json`    | Any TypeScript: Node, a library, a script. `lib: ["esnext"]`                     |
 | `web-app.json` | A React app in the browser: `base.json` plus `jsx: "react-jsx"` and the DOM libs |
 
 Every flag is on because a bug once paid for it: `strict`,

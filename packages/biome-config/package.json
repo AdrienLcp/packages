@@ -22,7 +22,7 @@
   "license": "MIT",
   "name": "@adrienlcp/biome-config",
   "peerDependencies": {
-    "@biomejs/biome": ">=2.5.0"
+    "@biomejs/biome": ">=2.6.0"
   },
   "repository": {
     "directory": "packages/biome-config",

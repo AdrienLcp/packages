@@ -113,18 +113,18 @@ paint; the app fetches the page's own chunks once it runs.
 
 ## The pieces
 
-| Export | What it does |
-| --- | --- |
-| `parseDocument`, `serializeDocument` | Read and print a document. Printing throws when a title or an attribute would read back as another text, such as a literal `&amp;` |
-| `renderIntoShell` | Writes the server-rendered HTML into the root, moves its leading head tags into the head, sets the `<title>`, returns it. A drawing's `<title>` stays in its `<svg>` |
-| `setMetaContents` | Sets the content of each `<meta>` named, several at once; throws on a tag the shell does not hold |
-| `writeLanguageVersions` | Canonical link, one `hreflang` alternate per language and `x-default`; `og:locale` and its alternates when the shell has `og:locale` |
-| `appendStructuredData` | JSON-LD in the head, with `<` escaped so a string cannot close the script |
-| `readBuildManifest` | Vite's manifest of the client build, checked; a missing manifest throws naming the build option that writes it |
-| `inlinePageStylesheets` | One `<style>` for the shell's sheets and the page's, in cascade order, a marker link per sheet; returns the CSS |
-| `addFontPreloads` | Preloads the faces the inlined CSS declares, ahead of any other preload; the latin `.woff2` subset by default. `include` chooses: a pattern, several in the order to ask for them, or `'none'` |
-| `htmlFileForPath` | `/en` → `en.html`, `/` → `index.html`, `/docs/` → `docs/index.html` |
-| `originOfCanonical` | The origin the shell's canonical link names, the one place the host is written down |
+| Export                               | What it does                                                                                                                                                                                   |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `parseDocument`, `serializeDocument` | Read and print a document. Printing throws when a title or an attribute would read back as another text, such as a literal `&amp;`                                                             |
+| `renderIntoShell`                    | Writes the server-rendered HTML into the root, moves its leading head tags into the head, sets the `<title>`, returns it. A drawing's `<title>` stays in its `<svg>`                           |
+| `setMetaContents`                    | Sets the content of each `<meta>` named, several at once; throws on a tag the shell does not hold                                                                                              |
+| `writeLanguageVersions`              | Canonical link, one `hreflang` alternate per language and `x-default`; `og:locale` and its alternates when the shell has `og:locale`                                                           |
+| `appendStructuredData`               | JSON-LD in the head, with `<` escaped so a string cannot close the script                                                                                                                      |
+| `readBuildManifest`                  | Vite's manifest of the client build, checked; a missing manifest throws naming the build option that writes it                                                                                 |
+| `inlinePageStylesheets`              | One `<style>` for the shell's sheets and the page's, in cascade order, a marker link per sheet; returns the CSS                                                                                |
+| `addFontPreloads`                    | Preloads the faces the inlined CSS declares, ahead of any other preload; the latin `.woff2` subset by default. `include` chooses: a pattern, several in the order to ask for them, or `'none'` |
+| `htmlFileForPath`                    | `/en` → `en.html`, `/` → `index.html`, `/docs/` → `docs/index.html`                                                                                                                            |
+| `originOfCanonical`                  | The origin the shell's canonical link names, the one place the host is written down                                                                                                            |
 
 Font preloads belong on prerendered pages only: the bare shell paints nothing
 before the app runs, so a face preloaded there sits unused while the browser

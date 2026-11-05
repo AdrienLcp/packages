@@ -1,9 +1,10 @@
 # @adrienlcp/biome-config
 
-Biome lint and format settings: single quotes, no semicolons, no trailing
-commas, space indentation, sorted keys, attributes, CSS properties and imports,
-`noFloatingPromises` as an error, `console.log` refused (`debug`, `info`,
-`warn`, `error` stay allowed), and no cast of any kind.
+Biome lint and format settings: single quotes, YAML included, no semicolons, no
+trailing commas, space indentation, sorted keys, attributes, CSS properties and
+imports, `noFloatingPromises` as an error, `console.log` refused (`debug`,
+`info`, `warn`, `error` stay allowed), no cast of any kind, and Markdown
+formatted with its fenced code kept as written.
 
 ```bash
 pnpm add -D @biomejs/biome @adrienlcp/biome-config
@@ -11,14 +12,14 @@ pnpm add -D @biomejs/biome @adrienlcp/biome-config
 
 ```json
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.14/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.6.4/schema.json",
   "extends": ["@adrienlcp/biome-config", "@adrienlcp/biome-config/react"]
 }
 ```
 
-| Entry | For |
-| --- | --- |
-| `@adrienlcp/biome-config` | Any project |
+| Entry                           | For                                                 |
+| ------------------------------- | --------------------------------------------------- |
+| `@adrienlcp/biome-config`       | Any project                                         |
 | `@adrienlcp/biome-config/react` | Adds Biome's `react` domain; list it after the base |
 
 The `biome.json` that extends the package must sit next to the `node_modules`
@@ -51,13 +52,13 @@ A key set in the project wins. Two lists behave differently:
 A cast tells the compiler to stop checking. Narrow with a type guard, parse
 with a schema, or give the function a better signature instead.
 
-| Form | Refused by |
-| --- | --- |
-| `value as Type`, `value as unknown as Type`, `<Type>value` | `nursery/noUnsafeTypeAssertion` |
-| `value!` | `style/noNonNullAssertion` |
-| `// @ts-ignore` | `suspicious/noTsIgnore` |
-| `// @ts-expect-error` | `plugins/no-ts-expect-error.grit` |
-| `// biome-ignore …` | `plugins/no-biome-ignore.grit` |
+| Form                                                       | Refused by                        |
+| ---------------------------------------------------------- | --------------------------------- |
+| `value as Type`, `value as unknown as Type`, `<Type>value` | `nursery/noUnsafeTypeAssertion`   |
+| `value!`                                                   | `style/noNonNullAssertion`        |
+| `// @ts-ignore`                                            | `suspicious/noTsIgnore`           |
+| `// @ts-expect-error`                                      | `plugins/no-ts-expect-error.grit` |
+| `// biome-ignore …`                                        | `plugins/no-biome-ignore.grit`    |
 
 `as const` and `satisfies` stay allowed.
 

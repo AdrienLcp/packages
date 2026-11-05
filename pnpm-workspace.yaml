@@ -11,5 +11,11 @@ allowBuilds:
 # dropped that check. What still guards pnpm is the "packageManager" pin.
 engineStrict: true
 
+# A release younger than a day is not installed: most hijacked npm versions
+# are pulled within hours. Pin the previous version when a fresh one is needed.
+minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  - '@adrienlcp/*'
+
 publicHoistPattern:
   - '@biomejs/*'
