@@ -1,5 +1,11 @@
 # @adrienlcp/biome-config
 
+## 0.3.0
+
+### Minor Changes
+
+- 959a37d: Needs Biome 2.6, which now formats YAML and Markdown: YAML takes single quotes like the code, and the fenced code in Markdown is kept as written, since a snippet in a README is laid out for reading and often partial.
+
 ## 0.2.1
 
 ### Patch Changes
