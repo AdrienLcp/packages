@@ -1,5 +1,11 @@
 # @adrienlcp/react-aria
 
+## 0.7.1
+
+### Patch Changes
+
+- 959a37d: `REACT_ARIA_TOKENS` lists `--sheet-scroll-padding-x` and `--sheet-scroll-padding-y`, which react-aria-components 1.22 sets at runtime.
+
 ## 0.7.0
 
 ### Minor Changes
