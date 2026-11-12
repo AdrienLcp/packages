@@ -1,5 +1,11 @@
 # @adrienlcp/react-aria
 
+## 0.8.0
+
+### Minor Changes
+
+- d2d4b08: The sheet leaves on a `sheet-fall` keyframe and its scrim on `sheet-scrim-out`, both on `$exit-easing`, instead of replaying the rise backwards: an ease-out reversed held the sheet still for most of its exit before dropping it. `$exit-easing` defaults to a curve that moves from the first frame and gathers speed.
+
 ## 0.7.1
 
 ### Patch Changes
