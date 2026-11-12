@@ -7,6 +7,10 @@ $scrim: var(--scrim, rgb(0 0 0 / 40%)) !default
 $enter: var(--transition-base, 0.2s) !default
 $exit: var(--transition-fast, 0.15s) !default
 $easing: var(--ease-out, ease-out) !default
+/// The leave's own curve, never the enter's reversed: an ease-out played
+/// backwards holds the sheet still before it drops. This one moves from the
+/// first frame and gathers speed as the sheet falls.
+$exit-easing: cubic-bezier(0.3, 0.1, 1, 1) !default
 /// The strip of screen the tallest sheet leaves above it, for a press that closes it.
 $top-gap: var(--space-2xl, 3rem) !default
 $grabber-color: var(--rule-strong, currentColor) !default
@@ -31,7 +35,7 @@ $_drag-offset: var(--sheet-drag-offset, 0rem)
     animation: sheet-scrim $enter $easing
 
   &[data-exiting]
-    animation: sheet-scrim $exit $easing reverse
+    animation: sheet-scrim-out $exit $exit-easing forwards
 
 /// The sheet itself: the screen's width, following the thumb on its grabber
 /// and settling back from where a short pull let go. Past the screen's height
@@ -56,7 +60,7 @@ $_drag-offset: var(--sheet-drag-offset, 0rem)
     animation: sheet-rise $enter $easing
 
   &[data-exiting]
-    animation: sheet-rise $exit $easing reverse
+    animation: sheet-fall $exit $exit-easing forwards
 
   &[data-settling]
     transition: translate $enter $easing
@@ -83,11 +87,15 @@ $_drag-offset: var(--sheet-drag-offset, 0rem)
   &:active
     cursor: grabbing
 
-/// The rise ends where the thumb left the sheet, so a sheet pulled down leaves
-/// from there.
+/// The rise ends where the thumb left the sheet, and the fall starts there, so
+/// a sheet pulled down leaves from where it was let go.
 @mixin keyframes
   @keyframes sheet-scrim
     from
+      opacity: 0
+
+  @keyframes sheet-scrim-out
+    to
       opacity: 0
 
   @keyframes sheet-rise
@@ -96,6 +104,13 @@ $_drag-offset: var(--sheet-drag-offset, 0rem)
 
     to
       translate: 0rem $_drag-offset
+
+  @keyframes sheet-fall
+    from
+      translate: 0rem $_drag-offset
+
+    to
+      translate: 0rem 100%
 
 /// The rules `PopoverSheet` and `SheetGrabber` need, included once in the
 /// app's components layer.

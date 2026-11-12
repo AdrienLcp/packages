@@ -181,7 +181,7 @@ and padding, the popover's whole surface — stays the app's, on the
 ```
 
 `styles` writes `.sheet-overlay`, `.sheet` and `.sheet-grabber` and the
-`sheet-rise` and `sheet-scrim` keyframes. The mixins under them — `overlay`,
+`sheet-rise`, `sheet-fall`, `sheet-scrim` and `sheet-scrim-out` keyframes. The mixins under them — `overlay`,
 `surface`, `grabber` and `keyframes` — style a sheet of the app's own under
 its own class names. The overlay is held to the visual viewport react-aria
 measures, so a field focused inside the sheet lifts it above the software
@@ -191,7 +191,8 @@ does, so the scrollbar stays clear of the sheet's rounded corners.
 Each default reads the token an app built on `@adrienlcp/styles` declares,
 with a fallback where there is none: `$scrim` (`--scrim`), `$enter` and
 `$exit` (`--transition-base`, `--transition-fast`), `$easing`
-(`--ease-out`), `$top-gap`, the strip the tallest sheet leaves above it
+(`--ease-out`), `$exit-easing`, the leave's own curve, never the enter's
+reversed (`cubic-bezier(0.3, 0.1, 1, 1)`, moving from the first frame), `$top-gap`, the strip the tallest sheet leaves above it
 (`--space-2xl`), `$grabber-color` (`--rule-strong`) and `$grabber-radius`
 (`--radius-full`). `$z-index` is `10`. Configure them once, in the app's own
 `_sheet.sass`, and `@use` that file:

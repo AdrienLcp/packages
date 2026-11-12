@@ -50,6 +50,21 @@ describe('sheet', () => {
     expect(css).toContain(`to{translate:0rem var(${SHEET_DRAG_OFFSET}, 0rem)}`)
   })
 
+  it('[sheet] leaves on a fall of its own, never the rise reversed', () => {
+    const css = compile(`
+@use 'sheet'
+@include sheet.styles
+`)
+
+    expect(css).toContain(
+      '.sheet[data-exiting]{animation:sheet-fall var(--transition-fast, 0.15s) cubic-bezier(0.3, 0.1, 1, 1) forwards}'
+    )
+    expect(css).toContain(
+      `@keyframes sheet-fall{from{translate:0rem var(${SHEET_DRAG_OFFSET}, 0rem)}to{translate:0rem 100%}}`
+    )
+    expect(css).not.toContain('reverse')
+  })
+
   it('[sheet] reads the app tokens, with a fallback for each', () => {
     const css = compile(`
 @use 'sheet'

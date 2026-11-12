@@ -140,13 +140,14 @@ What every react-aria app of mine repeats: a className merge that follows the re
 - `$enter` (sass) [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
 - `$exit` (sass) [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
 - `$easing` (sass) [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
+- `$exit-easing` (sass) — The leave's own curve, never the enter's reversed: an ease-out played backwards holds the sheet still before it drops. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
 - `$top-gap` (sass) — The strip of screen the tallest sheet leaves above it, for a press that closes it. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
 - `$grabber-color` (sass) [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
 - `$grabber-radius` (sass) [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
 - `overlay` (sass) — The scrim a sheet rises over, holding it to the bottom edge. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
 - `surface` (sass) — The sheet itself: the screen's width, following the thumb on its grabber and settling back from where a short pull let go. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
 - `grabber` (sass) — The strip a thumb pulls the sheet down by, at the top of the sheet above its scrolling content. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
-- `keyframes` (sass) — The rise ends where the thumb left the sheet, so a sheet pulled down leaves from there. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
+- `keyframes` (sass) — The rise ends where the thumb left the sheet, and the fall starts there, so a sheet pulled down leaves from where it was let go. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
 - `styles` (sass) — The rules `PopoverSheet` and `SheetGrabber` need, included once in the app's components layer. [More](https://github.com/AdrienLcp/packages/blob/main/packages/react-aria/README.md#the-sheets-styles-sheet)
 
 ## @adrienlcp/react-router
