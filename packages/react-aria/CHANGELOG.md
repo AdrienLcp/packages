@@ -1,5 +1,11 @@
 # @adrienlcp/react-aria
 
+## 0.8.1
+
+### Patch Changes
+
+- 28fcea4: The scrim fades its colour rather than its opacity, so the sheet inside it stays opaque while it rises and falls instead of ghosting over the page.
+
 ## 0.8.0
 
 ### Minor Changes
