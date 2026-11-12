@@ -65,6 +65,21 @@ describe('sheet', () => {
     expect(css).not.toContain('reverse')
   })
 
+  it('[sheet] fades the scrim alone, never the sheet it holds', () => {
+    const css = compile(`
+@use 'sheet'
+@include sheet.keyframes
+`)
+
+    expect(css).toContain(
+      '@keyframes sheet-scrim{from{background-color:rgba(0,0,0,0)}}'
+    )
+    expect(css).toContain(
+      '@keyframes sheet-scrim-out{to{background-color:rgba(0,0,0,0)}}'
+    )
+    expect(css).not.toContain('opacity')
+  })
+
   it('[sheet] reads the app tokens, with a fallback for each', () => {
     const css = compile(`
 @use 'sheet'

@@ -88,15 +88,16 @@ $_drag-offset: var(--sheet-drag-offset, 0rem)
     cursor: grabbing
 
 /// The rise ends where the thumb left the sheet, and the fall starts there, so
-/// a sheet pulled down leaves from where it was let go.
+/// a sheet pulled down leaves from where it was let go. The scrim fades its
+/// colour, never its opacity, which the sheet inside it would share.
 @mixin keyframes
   @keyframes sheet-scrim
     from
-      opacity: 0
+      background-color: transparent
 
   @keyframes sheet-scrim-out
     to
-      opacity: 0
+      background-color: transparent
 
   @keyframes sheet-rise
     from
